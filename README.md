@@ -6,12 +6,34 @@ Point your phone camera at something and turn it into pen-plotter line art in re
 
 ## Use it
 
-1. Open the live page on your phone and tap **Live camera**. Allow camera access when asked.
-2. Pick a style and tune the sliders. The preview updates as you move the phone.
-3. Tap **Freeze frame** when you like what you see.
-4. Tap **Save SVG**. The file is sized in millimetres for the paper you chose.
+1. Open the live page on your phone and tap the shutter button to start the camera. Allow camera access when asked.
+2. Pick a style (Waves, Hatch, Spiral, Dots). The plot updates as you move the phone.
+3. Tap the shutter to freeze the frame, and again to resume.
+4. Tap the download button to save the SVG. It's sized in millimetres for the paper you chose.
 
-No camera permission? **Take photo** opens your camera app instead, and **Choose image** loads one from your gallery.
+No camera permission? The camera button beside the shutter opens your camera app instead, and the picture button loads an image from your gallery.
+
+Tip: on iPhone use Share → **Add to Home Screen**, and on Android use **Install app**, to open it full screen like a camera app.
+
+## Gestures
+
+| On the picture    | Does                         |
+| ----------------- | ---------------------------- |
+| Drag left / right | Line spacing                 |
+| Drag up / down    | Contrast                     |
+| Pinch             | Zoom in to check the lines   |
+| Double-tap        | Zoom in 3×, or back out      |
+| Tap               | Hide or show all controls    |
+
+Swipe up on the bottom bar (or tap its handle) for every setting. While you drag a slider, the panel turns see-through so you can watch the full-size plot change.
+
+## Top bar
+
+- **Readout**: paper, total line length, number of lines
+- **Flip camera**: front or back (shown while the camera is on)
+- **Rotate paper**: portrait or landscape
+- **Source preview**: small thumbnail of what the camera sees, for aiming
+- **Full screen**: on browsers that support it
 
 ## Styles
 
@@ -30,6 +52,8 @@ No camera permission? **Take photo** opens your camera app instead, and **Choose
 - **Contrast, Brightness, Auto levels, Invert**: tone adjustments before plotting
 - **Pen width**: stroke width for the preview and the SVG
 - **Paper and Margin**: A5, A4, A3 (portrait or landscape) or 200 mm square
+- **Send SVG**: opens the phone's share sheet (AirDrop, Nearby Share, email) where supported
+- **Copy SVG**: copies the SVG markup to the clipboard
 
 ## SVG output
 
