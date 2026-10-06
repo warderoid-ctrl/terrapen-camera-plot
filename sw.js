@@ -1,7 +1,7 @@
 // terraPen Camera Plot service worker.
 // The page is fetched network-first so every push to GitHub reaches people straight away;
 // the cached copy is only used when offline. Icons and fonts are cache-first.
-const CACHE = "camera-plot-v1";
+const CACHE = "camera-plot-v2";
 const CORE = ["./", "./index.html", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/apple-touch-icon.png", "./icons/favicon-32.png"];
 
 self.addEventListener("install", (e) => {
@@ -24,7 +24,7 @@ self.addEventListener("fetch", (e) => {
   // Pages: network first, fall back to cache when offline.
   if (req.mode === "navigate" || (url.origin === location.origin && url.pathname.endsWith(".html"))) {
     e.respondWith(
-      fetch(req)
+      fetch(req, { cache: "no-cache" }) // always check GitHub for a newer page, skipping the browser's 10-minute cache
         .then((res) => { const copy = res.clone(); caches.open(CACHE).then((c) => c.put("./", copy)); return res; })
         .catch(() => caches.match("./").then((r) => r || caches.match("./index.html")))
     );
