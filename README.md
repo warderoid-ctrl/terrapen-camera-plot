@@ -7,7 +7,7 @@ Point your phone camera at something and turn it into pen-plotter line art in re
 ## Use it
 
 1. Open the live page on your phone and tap the shutter button to start the camera. Allow camera access when asked.
-2. Pick a style (Waves, Hatch, Spiral, Dots). The plot updates as you move the phone.
+2. Swipe the style carousel above the shutter. Each thumbnail previews that style on your picture, and the one in the centre is active (or just tap one). The plot updates as you move the phone.
 3. Tap the shutter to freeze the frame, and again to resume.
 4. Tap the download button to save the SVG. It's sized in millimetres for the paper you chose.
 
