@@ -39,7 +39,7 @@ Swipe up on the bottom bar (or tap its handle) for every setting. While you drag
 
 - **Readout**: paper, total line length, number of lines
 - **Flip camera**: front or back (shown while the camera is on)
-- **Rotate paper**: portrait or landscape
+- **Paper shape**: cycles portrait → landscape → square
 - **Source preview**: small thumbnail of what the camera sees, for aiming
 - **Full screen**: on browsers that support it
 
@@ -59,7 +59,8 @@ Swipe up on the bottom bar (or tap its handle) for every setting. While you drag
 - **Hatch layers**: number of hatch directions (Hatch only)
 - **Contrast, Brightness, Auto levels, Invert**: tone adjustments before plotting
 - **Pen width**: stroke width for the preview and the SVG
-- **Paper and Margin**: A5, A4, A3 (portrait or landscape) or 200 mm square
+- **Paper**: A6 up to A0, each as portrait, landscape or square (square uses the short side, e.g. A4 square is 210 × 210 mm). Changing size scales the line spacing and margin with it, so the drawing keeps its look and the live preview stays fast
+- **Margin**: blank border around the drawing (mm)
 - **Send SVG**: opens the phone's share sheet (AirDrop, Nearby Share, email) where supported
 - **Copy SVG**: copies the SVG markup to the clipboard
 

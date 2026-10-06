@@ -151,6 +151,14 @@ select {
   border-radius: 8px; min-height: 44px; padding: 8px 10px; width: 100%;
 }
 .two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: end; }
+.shape { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--chrome-solid); min-height: 44px; }
+.shape label { display: grid; place-items: center; cursor: pointer; border-left: 1px solid var(--line); }
+.shape label:first-of-type { border-left: 0; }
+.shape input:checked + label { background: var(--accent); }
+.shape input:checked + label .pg { border-color: var(--accent-ink); }
+.shape input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: -3px; }
+.pg { display: block; border: 2px solid var(--muted); border-radius: 2px; }
+.pg.p { width: 14px; height: 20px; } .pg.l { width: 20px; height: 14px; } .pg.sq { width: 17px; height: 17px; }
 .btnrow { display: flex; flex-wrap: wrap; gap: 8px; }
 .btn {
   flex: 1 1 130px; min-height: 44px; padding: 8px 14px; border-radius: 8px;
@@ -201,7 +209,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   <button class="iconbtn" id="btnFlip" type="button" aria-label="Switch front or back camera" hidden>
     <svg class="i" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><path d="M9 13.5a3 3 0 0 1 5.2-2M15 12.5a3 3 0 0 1-5.2 2"/><path d="M14.5 9.5v2h-2M9.5 16.5v-2h2"/></svg>
   </button>
-  <button class="iconbtn" id="btnRotate" type="button" aria-label="Switch paper between portrait and landscape">
+  <button class="iconbtn" id="btnRotate" type="button" aria-label="Change paper shape: portrait, landscape or square">
     <svg class="i" viewBox="0 0 24 24"><rect x="3" y="8" width="11" height="13" rx="1"/><path d="M13 3h2a5 5 0 0 1 5 5v3"/><path d="M17.5 9l2.5 2.5L22.5 9"/></svg>
   </button>
   <button class="iconbtn" id="btnPip" type="button" aria-label="Show what the camera sees" aria-pressed="true">
@@ -266,8 +274,14 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
       <p class="label">Paper</p>
       <div class="two">
         <select id="paperSize" aria-label="Paper size"></select>
-        <div class="ctl" id="marginCtl"></div>
+        <div class="shape" role="radiogroup" aria-label="Paper shape">
+          <input class="sr" type="radio" name="shape" id="sh-p" value="p"><label for="sh-p" title="Portrait"><span class="pg p"></span></label>
+          <input class="sr" type="radio" name="shape" id="sh-l" value="l"><label for="sh-l" title="Landscape"><span class="pg l"></span></label>
+          <input class="sr" type="radio" name="shape" id="sh-sq" value="sq"><label for="sh-sq" title="Square"><span class="pg sq"></span></label>
+        </div>
       </div>
+      <p class="tips" id="paperInfo"></p>
+      <div class="ctl" id="marginCtl"></div>
     </div>
     <div class="sec">
       <p class="label">Export</p>
@@ -298,17 +312,24 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   const body = document.body;
 
   // ---------------- settings ----------------
-  const PAPERS = {
-    a4p: [210, 297, "A4", "a4l"], a4l: [297, 210, "A4 landscape", "a4p"],
-    a5p: [148, 210, "A5", "a5l"], a5l: [210, 148, "A5 landscape", "a5p"],
-    a3p: [297, 420, "A3", "a3l"], a3l: [420, 297, "A3 landscape", "a3p"],
-    sq: [200, 200, "Square 200 mm", "sq"]
-  };
-  const DEFAULTS = { mode: "wave", paper: "a4p", margin: 10, spacing: 3.5, amp: 100, layers: 3, contrast: 1.3, bright: 0, pen: 0.3, invert: false, auto: true, pip: true };
+  // ISO 216 sizes in mm (short side, long side). Square uses the short side.
+  const SIZES = { a6: [105, 148], a5: [148, 210], a4: [210, 297], a3: [297, 420], a2: [420, 594], a1: [594, 841], a0: [841, 1189] };
+  const SHAPES = { p: "portrait", l: "landscape", sq: "square" };
+  const DEFAULTS = { mode: "wave", size: "a4", shape: "p", margin: 10, spacing: 3.5, amp: 100, layers: 3, contrast: 1.3, bright: 0, pen: 0.3, invert: false, auto: true, pip: true };
   const S = Object.assign({}, DEFAULTS);
   const KEY = "terrapen-camera-plot";
   try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
-  if (!PAPERS[S.paper]) S.paper = DEFAULTS.paper;
+  if (S.paper) { // settings saved by the earlier version
+    const m = /^(a\d)([pl])$/.exec(S.paper);
+    if (m) { S.size = m[1]; S.shape = m[2]; } else if (S.paper === "sq") { S.size = "a4"; S.shape = "sq"; }
+    delete S.paper;
+  }
+  if (!SIZES[S.size]) S.size = DEFAULTS.size;
+  if (!SHAPES[S.shape]) S.shape = DEFAULTS.shape;
+  const paperWH = () => { const [a, b] = SIZES[S.size]; return S.shape === "l" ? [b, a] : S.shape === "sq" ? [a, a] : [a, b]; };
+  const paperName = () => S.size.toUpperCase() + (S.shape === "p" ? "" : " " + SHAPES[S.shape]);
+  // How much bigger than A4 the sheet is (by side length). Spacing ranges and sampling scale with it.
+  const scaleOf = (size) => { const [a, b] = SIZES[size]; return Math.sqrt(a * b / (210 * 297)); };
   const store = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
 
   const SLIDERS = [
@@ -334,7 +355,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     input.addEventListener("input", () => { S[sp.id] = +input.value; changed(false); });
     bindScrub(input, wrap);
   });
-  $("marginCtl").innerHTML = `<label class="name" for="margin">Margin</label><output id="o-margin" for="margin"></output><input type="range" id="margin" min="0" max="40" step="1">`;
+  $("marginCtl").innerHTML = `<label class="name" for="margin">Margin</label><output id="o-margin" for="margin"></output><input type="range" id="margin" min="0" max="160" step="1">`;
   $("margin").value = S.margin;
   $("margin").addEventListener("input", () => { S.margin = +$("margin").value; changed(true); });
   bindScrub($("margin"), $("marginCtl"));
@@ -351,12 +372,34 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   }
 
   const paperSel = $("paperSize");
-  Object.keys(PAPERS).forEach((k) => { const o = document.createElement("option"); o.value = k; o.textContent = PAPERS[k][2] + (k.endsWith("p") ? " portrait" : ""); paperSel.appendChild(o); });
-  paperSel.value = S.paper;
-  paperSel.addEventListener("change", () => { S.paper = paperSel.value; changed(true); layout(); });
+  Object.keys(SIZES).reverse().forEach((k) => { const o = document.createElement("option"); o.value = k; o.textContent = k.toUpperCase(); paperSel.appendChild(o); });
+  paperSel.value = S.size;
+  function setRanges() {
+    const k = scaleOf(S.size);
+    $("spacing").max = (10 * k).toFixed(1);
+    $("margin").max = String(Math.round(40 * k));
+  }
+  paperSel.addEventListener("change", () => {
+    // Keep the drawing looking the same on a bigger or smaller sheet: scale spacing and margin with it.
+    const r = scaleOf(paperSel.value) / scaleOf(S.size);
+    S.size = paperSel.value; setRanges();
+    S.spacing = clamp(+(S.spacing * r).toFixed(1), 1.5, +$("spacing").max);
+    S.margin = clamp(Math.round(S.margin * r), 0, +$("margin").max);
+    $("margin").value = S.margin;
+    changed(true); layout();
+  });
+  function setShape(sh) {
+    S.shape = sh;
+    document.querySelectorAll('input[name="shape"]').forEach((r) => { r.checked = r.value === sh; });
+    changed(true); layout();
+  }
+  document.querySelectorAll('input[name="shape"]').forEach((r) => {
+    r.checked = r.value === S.shape;
+    r.addEventListener("change", () => { if (r.checked) setShape(r.value); });
+  });
   $("btnRotate").addEventListener("click", () => {
-    S.paper = PAPERS[S.paper][3]; paperSel.value = S.paper; changed(true); layout();
-    toast(PAPERS[S.paper][2] + (S.paper.endsWith("p") ? " portrait" : ""));
+    setShape({ p: "l", l: "sq", sq: "p" }[S.shape]);
+    toast(S.size.toUpperCase() + " " + SHAPES[S.shape]);
   });
 
   document.querySelectorAll('input[name="mode"]').forEach((r) => {
@@ -376,6 +419,8 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
       const inp = $(sp.id); if (+inp.value !== S[sp.id]) inp.value = S[sp.id];
     });
     $("o-margin").textContent = S.margin + " mm";
+    const [W, H] = paperWH();
+    $("paperInfo").textContent = `${S.size.toUpperCase()} ${SHAPES[S.shape]}: ${W} × ${H} mm`;
   }
 
   // ---------------- toast / hud ----------------
@@ -402,7 +447,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   let stream = null, video = null, live = false, frozen = false, facing = "environment";
 
   const dims = () => {
-    const [W, H] = PAPERS[S.paper];
+    const [W, H] = paperWH();
     const m = Math.min(S.margin, Math.min(W, H) / 2 - 5);
     return { W, H, mx: m, my: m, dw: W - 2 * m, dh: H - 2 * m };
   };
@@ -464,12 +509,12 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   const inside = (d, x, y) => x >= d.mx && x <= d.mx + d.dw && y >= d.my && y <= d.my + d.dh;
 
   function genWave(d) {
-    const n = Math.max(2, Math.floor(d.dh / S.spacing)), sp = d.dh / n, step = 0.35, amp = S.amp / 100, out = [];
+    const n = Math.max(2, Math.floor(d.dh / S.spacing)), sp = d.dh / n, step = Math.max(0.2, S.spacing * 0.1), fq = 3.5 / S.spacing, amp = S.amp / 100, out = [];
     for (let i = 0; i < n; i++) {
       const y0 = d.my + (i + 0.5) * sp; let pts = [], ph = 0;
       for (let x = 0; x <= d.dw + 1e-6; x += step) {
         const X = d.mx + x, dk = D(X, y0);
-        ph += step * (0.9 + dk * 3.2);
+        ph += step * fq * (0.9 + dk * 3.2);
         pts.push(X, y0 + Math.sin(ph) * sp * 0.5 * amp * dk * 1.15);
       }
       if (i % 2) pts = rev(pts);
@@ -478,7 +523,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     return out;
   }
   function genHatch(d) {
-    const ang = [45, 135, 0, 90], L = S.layers, out = [], step = 0.7;
+    const ang = [45, 135, 0, 90], L = S.layers, out = [], step = Math.max(0.4, S.spacing * 0.2);
     const diag = Math.hypot(d.dw, d.dh), cx = d.mx + d.dw / 2, cy = d.my + d.dh / 2;
     for (let k = 0; k < L; k++) {
       const th = ang[k] * Math.PI / 180, c = Math.cos(th), s = Math.sin(th), thr = 0.15 + (k / L) * 0.6;
@@ -500,7 +545,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     return out;
   }
   function genSpiral(d) {
-    const cx = d.mx + d.dw / 2, cy = d.my + d.dh / 2, p = S.spacing, amp = S.amp / 100, ds = 0.5, maxR = Math.hypot(d.dw, d.dh) / 2, out = [];
+    const cx = d.mx + d.dw / 2, cy = d.my + d.dh / 2, p = S.spacing, amp = S.amp / 100, ds = Math.max(0.3, p * 0.14), fq = 3.5 / p, maxR = Math.hypot(d.dw, d.dh) / 2, out = [];
     let th = 0.001, ph = 0, cur = [];
     for (let guard = 0; guard < 4e6; guard++) {
       const r = p * th / (2 * Math.PI);
@@ -508,7 +553,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
       const x = cx + r * Math.cos(th), y = cy + r * Math.sin(th);
       if (inside(d, x, y)) {
         const dk = D(x, y);
-        ph += ds * (0.9 + dk * 3.2);
+        ph += ds * fq * (0.9 + dk * 3.2);
         const rr = r + Math.sin(ph) * p * 0.5 * amp * dk * 1.15;
         cur.push(clamp(cx + rr * Math.cos(th), d.mx, d.mx + d.dw), clamp(cy + rr * Math.sin(th), d.my, d.my + d.dh));
       } else if (cur.length) { out.push({ layer: 0, pts: cur }); cur = []; }
@@ -599,16 +644,19 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
       vctx.stroke();
     });
   }
+  let liveGap = 120;
   function render() {
     if (!gray) return;
+    const t0 = performance.now();
     DM = dims();
     computeDark();
     paths = GEN[S.mode](DM);
     draw();
+    liveGap = Math.max(120, (performance.now() - t0) * 1.5); // slow devices or huge sheets: refresh less often
     let len = 0;
     for (const p of paths) { const q = p.pts; for (let i = 2; i < q.length; i += 2) len += Math.hypot(q[i] - q[i - 2], q[i + 1] - q[i - 1]); }
     const n = paths.length;
-    $("readout").textContent = `${PAPERS[S.paper][2]} · ${(len / 1000).toFixed(1)} m · ${n >= 1000 ? (n / 1000).toFixed(1) + "k" : n} lines`;
+    $("readout").textContent = `${paperName()} · ${(len / 1000).toFixed(1)} m · ${n >= 1000 ? (n / 1000).toFixed(1) + "k" : n} lines`;
   }
 
   // ---------------- loop ----------------
@@ -617,7 +665,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   function tick(t) {
     requestAnimationFrame(tick);
     if (live && !frozen && video && video.readyState >= 2) {
-      if (t - lastLive > 120) { lastLive = t; extract(video, video.videoWidth, video.videoHeight, 180); dirtyGen = true; needExtract = false; }
+      if (t - lastLive > liveGap) { lastLive = t; extract(video, video.videoWidth, video.videoHeight, 180); dirtyGen = true; needExtract = false; }
     } else if (needExtract && still) {
       extract(still, still.width, still.height, 320); needExtract = false; dirtyGen = true;
     }
@@ -638,7 +686,8 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
 
   function setVal(id, v) {
     const sp = SP[id];
-    v = clamp(Math.round(v / sp.step) * sp.step, sp.min, sp.max);
+    const inp = $(id);
+    v = clamp(Math.round(v / sp.step) * sp.step, +inp.min, +inp.max);
     v = +v.toFixed(4);
     if (v !== S[id]) { S[id] = v; changed(false); }
     hud(sp.name(), fmt(id, v));
@@ -670,7 +719,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     const dx = e.clientX - g.x0, dy = e.clientY - g.y0;
     if (g.type === "maybe" && Math.hypot(dx, dy) > 10) g.type = z > 1.01 ? "pan" : Math.abs(dx) > Math.abs(dy) ? "h" : "v";
     if (g.type === "pan") { tx = g.tx0 + dx; ty = g.ty0 + dy; clampPan(); applyTransform(); }
-    else if (g.type === "h") setVal("spacing", g.sp0 + dx / Math.max(innerWidth, 300) * 6);
+    else if (g.type === "h") setVal("spacing", g.sp0 + dx / Math.max(innerWidth, 300) * 6 * scaleOf(S.size));
     else if (g.type === "v") setVal("contrast", g.ct0 - dy / Math.max(innerHeight, 400) * 3);
   });
   function endPointer(e) {
@@ -857,7 +906,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     return s + "</svg>\n";
   }
   const stamp = () => { const t = new Date(), p = (n) => String(n).padStart(2, "0"); return `${t.getFullYear()}${p(t.getMonth() + 1)}${p(t.getDate())}-${p(t.getHours())}${p(t.getMinutes())}${p(t.getSeconds())}`; };
-  const fname = () => `terrapen-${S.mode}-${stamp()}.svg`;
+  const fname = () => `terrapen-${S.size}${S.shape === "p" ? "" : "-" + SHAPES[S.shape]}-${S.mode}-${stamp()}.svg`;
   function prepExport() {
     if (live && !frozen) freeze();
     if (dirtyGen) { dirtyGen = false; render(); }
@@ -898,6 +947,8 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   });
 
   // ---------------- start ----------------
+  setRanges();
+  $("margin").value = S.margin;
   syncLabels();
   setPip(S.pip !== false);
   const sample = makeSample();
