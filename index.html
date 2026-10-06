@@ -520,13 +520,32 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     try { strip.scrollTo({ left, behavior: smooth ? "smooth" : "auto" }); } catch (e) { strip.scrollLeft = left; }
   };
   document.querySelectorAll('input[name="mode"]').forEach((r) => r.addEventListener("change", () => showMode(true)));
-  // Swiping the carousel picks whichever style settles in the centre.
+  // Swiping the carousel picks whichever style settles in the centre, but only when the
+  // scroll came from the viewer's finger, trackpad or wheel. Scrolls the browser makes on its
+  // own (layout changes, the page being restored, Safari re-snapping) just re-centre the
+  // current style instead of changing it.
+  let stripActive = false;
   (() => {
     const strip = document.querySelector(".modes");
-    let t = 0;
+    let t = 0, idle = 0, fingerDown = false;
+    const arm = () => {
+      stripActive = true; clearTimeout(idle);
+      idle = setTimeout(() => { if (!fingerDown) stripActive = false; }, 700);
+    };
+    const down = () => { fingerDown = true; arm(); };
+    const up = () => { fingerDown = false; arm(); };
+    strip.addEventListener("touchstart", down, { passive: true });
+    strip.addEventListener("touchend", up, { passive: true });
+    strip.addEventListener("touchcancel", up, { passive: true });
+    strip.addEventListener("pointerdown", (e) => { if (e.pointerType !== "touch") down(); });
+    addEventListener("pointerup", (e) => { if (e.pointerType !== "touch" && fingerDown) up(); });
+    strip.addEventListener("wheel", arm, { passive: true });
+    strip.addEventListener("keydown", arm);
     strip.addEventListener("scroll", () => {
       if (body.classList.contains("side")) return;
       clearTimeout(t);
+      if (!stripActive) { t = setTimeout(() => showMode(false), 120); return; } // not the viewer: put the current style back in the centre
+      arm(); // keep listening through momentum scrolling
       t = setTimeout(() => {
         const c = strip.scrollLeft + strip.clientWidth / 2;
         let best = null, bd = 1e9;
@@ -535,6 +554,13 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
         if (r && !r.checked) { r.checked = true; r.dispatchEvent(new Event("change", { bubbles: true })); if (navigator.vibrate) navigator.vibrate(6); }
       }, 90);
     }, { passive: true });
+    // Re-centre whenever the strip changes size (rotation, fonts arriving, the page being restored).
+    const recentre = () => { if (!stripActive) showMode(false); };
+    new ResizeObserver(recentre).observe(strip);
+    addEventListener("pageshow", recentre);
+    addEventListener("load", recentre);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(recentre);
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") setTimeout(recentre, 50); });
   })();
   document.querySelectorAll('input[name="mode"]').forEach((r) => {
     r.checked = r.value === S.mode;
