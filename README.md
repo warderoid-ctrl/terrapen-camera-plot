@@ -1,6 +1,11 @@
-# terraPen Camera Plot
+<p align="center"><img src="icons/logo.svg" width="160" alt="terraLens logo: a lens filled with wave lines"></p>
 
-Point your phone camera at something and turn it into pen-plotter line art in real time, then save an SVG ready for the terraPen (or any plotter).
+# terraLens
+
+*Formerly terraPen Camera Plot.*
+
+
+Point your phone camera at something and turn it into pen-plotter line art in real time, then save an SVG ready for the [terraPen](https://terrapen.xyz) (or any plotter).
 
 **Live page:** https://warderoid-ctrl.github.io/terrapen-camera-plot/
 
@@ -17,7 +22,7 @@ No camera permission? The camera button beside the shutter opens your camera app
 
 It's a Progressive Web App, so it installs from the browser with no app store:
 
-- **Android (Chrome):** open the page, then tap **Install** when prompted, or open the settings sheet and tap **Install Camera Plot**.
+- **Android (Chrome):** open the page, then tap **Install** when prompted, or open the settings sheet and tap **Install terraLens**.
 - **iPhone / iPad (Safari):** tap **Share**, then **Add to Home Screen**.
 - **Desktop (Chrome / Edge):** click the install icon in the address bar.
 

@@ -1,19 +1,41 @@
 {
-  "name": "terraPen Camera Plot",
-  "short_name": "Camera Plot",
-  "description": "Turn your phone camera into pen-plotter line art and save an SVG.",
+  "name": "terraLens",
+  "short_name": "terraLens",
+  "description": "Point your phone camera at something and turn it into pen-plotter line art, saved as SVG. By terraPen.",
   "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "display_override": ["fullscreen", "standalone"],
+  "display_override": [
+    "fullscreen",
+    "standalone"
+  ],
   "orientation": "any",
   "background_color": "#0d0f10",
   "theme_color": "#0d0f10",
-  "categories": ["graphics", "photo", "utilities"],
+  "categories": [
+    "graphics",
+    "photo",
+    "utilities"
+  ],
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }

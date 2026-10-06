@@ -7,10 +7,11 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Camera Plot">
-<title>terraPen Camera Plot</title>
-<meta name="description" content="Turn your phone camera into pen-plotter line art and save an SVG.">
+<meta name="apple-mobile-web-app-title" content="terraLens">
+<title>terraLens</title>
+<meta name="description" content="terraLens: point your phone camera at something and turn it into pen-plotter line art, saved as SVG.">
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -391,7 +392,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     <div class="sec" id="appSec" hidden>
       <p class="label">Get the app</p>
       <button class="btn primary-btn" id="btnInstall" type="button" hidden>
-        <svg class="i" viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 8v7M9 12l3 3 3-3"/></svg>Install Camera Plot
+        <svg class="i" viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 8v7M9 12l3 3 3-3"/></svg>Install terraLens
       </button>
       <p class="tips" id="iosTip" hidden>On iPhone or iPad: tap the <b>Share</b> button in Safari, then <b>Add to Home Screen</b>. It opens full screen, works offline, and remembers your camera permission.</p>
       <p class="tips" id="androidTip" hidden>It installs like a normal app, opens full screen and works offline.</p>
@@ -1863,7 +1864,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     return s + "</svg>\n";
   }
   const stamp = () => { const t = new Date(), p = (n) => String(n).padStart(2, "0"); return `${t.getFullYear()}${p(t.getMonth() + 1)}${p(t.getDate())}-${p(t.getHours())}${p(t.getMinutes())}${p(t.getSeconds())}`; };
-  const fname = () => `terrapen-${S.size}${S.shape === "p" ? "" : "-" + SHAPES[S.shape]}-${S.mode}-${stamp()}.svg`;
+  const fname = () => `terralens-${S.size}${S.shape === "p" ? "" : "-" + SHAPES[S.shape]}-${S.mode}-${stamp()}.svg`;
   function prepExport() {
     if (live && !frozen) freeze();
     if (dirtyGen) { dirtyGen = false; render(); }
@@ -1907,7 +1908,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     $("btnShare").hidden = false;
     $("btnShare").addEventListener("click", async () => {
       const files = exportFiles(); if (!files.length) return;
-      try { await navigator.share({ files: files.map((fl) => new File([fl.svg], fl.name, { type: "image/svg+xml" })), title: "terraPen plot" }); }
+      try { await navigator.share({ files: files.map((fl) => new File([fl.svg], fl.name, { type: "image/svg+xml" })), title: "terraLens plot" }); }
       catch (e) { if (e && e.name !== "AbortError") toast("Sharing failed. Use the save button instead."); }
     });
   }
@@ -1960,7 +1961,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
       try { await deferredPrompt.userChoice; } catch (e) {}
       deferredPrompt = null; $("btnInstall").hidden = true;
     });
-    addEventListener("appinstalled", () => { $("appSec").hidden = true; toast("Installed. Open Camera Plot from your home screen."); });
+    addEventListener("appinstalled", () => { $("appSec").hidden = true; toast("Installed. Open terraLens from your home screen."); });
   }
 
   // Start the camera straight away when permission was already given.
