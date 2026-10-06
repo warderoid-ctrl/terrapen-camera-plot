@@ -112,7 +112,15 @@ svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-widt
 .head { touch-action: none; }
 .grab { display: grid; place-items: center; gap: 2px; width: 100%; height: 30px; border: 0; background: none; padding: 0; color: var(--muted); }
 .grab::before { content: ""; width: 40px; height: 5px; border-radius: 3px; background: var(--line); }
-.modes { display: flex; justify-content: center; gap: 4px; padding-bottom: 10px; }
+.modes {
+  position: relative; display: flex; gap: 4px; padding: 0 16px 10px; margin-inline: -16px;
+  overflow-x: auto; scrollbar-width: none; scroll-snap-type: x proximity; touch-action: pan-x;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%);
+}
+.modes::-webkit-scrollbar { display: none; }
+.modes label { flex: 0 0 auto; scroll-snap-align: center; white-space: nowrap; }
+body.side .modes { flex-wrap: wrap; overflow: visible; margin-inline: 0; padding-inline: 0; -webkit-mask-image: none; mask-image: none; }
 .modes label {
   padding: 7px 13px; border-radius: 999px; font-size: 12px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase;
   color: var(--muted); cursor: pointer;
@@ -157,6 +165,11 @@ select {
 .shape input:checked + label { background: var(--accent); }
 .shape input:checked + label .pg { border-color: var(--accent-ink); }
 .shape input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: -3px; }
+.seg4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--chrome-solid); }
+.seg4 label { text-align: center; padding: 11px 2px; font-size: 13px; font-weight: 500; cursor: pointer; border-left: 1px solid var(--line); }
+.seg4 label:first-of-type { border-left: 0; }
+.seg4 input:checked + label { background: var(--accent); color: var(--accent-ink); }
+.seg4 input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: -3px; }
 .pg { display: block; border: 2px solid var(--muted); border-radius: 2px; }
 .pg.p { width: 14px; height: 20px; } .pg.l { width: 20px; height: 14px; } .pg.sq { width: 17px; height: 17px; }
 .btnrow { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -234,9 +247,20 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     <button class="grab" id="grab" type="button" aria-expanded="false" aria-controls="more" aria-label="Show all settings"></button>
     <div class="modes" role="radiogroup" aria-label="Plot style">
       <input class="sr" type="radio" name="mode" id="m-wave" value="wave"><label for="m-wave">Waves</label>
-      <input class="sr" type="radio" name="mode" id="m-hatch" value="hatch"><label for="m-hatch">Hatch</label>
       <input class="sr" type="radio" name="mode" id="m-spiral" value="spiral"><label for="m-spiral">Spiral</label>
+      <input class="sr" type="radio" name="mode" id="m-rings" value="rings"><label for="m-rings">Rings</label>
+      <input class="sr" type="radio" name="mode" id="m-contour" value="contour"><label for="m-contour">Contour</label>
+      <input class="sr" type="radio" name="mode" id="m-flow" value="flow"><label for="m-flow">Flow</label>
+      <input class="sr" type="radio" name="mode" id="m-blobs" value="blobs"><label for="m-blobs">Blobs</label>
+      <input class="sr" type="radio" name="mode" id="m-hatch" value="hatch"><label for="m-hatch">Hatch</label>
+      <input class="sr" type="radio" name="mode" id="m-stipple" value="stipple"><label for="m-stipple">Stipple</label>
       <input class="sr" type="radio" name="mode" id="m-dots" value="dots"><label for="m-dots">Dots</label>
+      <input class="sr" type="radio" name="mode" id="m-hairs" value="hairs"><label for="m-hairs">Hairs</label>
+      <input class="sr" type="radio" name="mode" id="m-arrows" value="arrows"><label for="m-arrows">Arrows</label>
+      <input class="sr" type="radio" name="mode" id="m-suns" value="suns"><label for="m-suns">Suns</label>
+      <input class="sr" type="radio" name="mode" id="m-swirls" value="swirls"><label for="m-swirls">Swirls</label>
+      <input class="sr" type="radio" name="mode" id="m-ascii" value="ascii"><label for="m-ascii">ASCII</label>
+      <input class="sr" type="radio" name="mode" id="m-growth" value="growth"><label for="m-growth">Growth</label>
     </div>
     <div class="shutterrow">
       <div class="side">
@@ -264,6 +288,15 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   <div class="more" id="more">
     <div class="sec">
       <p class="label">Line</p>
+      <div class="sec" id="blobFillRow" hidden>
+        <div class="seg4" role="radiogroup" aria-label="Blob fill">
+          <input class="sr" type="radio" name="blobFill" id="bf-hatch" value="hatch"><label for="bf-hatch">Hatch</label>
+          <input class="sr" type="radio" name="blobFill" id="bf-cross" value="cross"><label for="bf-cross">Cross</label>
+          <input class="sr" type="radio" name="blobFill" id="bf-contours" value="contours"><label for="bf-contours">Contours</label>
+          <input class="sr" type="radio" name="blobFill" id="bf-spiral" value="spiral"><label for="bf-spiral">Spiral</label>
+        </div>
+        <p class="tips">Outlines go on pen 1 and the fill on pen 2, so you can plot them in two colours.</p>
+      </div>
       <div class="sec" id="sliders"></div>
       <div class="checks">
         <label><input type="checkbox" id="auto"> Auto levels</label>
@@ -315,7 +348,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   // ISO 216 sizes in mm (short side, long side). Square uses the short side.
   const SIZES = { a6: [105, 148], a5: [148, 210], a4: [210, 297], a3: [297, 420], a2: [420, 594], a1: [594, 841], a0: [841, 1189] };
   const SHAPES = { p: "portrait", l: "landscape", sq: "square" };
-  const DEFAULTS = { mode: "wave", size: "a4", shape: "p", margin: 10, spacing: 3.5, amp: 100, layers: 3, contrast: 1.3, bright: 0, pen: 0.3, invert: false, auto: true, pip: true };
+  const DEFAULTS = { levels: 8, blobFill: "hatch", mode: "wave", size: "a4", shape: "p", margin: 10, spacing: 3.5, amp: 100, layers: 3, contrast: 1.3, bright: 0, pen: 0.3, invert: false, auto: true, pip: true };
   const S = Object.assign({}, DEFAULTS);
   const KEY = "terrapen-camera-plot";
   try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
@@ -325,6 +358,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     delete S.paper;
   }
   if (!SIZES[S.size]) S.size = DEFAULTS.size;
+  if (!["wave","spiral","rings","contour","flow","blobs","hatch","stipple","dots","hairs","arrows","suns","swirls","ascii","growth"].includes(S.mode)) S.mode = "wave";
   if (!SHAPES[S.shape]) S.shape = DEFAULTS.shape;
   const paperWH = () => { const [a, b] = SIZES[S.size]; return S.shape === "l" ? [b, a] : S.shape === "sq" ? [a, a] : [a, b]; };
   const paperName = () => S.size.toUpperCase() + (S.shape === "p" ? "" : " " + SHAPES[S.shape]);
@@ -332,9 +366,12 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   const scaleOf = (size) => { const [a, b] = SIZES[size]; return Math.sqrt(a * b / (210 * 297)); };
   const store = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
 
+  const SPACE_NAMES = { wave: "Line spacing", spiral: "Ring spacing", rings: "Ring spacing", flow: "Line spacing", blobs: "Fill spacing", hatch: "Hatch spacing", stipple: "Dot spacing", dots: "Dot spacing", hairs: "Grid spacing", arrows: "Grid spacing", suns: "Grid spacing", swirls: "Grid spacing", ascii: "Character size", growth: "Cell size" };
+  const AMP_NAMES = { wave: "Wave height", spiral: "Wave height", rings: "Wave height", flow: "Line length", blobs: "Blob amount", stipple: "Dot size", dots: "Dot size", hairs: "Hair length", arrows: "Arrow length", suns: "Sun size", swirls: "Swirl size", ascii: "Glyph size", growth: "Growth" };
   const SLIDERS = [
-    { id: "spacing", min: 1.5, max: 10, step: 0.1, dp: 1, unit: " mm", name: () => ({ wave: "Line spacing", hatch: "Hatch spacing", spiral: "Ring spacing", dots: "Dot spacing" }[S.mode]) },
-    { id: "amp", min: 0, max: 200, step: 5, dp: 0, unit: "%", name: () => (S.mode === "dots" ? "Dot size" : "Wave height"), modes: ["wave", "spiral", "dots"] },
+    { id: "spacing", min: 1.5, max: 10, step: 0.1, dp: 1, unit: " mm", name: () => SPACE_NAMES[S.mode], modes: Object.keys(SPACE_NAMES) },
+    { id: "amp", min: 0, max: 200, step: 5, dp: 0, unit: "%", name: () => AMP_NAMES[S.mode], modes: Object.keys(AMP_NAMES) },
+    { id: "levels", min: 2, max: 24, step: 1, dp: 0, unit: "", name: () => "Contour levels", modes: ["contour"] },
     { id: "layers", min: 1, max: 4, step: 1, dp: 0, unit: "", name: () => "Hatch layers", modes: ["hatch"] },
     { id: "contrast", min: 0.4, max: 3, step: 0.05, dp: 2, unit: "×", name: () => "Contrast" },
     { id: "bright", min: -0.4, max: 0.4, step: 0.02, dp: 2, unit: "", name: () => "Brightness", sign: true },
@@ -402,6 +439,18 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     toast(S.size.toUpperCase() + " " + SHAPES[S.shape]);
   });
 
+  document.querySelectorAll('input[name="blobFill"]').forEach((r) => {
+    r.checked = r.value === S.blobFill;
+    r.addEventListener("change", () => { if (r.checked) { S.blobFill = r.value; changed(false); } });
+  });
+  const showMode = (smooth) => {
+    const strip = document.querySelector(".modes"), on = document.querySelector('input[name="mode"]:checked');
+    const l = document.querySelector(`label[for="m-${on ? on.value : S.mode}"]`);
+    if (!strip || !l || strip.scrollWidth <= strip.clientWidth) return;
+    const left = l.offsetLeft - (strip.clientWidth - l.offsetWidth) / 2;
+    try { strip.scrollTo({ left, behavior: smooth ? "smooth" : "auto" }); } catch (e) { strip.scrollLeft = left; }
+  };
+  document.querySelectorAll('input[name="mode"]').forEach((r) => r.addEventListener("change", () => showMode(true)));
   document.querySelectorAll('input[name="mode"]').forEach((r) => {
     r.checked = r.value === S.mode;
     r.addEventListener("change", () => { if (r.checked) { S.mode = r.value; changed(false); } });
@@ -414,6 +463,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     SLIDERS.forEach((sp) => {
       const wrap = $("ctl-" + sp.id);
       wrap.hidden = !!(sp.modes && !sp.modes.includes(S.mode));
+      $("blobFillRow").hidden = S.mode !== "blobs";
       wrap.querySelector(".name").textContent = sp.name();
       $("o-" + sp.id).textContent = fmt(sp.id, S[sp.id]);
       const inp = $(sp.id); if (+inp.value !== S[sp.id]) inp.value = S[sp.id];
@@ -579,7 +629,429 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     }
     return out;
   }
-  const GEN = { wave: genWave, hatch: genHatch, spiral: genSpiral, dots: genDots };
+  // ---------------- shared helpers for the image-driven styles ----------------
+  // Several styles below are ported from hauntedPoints. There they read point-cloud
+  // displacement; here darkness stands in for the data value and the image gradient
+  // stands in for the displacement direction.
+  let fieldCache = null; // reset at the start of every render
+  function boxBlur(src, w, h, r) {
+    const tmp = new Float32Array(w * h), out = new Float32Array(w * h), n = 2 * r + 1;
+    for (let y = 0; y < h; y++) {
+      const row = y * w; let acc = 0;
+      for (let x = -r; x <= r; x++) acc += src[row + clamp(x, 0, w - 1)];
+      for (let x = 0; x < w; x++) { tmp[row + x] = acc / n; acc += src[row + Math.min(x + r + 1, w - 1)] - src[row + Math.max(x - r, 0)]; }
+    }
+    for (let x = 0; x < w; x++) {
+      let acc = 0;
+      for (let y = -r; y <= r; y++) acc += tmp[clamp(y, 0, h - 1) * w + x];
+      for (let y = 0; y < h; y++) { out[y * w + x] = acc / n; acc += tmp[Math.min(y + r + 1, h - 1) * w + x] - tmp[Math.max(y - r, 0) * w + x]; }
+    }
+    return out;
+  }
+  function fields() {
+    if (!fieldCache) fieldCache = { B: boxBlur(boxBlur(dark, gw, gh, 1), gw, gh, 1) };
+    return fieldCache;
+  }
+  function blobField() {
+    const f = fields();
+    if (!f.BB) f.BB = boxBlur(boxBlur(f.B, gw, gh, 2), gw, gh, 2);
+    return f.BB;
+  }
+  function sampleArr(arr, x, y) {
+    const u = clamp((x - DM.mx) / DM.dw * gw - 0.5, 0, gw - 1);
+    const v = clamp((y - DM.my) / DM.dh * gh - 0.5, 0, gh - 1);
+    const i0 = u | 0, j0 = v | 0, i1 = Math.min(i0 + 1, gw - 1), j1 = Math.min(j0 + 1, gh - 1);
+    const fu = u - i0, fv = v - j0;
+    return (arr[j0 * gw + i0] * (1 - fu) + arr[j0 * gw + i1] * fu) * (1 - fv) + (arr[j1 * gw + i0] * (1 - fu) + arr[j1 * gw + i1] * fu) * fv;
+  }
+  function grad(x, y) {
+    const B = fields().B, h = DM.dw / gw;
+    return [(sampleArr(B, x + h, y) - sampleArr(B, x - h, y)) / (2 * h), (sampleArr(B, x, y + h) - sampleArr(B, x, y - h)) / (2 * h)];
+  }
+  // Direction along the image's edges (perpendicular to the gradient). In flat areas it
+  // fades into a gentle swirl so dark, even regions still get lines.
+  function flowDir(x, y, prev) {
+    const [gx, gy] = grad(x, y);
+    const m = Math.hypot(gx, gy), w = Math.min(1, m * 25);
+    const a = (Math.sin(x * 0.045) + Math.cos(y * 0.037) + Math.sin((x + y) * 0.021)) * 1.3;
+    let vx = (m > 1e-9 ? -gy / m : 0) * w + Math.cos(a) * (1 - w) * 0.6;
+    let vy = (m > 1e-9 ? gx / m : 0) * w + Math.sin(a) * (1 - w) * 0.6;
+    const l = Math.hypot(vx, vy) || 1; vx /= l; vy /= l;
+    if (prev && vx * prev[0] + vy * prev[1] < 0) { vx = -vx; vy = -vy; }
+    return [vx, vy];
+  }
+  const hash = (i, j) => {
+    let h = Math.imul(i, 374761393) + Math.imul(j, 668265263) | 0;
+    h = Math.imul(h ^ (h >>> 13), 1274126177);
+    return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+  };
+  // Visit the centres of a grid of cells, snaking row by row to keep pen travel short.
+  function cellGrid(d, s, fn) {
+    const cols = Math.max(1, Math.floor(d.dw / s)), rows = Math.max(1, Math.floor(d.dh / s));
+    const ox = d.mx + (d.dw - cols * s) / 2 + s / 2, oy = d.my + (d.dh - rows * s) / 2 + s / 2;
+    for (let j = 0; j < rows; j++) for (let k = 0; k < cols; k++) { const i = j % 2 ? cols - 1 - k : k; fn(ox + i * s, oy + j * s, i, j); }
+  }
+  function circ(cx, cy, r, n) {
+    const p = [];
+    for (let k = 0; k <= n; k++) { const a = k / n * Math.PI * 2; p.push(cx + Math.cos(a) * r, cy + Math.sin(a) * r); }
+    return p;
+  }
+  // Marching squares on a grid field, with the segments chained into continuous lines.
+  function isoLines(F, w, h, level) {
+    const segs = [], V0 = w * h;
+    const t = (a, b) => (b === a ? 0.5 : (level - a) / (b - a));
+    for (let j = 0; j < h - 1; j++) for (let i = 0; i < w - 1; i++) {
+      const a = F[j * w + i], b = F[j * w + i + 1], c = F[(j + 1) * w + i + 1], d = F[(j + 1) * w + i];
+      const idx = (a > level ? 1 : 0) | (b > level ? 2 : 0) | (c > level ? 4 : 0) | (d > level ? 8 : 0);
+      if (idx === 0 || idx === 15) continue;
+      const T = () => [j * w + i, i + t(a, b), j];
+      const R = () => [V0 + j * w + i + 1, i + 1, j + t(b, c)];
+      const Bo = () => [(j + 1) * w + i, i + t(d, c), j + 1];
+      const L = () => [V0 + j * w + i, i, j + t(a, d)];
+      switch (idx) {
+        case 1: case 14: segs.push(L(), T()); break;
+        case 2: case 13: segs.push(T(), R()); break;
+        case 3: case 12: segs.push(L(), R()); break;
+        case 4: case 11: segs.push(R(), Bo()); break;
+        case 5: segs.push(L(), T(), R(), Bo()); break;
+        case 6: case 9: segs.push(T(), Bo()); break;
+        case 7: case 8: segs.push(L(), Bo()); break;
+        case 10: segs.push(T(), R(), L(), Bo()); break;
+      }
+    }
+    const n = segs.length / 2, byKey = new Map();
+    for (let s = 0; s < n; s++) for (const e of [segs[2 * s], segs[2 * s + 1]]) { const l = byKey.get(e[0]); if (l) l.push(s); else byKey.set(e[0], [s]); }
+    const used = new Uint8Array(n), out = [];
+    for (let s0 = 0; s0 < n; s0++) {
+      if (used[s0]) continue;
+      used[s0] = 1;
+      const chain = [segs[2 * s0], segs[2 * s0 + 1]];
+      for (let pass = 0; pass < 2; pass++) {
+        for (;;) {
+          const end = chain[chain.length - 1];
+          let nxt = -1;
+          for (const s of byKey.get(end[0])) if (!used[s]) { nxt = s; break; }
+          if (nxt < 0) break;
+          used[nxt] = 1;
+          const p = segs[2 * nxt], q = segs[2 * nxt + 1];
+          chain.push(p[0] === end[0] ? q : p);
+        }
+        chain.reverse();
+      }
+      const pts = [];
+      for (const p of chain) pts.push(DM.mx + (p[1] + 0.5) / w * DM.dw, DM.my + (p[2] + 0.5) / h * DM.dh);
+      if (pts.length >= 6) out.push(pts);
+    }
+    return out;
+  }
+  // Straight hatch lines at an angle, kept only where test(x, y) is true.
+  function hatchWhere(d, angle, spacing, test, layer, out) {
+    const step = Math.max(0.35, spacing * 0.2), diag = Math.hypot(d.dw, d.dh);
+    const cx = d.mx + d.dw / 2, cy = d.my + d.dh / 2, c = Math.cos(angle), s = Math.sin(angle);
+    let idx = 0;
+    for (let t = -diag / 2; t <= diag / 2; t += spacing) {
+      const ox = cx - s * t, oy = cy + c * t, segs = [];
+      let cur = [];
+      for (let q = -diag / 2; q <= diag / 2; q += step) {
+        const x = ox + c * q, y = oy + s * q;
+        if (inside(d, x, y) && test(x, y)) cur.push(x, y);
+        else { if (cur.length >= 4) segs.push(cur); cur = []; }
+      }
+      if (cur.length >= 4) segs.push(cur);
+      const flip = idx++ % 2;
+      if (flip) segs.reverse();
+      segs.forEach((p) => out.push({ layer, pts: flip ? rev(p) : p }));
+    }
+  }
+
+  // ---------------- contour: lines of equal tone ----------------
+  function genContour() {
+    const B = fields().B, L = S.levels, out = [];
+    for (let k = 1; k <= L; k++) isoLines(B, gw, gh, k / (L + 1)).forEach((pts) => out.push({ layer: 0, pts }));
+    return out;
+  }
+
+  // ---------------- rings: concentric circles, wobbling with darkness ----------------
+  function genRings(d) {
+    const cx = d.mx + d.dw / 2, cy = d.my + d.dh / 2, p = S.spacing, amp = S.amp / 100, fq = 3.5 / p;
+    const maxR = Math.hypot(d.dw, d.dh) / 2, ds = Math.max(0.3, p * 0.14), out = [];
+    for (let k = 1, r = p; r < maxR; k++, r += p) {
+      const N = Math.max(12, Math.ceil(2 * Math.PI * r / ds));
+      let ph = 0, cur = [];
+      for (let q = 0; q <= N; q++) {
+        const th = (k % 2 ? q : N - q) / N * Math.PI * 2;
+        const x = cx + r * Math.cos(th), y = cy + r * Math.sin(th);
+        if (inside(d, x, y)) {
+          const dk = D(x, y);
+          ph += ds * fq * (0.9 + dk * 3.2);
+          const rr = r + Math.sin(ph) * p * 0.5 * amp * dk * 1.15;
+          cur.push(clamp(cx + rr * Math.cos(th), d.mx, d.mx + d.dw), clamp(cy + rr * Math.sin(th), d.my, d.my + d.dh));
+        } else if (cur.length) { if (cur.length >= 4) out.push({ layer: 0, pts: cur }); cur = []; }
+      }
+      if (cur.length >= 4) out.push({ layer: 0, pts: cur });
+    }
+    return out;
+  }
+
+  // ---------------- flow: streamlines along the image's edges ----------------
+  function genFlow(d) {
+    const s = S.spacing * 1.5, stepLen = Math.max(0.3, S.spacing * 0.3), maxLen = s * 4 * S.amp / 100, out = [];
+    cellGrid(d, s, (x0, y0, i, j) => {
+      const x = x0 + (hash(i, j) - 0.5) * s * 0.8, y = y0 + (hash(j + 7, i) - 0.5) * s * 0.8;
+      const dk = D(x, y);
+      if (dk < 0.06) return;
+      const steps = Math.max(2, Math.round(maxLen * (0.25 + 0.75 * dk) / stepLen / 2));
+      const half = (sgn) => {
+        const pts = []; let px = x, py = y, prev = null;
+        for (let q = 0; q < steps; q++) {
+          let v = flowDir(px, py, prev);
+          if (!prev) v = [v[0] * sgn, v[1] * sgn];
+          prev = v; px += v[0] * stepLen; py += v[1] * stepLen;
+          if (!inside(d, px, py)) break;
+          pts.push(px, py);
+        }
+        return pts;
+      };
+      const pts = rev(half(-1)).concat([x, y], half(1));
+      if (pts.length >= 6) out.push({ layer: 0, pts });
+    });
+    return out;
+  }
+
+  // ---------------- stipple: dots, more of them where it's darker ----------------
+  function genStipple(d) {
+    const s = S.spacing * 0.5, out = [], r = Math.max(S.pen * 0.5, s * 0.18 * S.amp / 100);
+    cellGrid(d, s, (x, y, i, j) => {
+      if (hash(i, j) >= D(x, y)) return;
+      out.push({ layer: 0, pts: circ(x + (hash(i + 3, j) - 0.5) * s * 0.9, y + (hash(i, j + 5) - 0.5) * s * 0.9, r, 8) });
+    });
+    return out;
+  }
+
+  // ---------------- hairs: short strokes along the edges ----------------
+  function genHairs(d) {
+    const s = S.spacing, amp = S.amp / 100, out = [];
+    cellGrid(d, s, (x, y, i, j) => {
+      const dk = D(x, y);
+      if (dk < 0.05) return;
+      const v = flowDir(x, y, null), L = s * 0.9 * dk * amp;
+      const a = [x - v[0] * L, y - v[1] * L], b = [x + v[0] * L, y + v[1] * L];
+      out.push({ layer: 0, pts: j % 2 ? [b[0], b[1], a[0], a[1]] : [a[0], a[1], b[0], b[1]] });
+    });
+    return out;
+  }
+
+  // ---------------- arrows: point towards darker areas ----------------
+  function genArrows(d) {
+    const s = S.spacing * 1.5, amp = S.amp / 100, out = [];
+    cellGrid(d, s, (x, y) => {
+      const dk = D(x, y);
+      if (dk < 0.1) return;
+      const [gx, gy] = grad(x, y), m = Math.hypot(gx, gy);
+      let vx, vy;
+      if (m < 1e-3) { const f = flowDir(x, y, null); vx = f[1]; vy = -f[0]; } else { vx = gx / m; vy = gy / m; }
+      const L = s * 0.9 * (0.3 + 0.7 * dk) * amp, hl = Math.max(0.5, L * 0.3), a = Math.atan2(vy, vx);
+      const x0 = x - vx * L / 2, y0 = y - vy * L / 2, x1 = x + vx * L / 2, y1 = y + vy * L / 2;
+      out.push({ layer: 0, pts: [x0, y0, x1, y1] });
+      out.push({ layer: 0, pts: [x1 - hl * Math.cos(a - 0.45), y1 - hl * Math.sin(a - 0.45), x1, y1, x1 - hl * Math.cos(a + 0.45), y1 - hl * Math.sin(a + 0.45)] });
+    });
+    return out;
+  }
+
+  // ---------------- suns: a circle with rays, sized by darkness ----------------
+  function genSuns(d) {
+    const s = S.spacing * 1.6, amp = S.amp / 100, out = [];
+    cellGrid(d, s, (x, y, i, j) => {
+      const dk = D(x, y);
+      if (dk < 0.08) return;
+      const r = (0.12 + 0.3 * dk) * s * amp, rot = hash(i, j) * Math.PI * 2;
+      out.push({ layer: 0, pts: circ(x, y, r, Math.max(8, Math.round(r * 4))) });
+      for (let q = 0; q < 7; q++) {
+        const a = rot + q / 7 * Math.PI * 2;
+        out.push({ layer: 0, pts: [x + Math.cos(a) * r * 1.35, y + Math.sin(a) * r * 1.35, x + Math.cos(a) * r * 2, y + Math.sin(a) * r * 2] });
+      }
+    });
+    return out;
+  }
+
+  // ---------------- swirls: a small spiral per cell, turned by the image ----------------
+  function genSwirls(d) {
+    const s = S.spacing * 1.6, amp = S.amp / 100, out = [];
+    cellGrid(d, s, (x, y) => {
+      const dk = D(x, y);
+      if (dk < 0.06) return;
+      const rmax = (0.1 + 0.4 * dk) * s * amp, turns = 1 + 2 * dk, [gx, gy] = grad(x, y), rot = Math.atan2(gy, gx);
+      const N = Math.max(12, Math.round(30 * turns)), pts = [];
+      for (let q = 0; q <= N; q++) { const t = q / N, a = rot + t * Math.PI * 2 * turns; pts.push(x + Math.cos(a) * rmax * t, y + Math.sin(a) * rmax * t); }
+      out.push({ layer: 0, pts });
+    });
+    return out;
+  }
+
+  // ---------------- ascii: characters drawn as single pen strokes ----------------
+  const RAMP = [" ", ".", ":", "-", "=", "+", "*", "#", "%", "@"];
+  const GLYPHS = (() => {
+    const C = (cx, cy, r, n) => { const p = []; for (let k = 0; k <= n; k++) { const a = k / n * Math.PI * 2; p.push(cx + Math.cos(a) * r, cy + Math.sin(a) * r); } return p; };
+    const at = []; for (let k = 0; k <= 28; k++) { const a = 0.6 + k / 28 * Math.PI * 2 * 0.88; at.push(Math.cos(a) * 0.38, Math.sin(a) * 0.38); }
+    return {
+      " ": [],
+      ".": [C(0, 0.28, 0.06, 6)],
+      ":": [C(0, -0.18, 0.06, 6), C(0, 0.28, 0.06, 6)],
+      "-": [[-0.3, 0, 0.3, 0]],
+      "=": [[-0.3, -0.12, 0.3, -0.12], [0.3, 0.12, -0.3, 0.12]],
+      "+": [[-0.3, 0, 0.3, 0], [0, -0.3, 0, 0.3]],
+      "*": [[-0.3, 0, 0.3, 0], [-0.15, -0.26, 0.15, 0.26], [0.15, -0.26, -0.15, 0.26]],
+      "#": [[-0.12, -0.38, -0.18, 0.38], [0.18, -0.38, 0.12, 0.38], [-0.32, -0.13, 0.32, -0.13], [0.32, 0.13, -0.32, 0.13]],
+      "%": [[0.3, -0.38, -0.3, 0.38], C(-0.2, -0.22, 0.09, 8), C(0.2, 0.22, 0.09, 8)],
+      "@": [at, C(0.02, 0, 0.15, 10)]
+    };
+  })();
+  function genAscii(d) {
+    const s = S.spacing * 1.4, size = s * 0.95 * S.amp / 100, out = [];
+    cellGrid(d, s, (x, y) => {
+      const ch = RAMP[Math.min(RAMP.length - 1, Math.floor(D(x, y) * RAMP.length))];
+      for (const g of GLYPHS[ch]) {
+        const pts = [];
+        for (let k = 0; k < g.length; k += 2) pts.push(x + g[k] * size, y + g[k + 1] * size);
+        out.push({ layer: 0, pts });
+      }
+    });
+    return out;
+  }
+
+  // ---------------- growth: reaction-diffusion seeded and steered by the image ----------------
+  function genGrowth(d) {
+    const cell = Math.max(0.6, S.spacing * 0.5);
+    let GW = Math.max(8, Math.round(d.dw / cell)), GH = Math.max(8, Math.round(d.dh / cell));
+    if (GW * GH > 36000) { const f = Math.sqrt(36000 / (GW * GH)); GW = Math.max(8, Math.floor(GW * f)); GH = Math.max(8, Math.floor(GH * f)); }
+    const NC = GW * GH, cw = d.dw / GW, ch = d.dh / GH;
+    let Ua = new Float32Array(NC).fill(1), Va = new Float32Array(NC), Ub = new Float32Array(NC), Vb = new Float32Array(NC);
+    const mask = new Uint8Array(NC), attr = new Float32Array(NC);
+    for (let j = 0; j < GH; j++) for (let i = 0; i < GW; i++) {
+      const c = j * GW + i, a = D(d.mx + (i + 0.5) * cw, d.my + (j + 0.5) * ch);
+      attr[c] = a; mask[c] = a > 0.12 ? 1 : 0;
+    }
+    // sparse seeds (~2% of cells); dense seeding collapses the reaction
+    for (let c = 0; c < NC; c++) {
+      if (!mask[c] || hash(c, 17) >= 0.02) continue;
+      for (const o of [0, -1, 1, -GW, GW]) { const c2 = c + o; if (c2 >= 0 && c2 < NC && mask[c2]) { Va[c2] = 0.55; Ua[c2] = 0.45; } }
+    }
+    const iters = Math.min(700, Math.round(120 + 2.8 * S.amp)), Du = 0.21, Dv = 0.105;
+    for (let it = 0; it < iters; it++) {
+      for (let j = 0; j < GH; j++) for (let i = 0; i < GW; i++) {
+        const c = j * GW + i;
+        if (!mask[c]) { Ub[c] = 1; Vb[c] = 0; continue; }
+        const u = Ua[c], v = Va[c];
+        let lU = 0, lV = 0; // outside the dark area counts as fresh chemical, so edges feed the pattern
+        if (i > 0 && mask[c - 1]) { lU += Ua[c - 1]; lV += Va[c - 1]; } else lU += 1;
+        if (i < GW - 1 && mask[c + 1]) { lU += Ua[c + 1]; lV += Va[c + 1]; } else lU += 1;
+        if (j > 0 && mask[c - GW]) { lU += Ua[c - GW]; lV += Va[c - GW]; } else lU += 1;
+        if (j < GH - 1 && mask[c + GW]) { lU += Ua[c + GW]; lV += Va[c + GW]; } else lU += 1;
+        const a = attr[c], F = 0.034 + 0.022 * a, K = 0.060 + 0.004 * a, uvv = u * v * v;
+        const nu = u + Du * (lU - 4 * u) - uvv + F * (1 - u);
+        const nv = v + Dv * (lV - 4 * v) + uvv - (F + K) * v;
+        Ub[c] = nu < 0 ? 0 : nu > 1 ? 1 : nu;
+        Vb[c] = nv < 0 ? 0 : nv > 1 ? 1 : nv;
+      }
+      let t = Ua; Ua = Ub; Ub = t; t = Va; Va = Vb; Vb = t;
+    }
+    const out = [];
+    for (let j = 0; j < GH; j++) {
+      const runs = [];
+      let run = null;
+      for (let i = 0; i <= GW; i++) {
+        const c = j * GW + i, on = i < GW && mask[c] && Va[c] > 0.2;
+        if (on) { (run || (run = [])).push(d.mx + (i + 0.5) * cw, d.my + (j + 0.5) * ch - Va[c] * ch * 0.4); }
+        else if (run) { if (run.length >= 4) runs.push(run); run = null; }
+      }
+      if (j % 2) { runs.reverse(); runs.forEach((r) => out.push({ layer: 0, pts: rev(r) })); }
+      else runs.forEach((r) => out.push({ layer: 0, pts: r }));
+    }
+    return out;
+  }
+
+  // ---------------- blobs: smooth shapes from the dark areas, outlined and filled ----------------
+  // Pen 1 draws the outlines, pen 2 the fill, so the two can be different colours.
+  function genBlobs(d) {
+    const F = blobField(), T = clamp(1 - S.amp / 200, 0.05, 0.95), out = [];
+    isoLines(F, gw, gh, T).forEach((pts) => out.push({ layer: 0, pts }));
+    const isIn = (x, y) => sampleArr(F, x, y) > T;
+    const sp = S.spacing;
+    if (S.blobFill === "hatch" || S.blobFill === "cross") {
+      hatchWhere(d, Math.PI / 4, sp, isIn, 1, out);
+      if (S.blobFill === "cross") hatchWhere(d, -Math.PI / 4, sp, isIn, 1, out);
+      return out;
+    }
+    // distance (mm) from each inside cell to the blob edge: two-pass chamfer transform
+    const w = gw, h = gh, N = w * h, cs = DM.dw / gw, dg = cs * Math.SQRT2;
+    const dist = new Float32Array(N);
+    for (let c = 0; c < N; c++) dist[c] = F[c] > T ? 1e9 : 0;
+    for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
+      const c = j * w + i; if (!dist[c]) continue;
+      let m = dist[c];
+      if (i > 0) m = Math.min(m, dist[c - 1] + cs); else m = Math.min(m, cs);
+      if (j > 0) { m = Math.min(m, dist[c - w] + cs); if (i > 0) m = Math.min(m, dist[c - w - 1] + dg); if (i < w - 1) m = Math.min(m, dist[c - w + 1] + dg); } else m = Math.min(m, cs);
+      dist[c] = m;
+    }
+    for (let j = h - 1; j >= 0; j--) for (let i = w - 1; i >= 0; i--) {
+      const c = j * w + i; if (!dist[c]) continue;
+      let m = dist[c];
+      if (i < w - 1) m = Math.min(m, dist[c + 1] + cs); else m = Math.min(m, cs);
+      if (j < h - 1) { m = Math.min(m, dist[c + w] + cs); if (i < w - 1) m = Math.min(m, dist[c + w + 1] + dg); if (i > 0) m = Math.min(m, dist[c + w - 1] + dg); } else m = Math.min(m, cs);
+      dist[c] = m;
+    }
+    if (S.blobFill === "contours") {
+      let maxD = 0;
+      for (let c = 0; c < N; c++) if (dist[c] > maxD) maxD = dist[c];
+      const smooth = boxBlur(boxBlur(dist, w, h, 1), w, h, 1); // round off the chamfer's corners
+      for (let lv = sp; lv < maxD; lv += sp) isoLines(smooth, w, h, lv).forEach((pts) => out.push({ layer: 1, pts }));
+      return out;
+    }
+    // spiral: label each blob, then wind a spiral out from its deepest point
+    const lab = new Int32Array(N).fill(-1), comps = [];
+    for (let c0 = 0; c0 < N; c0++) {
+      if (!dist[c0] || lab[c0] >= 0) continue;
+      const id = comps.length, stack = [c0];
+      let count = 0, best = c0, i0 = w, i1 = 0, j0 = h, j1 = 0;
+      lab[c0] = id;
+      while (stack.length) {
+        const c = stack.pop(); count++;
+        if (dist[c] > dist[best]) best = c;
+        const i = c % w, j = (c / w) | 0;
+        if (i < i0) i0 = i; if (i > i1) i1 = i; if (j < j0) j0 = j; if (j > j1) j1 = j;
+        if (i > 0 && dist[c - 1] && lab[c - 1] < 0) { lab[c - 1] = id; stack.push(c - 1); }
+        if (i < w - 1 && dist[c + 1] && lab[c + 1] < 0) { lab[c + 1] = id; stack.push(c + 1); }
+        if (j > 0 && dist[c - w] && lab[c - w] < 0) { lab[c - w] = id; stack.push(c - w); }
+        if (j < h - 1 && dist[c + w] && lab[c + w] < 0) { lab[c + w] = id; stack.push(c + w); }
+      }
+      comps.push({ id, count, best, i0, i1, j0, j1 });
+    }
+    const labelAt = (x, y) => {
+      const i = Math.round((x - DM.mx) / DM.dw * w - 0.5), j = Math.round((y - DM.my) / DM.dh * h - 0.5);
+      return i < 0 || j < 0 || i >= w || j >= h ? -1 : lab[j * w + i];
+    };
+    const ds = Math.max(0.3, sp * 0.14);
+    for (const cp of comps) {
+      if (cp.count < 6) continue;
+      const bi = cp.best % w, bj = (cp.best / w) | 0;
+      const cx = DM.mx + (bi + 0.5) / w * DM.dw, cy = DM.my + (bj + 0.5) / h * DM.dh;
+      const gx = (i) => DM.mx + (i + 0.5) / w * DM.dw, gy = (j) => DM.my + (j + 0.5) / h * DM.dh;
+      const maxR = Math.max(Math.hypot(gx(cp.i0) - cx, gy(cp.j0) - cy), Math.hypot(gx(cp.i1) - cx, gy(cp.j0) - cy), Math.hypot(gx(cp.i0) - cx, gy(cp.j1) - cy), Math.hypot(gx(cp.i1) - cx, gy(cp.j1) - cy));
+      let th = 0.001, cur = [];
+      for (let guard = 0; guard < 2e6; guard++) {
+        const r = sp * th / (2 * Math.PI);
+        if (r > maxR + cs) break;
+        const x = cx + r * Math.cos(th), y = cy + r * Math.sin(th);
+        if (labelAt(x, y) === cp.id && isIn(x, y)) cur.push(x, y);
+        else if (cur.length) { if (cur.length >= 4) out.push({ layer: 1, pts: cur }); cur = []; }
+        th += ds / Math.max(r, 0.5);
+      }
+      if (cur.length >= 4) out.push({ layer: 1, pts: cur });
+    }
+    return out;
+  }
+
+  const GEN = { wave: genWave, hatch: genHatch, spiral: genSpiral, dots: genDots, contour: genContour, rings: genRings, flow: genFlow, stipple: genStipple, blobs: genBlobs, hairs: genHairs, arrows: genArrows, suns: genSuns, swirls: genSwirls, ascii: genAscii, growth: genGrowth };
 
   // ---------------- viewport: fit, zoom, pan ----------------
   const stage = $("stage"), paperEl = $("paper"), view = $("view"), vctx = view.getContext("2d");
@@ -650,7 +1122,8 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     const t0 = performance.now();
     DM = dims();
     computeDark();
-    paths = GEN[S.mode](DM);
+    fieldCache = null;
+    paths = (GEN[S.mode] || genWave)(DM);
     draw();
     liveGap = Math.max(120, (performance.now() - t0) * 1.5); // slow devices or huge sheets: refresh less often
     let len = 0;
@@ -701,7 +1174,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     stage.setPointerCapture(e.pointerId);
     pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
     dismissHint();
-    if (pts.size === 1) g = { type: "maybe", x0: e.clientX, y0: e.clientY, t0: performance.now(), tx0: tx, ty0: ty, sp0: S.spacing, ct0: S.contrast };
+    if (pts.size === 1) g = { type: "maybe", x0: e.clientX, y0: e.clientY, t0: performance.now(), tx0: tx, ty0: ty, sp0: S.mode === "contour" ? S.levels : S.spacing, ct0: S.contrast };
     else if (pts.size === 2) startPinch();
   });
   stage.addEventListener("pointermove", (e) => {
@@ -719,7 +1192,10 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     const dx = e.clientX - g.x0, dy = e.clientY - g.y0;
     if (g.type === "maybe" && Math.hypot(dx, dy) > 10) g.type = z > 1.01 ? "pan" : Math.abs(dx) > Math.abs(dy) ? "h" : "v";
     if (g.type === "pan") { tx = g.tx0 + dx; ty = g.ty0 + dy; clampPan(); applyTransform(); }
-    else if (g.type === "h") setVal("spacing", g.sp0 + dx / Math.max(innerWidth, 300) * 6 * scaleOf(S.size));
+    else if (g.type === "h") {
+      if (S.mode === "contour") setVal("levels", g.sp0 + dx / Math.max(innerWidth, 300) * 16);
+      else setVal("spacing", g.sp0 + dx / Math.max(innerWidth, 300) * 6 * scaleOf(S.size));
+    }
     else if (g.type === "v") setVal("contrast", g.ct0 - dy / Math.max(innerHeight, 400) * 3);
   });
   function endPointer(e) {
@@ -950,6 +1426,8 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   setRanges();
   $("margin").value = S.margin;
   syncLabels();
+  requestAnimationFrame(() => showMode(false));
+  if (/[?&]debug\b/.test(location.search)) window.__cp = { S, render: () => { const t = performance.now(); render(); return { ms: performance.now() - t, lines: paths.length, pts: paths.reduce((a, p) => a + p.pts.length / 2, 0) }; }, setMode: (m) => { S.mode = m; changed(false); } };
   setPip(S.pip !== false);
   const sample = makeSample();
   setStill(sample, sample.width, sample.height);
