@@ -13,7 +13,15 @@ Point your phone camera at something and turn it into pen-plotter line art in re
 
 No camera permission? The camera button beside the shutter opens your camera app instead, and the picture button loads an image from your gallery.
 
-Tip: on iPhone use Share → **Add to Home Screen**, and on Android use **Install app**, to open it full screen like a camera app.
+## Install as an app
+
+It's a Progressive Web App, so it installs from the browser with no app store:
+
+- **Android (Chrome):** open the page, then tap **Install** when prompted, or open the settings sheet and tap **Install Camera Plot**.
+- **iPhone / iPad (Safari):** tap **Share**, then **Add to Home Screen**.
+- **Desktop (Chrome / Edge):** click the install icon in the address bar.
+
+Once installed it opens full screen, has its own icon, works offline and keeps your settings. Updates arrive automatically the next time it opens with a connection.
 
 ## Gestures
 
@@ -63,7 +71,7 @@ Swipe up on the bottom bar (or tap its handle) for every setting. While you drag
 
 ## Run locally
 
-It's a single `index.html` with no build step or dependencies. Browsers only allow camera access over HTTPS or `localhost`, so serve it rather than double-clicking:
+It's plain HTML, CSS and JavaScript with no build step or dependencies: `index.html`, plus `manifest.webmanifest`, `sw.js` (offline support) and `icons/`. Browsers only allow camera access over HTTPS or `localhost`, so serve it rather than double-clicking:
 
 ```bash
 python -m http.server 8000

@@ -9,6 +9,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Camera Plot">
 <title>terraPen Camera Plot</title>
+<meta name="description" content="Turn your phone camera into pen-plotter line art and save an SVG.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
@@ -154,6 +158,8 @@ select {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
 }
 .tips { margin: 0; color: var(--muted); font-size: 13px; }
+.tips b { color: var(--ink); font-weight: 600; }
+.btn.primary-btn { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 
 /* Scrubbing a slider: the sheet turns see-through so the full-size plot stays visible. */
 body.scrub .sheet { background: transparent; border-color: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
@@ -272,6 +278,14 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
         <button class="btn" id="btnCopy" type="button">Copy SVG</button>
       </div>
       <p class="tips">Send SVG opens your phone's share sheet, so you can AirDrop, Nearby Share or email the file straight to the plotter computer.</p>
+    </div>
+    <div class="sec" id="appSec" hidden>
+      <p class="label">Get the app</p>
+      <button class="btn primary-btn" id="btnInstall" type="button" hidden>
+        <svg class="i" viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M12 8v7M9 12l3 3 3-3"/></svg>Install Camera Plot
+      </button>
+      <p class="tips" id="iosTip" hidden>On iPhone or iPad: tap the <b>Share</b> button in Safari, then <b>Add to Home Screen</b>. It opens full screen, works offline, and remembers your camera permission.</p>
+      <p class="tips" id="androidTip" hidden>It installs like a normal app, opens full screen and works offline.</p>
     </div>
   </div>
 </section>
@@ -894,6 +908,36 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   new ResizeObserver(() => layout()).observe($("head"));
   if (!hintShown) { $("hint").hidden = false; setTimeout(dismissHint, 7000); }
   requestAnimationFrame(tick);
+
+  // ---------------- install as an app ----------------
+  const standalone = () => matchMedia("(display-mode: standalone)").matches || matchMedia("(display-mode: fullscreen)").matches || navigator.standalone === true;
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  let deferredPrompt = null;
+  if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+    addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(() => {}); });
+  }
+  if (!standalone()) {
+    if (isIOS) {
+      $("appSec").hidden = false; $("iosTip").hidden = false;
+      let told = false;
+      try { told = localStorage.getItem(KEY + "-ios-tip") === "1"; } catch (e) {}
+      if (!told) setTimeout(() => {
+        toast("Tip: Share → Add to Home Screen installs this as an app.", 5000);
+        try { localStorage.setItem(KEY + "-ios-tip", "1"); } catch (e) {}
+      }, 9000);
+    }
+    addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault(); deferredPrompt = e;
+      $("appSec").hidden = false; $("btnInstall").hidden = false; $("androidTip").hidden = false;
+    });
+    $("btnInstall").addEventListener("click", async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      try { await deferredPrompt.userChoice; } catch (e) {}
+      deferredPrompt = null; $("btnInstall").hidden = true;
+    });
+    addEventListener("appinstalled", () => { $("appSec").hidden = true; toast("Installed. Open Camera Plot from your home screen."); });
+  }
 
   // Start the camera straight away when permission was already given.
   (async () => {
