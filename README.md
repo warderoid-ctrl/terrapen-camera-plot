@@ -36,6 +36,13 @@ Once installed it opens full screen, has its own icon, works offline and keeps y
 
 Swipe up on the bottom bar (or tap its handle) for every setting. While you drag a slider, the panel turns see-through so you can watch the full-size plot change.
 
+## Pen colours
+
+Four colour swatches set the colour of pens 1–4. Each pen is its own layer in the SVG, with a matching stroke colour,
+so plotter software can pause for a pen change between layers. Duotone always uses pens 1 and 2; the other styles
+show the colours when **Show pen colours** is on (Hatch layers, Blobs outline/fill and Technical lineweights are on
+separate pens).
+
 ## Focal point
 
 Long-press the picture to drop a point that the current style reacts to. A target marker shows where it is (on screen only, never in the SVG). The settings sheet has **Attract / Repel**, a **Pull** strength slider and **Remove point**. With no point placed, every style behaves as normal.
@@ -77,6 +84,8 @@ Long-press the picture to drop a point that the current style reacts to. A targe
 | Flow    | Streamlines that follow the edges in the picture                              |
 | Blobs   | Smooth shapes from the dark areas, filled with hatch, cross-hatch, contours or a spiral |
 | Hatch   | 1–4 layers of cross-hatching; darker areas get more layers                    |
+| Technical | Technical drawing: heavy outlines (pen 1), tone lines (pen 2) and section hatching in tonal bands (pen 3), with an optional border frame |
+| Duotone | Two-ink print: angled line screens, dark ink (pen 1) for shadows and light ink (pen 2) for highlights and midtones |
 | Stipple | Scattered dots, more of them where it's darker                                |
 | Dots    | Hexagonal grid of circles sized by darkness                                   |
 | Hairs   | Short strokes along the edges                                                 |
@@ -97,7 +106,9 @@ Blobs puts the outlines on pen 1 and the fill on pen 2, so they can be plotted i
 
 - **Spacing**: distance between lines, rings, dots or grid cells (mm); the label changes with the style
 - **Second slider** (wave height, dot size, line length, blob amount…): how strongly darkness drives the style
-- **Hatch layers** (Hatch) and **Contour levels** (Contour)
+- **Hatch layers** (Hatch) and **Contour levels** (Contour, 2–200; drag sideways on the picture to double or halve)
+- **Spacing** goes down to 0.5 mm for very dense plots; the live preview slows down to keep up
+- **Technical options**: heavy outlines (each outline drawn three times, side by side) and a border frame; the second slider sets **Shading**
 - **Blob fill** (Blobs): hatch, cross-hatch, contours or spiral
 - **Contrast, Brightness, Auto levels, Invert**: tone adjustments before plotting
 - **Pen width**: stroke width for the preview and the SVG
