@@ -4,3 +4,4 @@ desktop.ini
 *.svg
 !docs/*.svg
 .vscode/
+!icons/*.svg
