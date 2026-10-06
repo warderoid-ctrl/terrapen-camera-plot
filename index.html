@@ -1,0 +1,588 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2446c9">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>terraPen Camera Plot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: sticky paper preview on top (left column on wide screens), controls beneath. The preview is always white paper with black pen lines. */
+:root {
+  --bg: #e8ebed;
+  --panel: #f6f7f8;
+  --ink: #14181c;
+  --muted: #5b6670;
+  --line: #c3cbd1;
+  --accent: #2446c9;
+  --accent-ink: #ffffff;
+  --desk: #cdd3d8;
+  --font-ui: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111416; --panel: #1a1e21; --ink: #e7eaec; --muted: #92a0ab;
+    --line: #2f373d; --accent: #8aa3ff; --accent-ink: #0a1022; --desk: #0a0c0d;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111416; --panel: #1a1e21; --ink: #e7eaec; --muted: #92a0ab;
+  --line: #2f373d; --accent: #8aa3ff; --accent-ink: #0a1022; --desk: #0a0c0d;
+  color-scheme: dark;
+}
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  line-height: 1.4;
+  padding-inline: 16px;
+  padding-block: 0 24px;
+}
+* { box-sizing: border-box; }
+.app { display: grid; gap: 16px; max-width: 1100px; margin-inline: auto; }
+.stage {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--bg); padding-block: 12px 8px;
+  display: grid; gap: 8px;
+}
+.desk {
+  height: 44vh; min-height: 220px;
+  background: var(--desk);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 12px; overflow: hidden;
+}
+.desk canvas {
+  display: block; background: #fff;
+  max-width: 100%; max-height: 100%; width: auto; height: auto;
+  box-shadow: 0 1px 2px rgba(0,0,0,.25), 0 6px 18px rgba(0,0,0,.18);
+}
+.readout {
+  font-family: var(--font-mono); font-size: 12px; color: var(--muted);
+  display: flex; flex-wrap: wrap; gap: 4px 14px; font-variant-numeric: tabular-nums;
+}
+.controls { display: grid; gap: 18px; min-width: 0; }
+h1 { font-size: 17px; font-weight: 600; margin: 0; letter-spacing: .01em; }
+.sub { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+.sec { display: grid; gap: 10px; min-width: 0; }
+.label {
+  font-size: 11px; text-transform: uppercase; letter-spacing: .09em; color: var(--muted);
+  font-weight: 500; margin: 0;
+}
+.btnrow { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn, button {
+  font: inherit; font-weight: 500; color: var(--ink);
+  background: var(--panel); border: 1px solid var(--line); border-radius: 6px;
+  min-height: 44px; padding: 8px 14px; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.btn:hover, button:hover { border-color: var(--muted); }
+.btn.primary, button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn:focus-visible, button:focus-visible, input:focus-visible + .btn, select:focus-visible, input[type=range]:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.note { margin: 0; font-size: 13px; color: var(--muted); min-height: 1.4em; }
+.seg { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--panel); }
+.seg label { text-align: center; padding: 11px 4px; cursor: pointer; font-weight: 500; font-size: 14px; border-left: 1px solid var(--line); }
+.seg label:first-of-type { border-left: 0; }
+.seg input:checked + label { background: var(--accent); color: var(--accent-ink); }
+.seg input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: -3px; }
+@media (max-width: 420px) { .seg { grid-template-columns: repeat(2, minmax(0, 1fr)); } .seg label:nth-of-type(3) { border-left: 0; } .seg label:nth-of-type(n+3) { border-top: 1px solid var(--line); } }
+.sliders { display: grid; gap: 12px; }
+.ctl { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: baseline; }
+.ctl .name { font-weight: 500; }
+.ctl output { font-family: var(--font-mono); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.ctl input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); min-height: 28px; margin: 0; }
+.ctl[hidden] { display: none !important; }
+.checks { display: flex; flex-wrap: wrap; gap: 8px 22px; }
+.checks label { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; }
+.checks input { width: 18px; height: 18px; accent-color: var(--accent); }
+select {
+  font: inherit; color: var(--ink); background: var(--panel); border: 1px solid var(--line);
+  border-radius: 6px; min-height: 44px; padding: 8px 10px; width: 100%;
+}
+.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 420px) { .two { grid-template-columns: minmax(0, 1fr); } }
+.export { display: grid; gap: 8px; }
+.export .btnrow > * { flex: 1 1 140px; }
+@media (min-width: 900px) {
+  .app { grid-template-columns: minmax(0, 1fr) 380px; align-items: start; gap: 28px; }
+  .stage { top: 0; height: 100vh; grid-template-rows: 1fr auto; padding-block: 16px; }
+  .desk { height: auto; min-height: 0; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+
+<main class="app">
+  <section class="stage" aria-label="Plot preview">
+    <div class="desk"><canvas id="view" width="630" height="891" aria-label="Preview of the plotted image"></canvas></div>
+    <div class="readout" id="readout"></div>
+  </section>
+
+  <section class="controls">
+    <header>
+      <h1>terraPen Camera Plot</h1>
+      <p class="sub">Point at something, tune the line style, save an SVG for the plotter.</p>
+    </header>
+
+    <div class="sec">
+      <p class="label">Source</p>
+      <div class="btnrow">
+        <button id="btnLive" type="button" class="primary">Live camera</button>
+        <button id="btnFreeze" type="button" hidden>Freeze frame</button>
+        <input id="fileCam" class="sr" type="file" accept="image/*" capture="environment"><label class="btn" for="fileCam">Take photo</label>
+        <input id="filePick" class="sr" type="file" accept="image/*"><label class="btn" for="filePick">Choose image</label>
+      </div>
+      <p class="note" id="note" aria-live="polite"></p>
+    </div>
+
+    <div class="sec">
+      <p class="label">Style</p>
+      <div class="seg" role="radiogroup" aria-label="Plot style">
+        <input class="sr" type="radio" name="mode" id="m-wave" value="wave"><label for="m-wave">Waves</label>
+        <input class="sr" type="radio" name="mode" id="m-hatch" value="hatch"><label for="m-hatch">Hatch</label>
+        <input class="sr" type="radio" name="mode" id="m-spiral" value="spiral"><label for="m-spiral">Spiral</label>
+        <input class="sr" type="radio" name="mode" id="m-dots" value="dots"><label for="m-dots">Dots</label>
+      </div>
+      <div class="sliders" id="sliders"></div>
+      <div class="checks">
+        <label><input type="checkbox" id="auto"> Auto levels</label>
+        <label><input type="checkbox" id="invert"> Invert</label>
+      </div>
+    </div>
+
+    <div class="sec">
+      <p class="label">Paper</p>
+      <div class="two">
+        <select id="paper" aria-label="Paper size"></select>
+        <div class="ctl" id="marginCtl" style="align-content:center"></div>
+      </div>
+    </div>
+
+    <div class="sec export">
+      <p class="label">Export</p>
+      <div class="btnrow">
+        <button id="btnSave" type="button" class="primary">Save SVG</button>
+        <button id="btnCopy" type="button">Copy SVG</button>
+      </div>
+      <p class="note" id="exportNote" aria-live="polite"></p>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+
+  const PAPERS = {
+    a4p: [210, 297, "A4 portrait"], a4l: [297, 210, "A4 landscape"],
+    a5p: [148, 210, "A5 portrait"], a5l: [210, 148, "A5 landscape"],
+    a3p: [297, 420, "A3 portrait"], a3l: [420, 297, "A3 landscape"],
+    sq: [200, 200, "Square 200 mm"]
+  };
+  const DEFAULTS = { mode: "wave", paper: "a4p", margin: 10, spacing: 3.5, amp: 100, layers: 3, contrast: 1.3, bright: 0, pen: 0.3, invert: false, auto: true };
+  const S = Object.assign({}, DEFAULTS);
+  try { Object.assign(S, JSON.parse(localStorage.getItem("terrapen-camera-plot") || "{}")); } catch (e) {}
+  if (!PAPERS[S.paper]) S.paper = DEFAULTS.paper;
+  const save = () => { try { localStorage.setItem("terrapen-camera-plot", JSON.stringify(S)); } catch (e) {} };
+
+  const SLIDERS = [
+    { id: "spacing", min: 1.5, max: 10, step: 0.1, unit: " mm", name: () => ({ wave: "Line spacing", hatch: "Hatch spacing", spiral: "Ring spacing", dots: "Dot spacing" }[S.mode]) },
+    { id: "amp", min: 0, max: 200, step: 5, unit: "%", name: () => (S.mode === "dots" ? "Dot size" : "Wave height"), modes: ["wave", "spiral", "dots"] },
+    { id: "layers", min: 1, max: 4, step: 1, unit: "", name: () => "Hatch layers", modes: ["hatch"] },
+    { id: "contrast", min: 0.4, max: 3, step: 0.05, unit: "×", name: () => "Contrast" },
+    { id: "bright", min: -0.4, max: 0.4, step: 0.02, unit: "", name: () => "Brightness" },
+    { id: "pen", min: 0.1, max: 1, step: 0.05, unit: " mm", name: () => "Pen width" }
+  ];
+  const fmt = (id, v) => {
+    const sp = SLIDERS.find((s) => s.id === id) || { unit: " mm" };
+    const n = id === "bright" ? (v > 0 ? "+" : "") + (+v).toFixed(2) : id === "spacing" || id === "contrast" || id === "pen" ? (+v).toFixed(id === "pen" || id === "contrast" ? 2 : 1) : String(Math.round(v));
+    return n + (sp.unit || "");
+  };
+
+  // ---- build controls
+  const slidersEl = $("sliders");
+  SLIDERS.forEach((sp) => {
+    const wrap = document.createElement("div");
+    wrap.className = "ctl"; wrap.id = "ctl-" + sp.id;
+    wrap.innerHTML = `<label class="name" for="${sp.id}"></label><output for="${sp.id}" id="o-${sp.id}"></output><input type="range" id="${sp.id}" min="${sp.min}" max="${sp.max}" step="${sp.step}">`;
+    slidersEl.appendChild(wrap);
+    const input = wrap.querySelector("input");
+    input.value = S[sp.id];
+    input.addEventListener("input", () => { S[sp.id] = +input.value; changed(false); });
+  });
+  const marginCtl = $("marginCtl");
+  marginCtl.innerHTML = `<label class="name" for="margin">Margin</label><output id="o-margin"></output><input type="range" id="margin" min="0" max="40" step="1">`;
+  $("margin").value = S.margin;
+  $("margin").addEventListener("input", () => { S.margin = +$("margin").value; changed(true); });
+
+  const paperSel = $("paper");
+  Object.keys(PAPERS).forEach((k) => { const o = document.createElement("option"); o.value = k; o.textContent = PAPERS[k][2]; paperSel.appendChild(o); });
+  paperSel.value = S.paper;
+  paperSel.addEventListener("change", () => { S.paper = paperSel.value; changed(true); });
+
+  document.querySelectorAll('input[name="mode"]').forEach((r) => {
+    r.checked = r.value === S.mode;
+    r.addEventListener("change", () => { if (r.checked) { S.mode = r.value; changed(false); } });
+  });
+  $("auto").checked = !!S.auto; $("invert").checked = !!S.invert;
+  $("auto").addEventListener("change", () => { S.auto = $("auto").checked; changed(false); });
+  $("invert").addEventListener("change", () => { S.invert = $("invert").checked; changed(false); });
+
+  function syncLabels() {
+    SLIDERS.forEach((sp) => {
+      const wrap = $("ctl-" + sp.id);
+      wrap.hidden = !!(sp.modes && !sp.modes.includes(S.mode));
+      wrap.querySelector(".name").textContent = sp.name();
+      $("o-" + sp.id).textContent = fmt(sp.id, S[sp.id]);
+    });
+    $("o-margin").textContent = S.margin + " mm";
+  }
+
+  // ---- image source and grayscale grid
+  const ex = document.createElement("canvas");
+  const exCtx = ex.getContext("2d", { willReadFrequently: true });
+  let gray = null, dark = null, gw = 0, gh = 0;
+  let still = null;          // canvas or bitmap holding the current photo
+  let needExtract = true;
+  let stream = null, video = null, live = false, frozen = false;
+
+  const dims = () => {
+    const [W, H] = PAPERS[S.paper];
+    const m = Math.min(S.margin, Math.min(W, H) / 2 - 5);
+    return { W, H, mx: m, my: m, dw: W - 2 * m, dh: H - 2 * m };
+  };
+
+  function extract(src, sw, sh) {
+    if (!sw || !sh) return;
+    const d = dims();
+    let w = 240, h = Math.round(w * d.dh / d.dw);
+    if (h > 340) { h = 340; w = Math.round(h * d.dw / d.dh); }
+    h = Math.max(h, 8); w = Math.max(w, 8);
+    if (ex.width !== w || ex.height !== h) { ex.width = w; ex.height = h; }
+    const ar = w / h;
+    let cw = sw, ch = sw / ar;
+    if (ch > sh) { ch = sh; cw = sh * ar; }
+    exCtx.drawImage(src, (sw - cw) / 2, (sh - ch) / 2, cw, ch, 0, 0, w, h);
+    const px = exCtx.getImageData(0, 0, w, h).data;
+    if (!gray || gray.length !== w * h) gray = new Float32Array(w * h);
+    for (let i = 0, j = 0; i < gray.length; i++, j += 4) gray[i] = (0.299 * px[j] + 0.587 * px[j + 1] + 0.114 * px[j + 2]) / 255;
+    gw = w; gh = h;
+  }
+
+  function computeDark() {
+    if (!gray) return;
+    const n = gray.length;
+    if (!dark || dark.length !== n) dark = new Float32Array(n);
+    let lo = 0, hi = 1;
+    if (S.auto) {
+      const hist = new Uint32Array(256);
+      for (let i = 0; i < n; i++) hist[Math.min(255, (gray[i] * 255) | 0)]++;
+      let acc = 0, a = 0, b = 255;
+      for (let k = 0; k < 256; k++) { acc += hist[k]; if (acc >= n * 0.02) { a = k; break; } }
+      acc = 0;
+      for (let k = 255; k >= 0; k--) { acc += hist[k]; if (acc >= n * 0.02) { b = k; break; } }
+      lo = a / 255; hi = b / 255;
+    }
+    const rng = Math.max(hi - lo, 0.08);
+    for (let i = 0; i < n; i++) {
+      let b = (gray[i] - lo) / rng;
+      b = clamp((b - 0.5) * S.contrast + 0.5 + S.bright, 0, 1);
+      dark[i] = S.invert ? b : 1 - b;
+    }
+  }
+
+  // ---- generators. Each returns [{layer, pts:[x0,y0,x1,y1,...]}] in mm.
+  let DM = null;
+  function D(x, y) {
+    const u = clamp((x - DM.mx) / DM.dw * gw - 0.5, 0, gw - 1);
+    const v = clamp((y - DM.my) / DM.dh * gh - 0.5, 0, gh - 1);
+    const i0 = u | 0, j0 = v | 0, i1 = Math.min(i0 + 1, gw - 1), j1 = Math.min(j0 + 1, gh - 1);
+    const fu = u - i0, fv = v - j0;
+    const a = dark[j0 * gw + i0], b = dark[j0 * gw + i1], c = dark[j1 * gw + i0], e = dark[j1 * gw + i1];
+    return (a * (1 - fu) + b * fu) * (1 - fv) + (c * (1 - fu) + e * fu) * fv;
+  }
+  const rev = (p) => { const r = []; for (let k = p.length - 2; k >= 0; k -= 2) r.push(p[k], p[k + 1]); return r; };
+  const inside = (d, x, y) => x >= d.mx && x <= d.mx + d.dw && y >= d.my && y <= d.my + d.dh;
+
+  function genWave(d) {
+    const n = Math.max(2, Math.floor(d.dh / S.spacing)), sp = d.dh / n, step = 0.35, amp = S.amp / 100, out = [];
+    for (let i = 0; i < n; i++) {
+      const y0 = d.my + (i + 0.5) * sp; let pts = [], ph = 0;
+      for (let x = 0; x <= d.dw + 1e-6; x += step) {
+        const X = d.mx + x, dk = D(X, y0);
+        ph += step * (0.9 + dk * 3.2);
+        pts.push(X, y0 + Math.sin(ph) * sp * 0.5 * amp * dk * 1.15);
+      }
+      if (i % 2) pts = rev(pts);
+      out.push({ layer: 0, pts });
+    }
+    return out;
+  }
+
+  function genHatch(d) {
+    const ang = [45, 135, 0, 90], L = S.layers, out = [], step = 0.7;
+    const diag = Math.hypot(d.dw, d.dh), cx = d.mx + d.dw / 2, cy = d.my + d.dh / 2;
+    for (let k = 0; k < L; k++) {
+      const th = ang[k] * Math.PI / 180, c = Math.cos(th), s = Math.sin(th), thr = 0.15 + (k / L) * 0.6;
+      let idx = 0;
+      for (let t = -diag / 2; t <= diag / 2; t += S.spacing) {
+        const ox = cx - s * t, oy = cy + c * t, segs = [];
+        let cur = [];
+        for (let q = -diag / 2; q <= diag / 2; q += step) {
+          const x = ox + c * q, y = oy + s * q;
+          if (inside(d, x, y) && D(x, y) > thr) cur.push(x, y);
+          else { if (cur.length >= 4) segs.push(cur); cur = []; }
+        }
+        if (cur.length >= 4) segs.push(cur);
+        const flip = idx++ % 2;
+        if (flip) segs.reverse();
+        segs.forEach((p) => out.push({ layer: k, pts: flip ? rev(p) : p }));
+      }
+    }
+    return out;
+  }
+
+  function genSpiral(d) {
+    const cx = d.mx + d.dw / 2, cy = d.my + d.dh / 2, p = S.spacing, amp = S.amp / 100, ds = 0.5, maxR = Math.hypot(d.dw, d.dh) / 2, out = [];
+    let th = 0.001, ph = 0, cur = [];
+    for (let guard = 0; guard < 4e6; guard++) {
+      const r = p * th / (2 * Math.PI);
+      if (r > maxR) break;
+      const x = cx + r * Math.cos(th), y = cy + r * Math.sin(th);
+      if (inside(d, x, y)) {
+        const dk = D(x, y);
+        ph += ds * (0.9 + dk * 3.2);
+        const rr = r + Math.sin(ph) * p * 0.5 * amp * dk * 1.15;
+        cur.push(clamp(cx + rr * Math.cos(th), d.mx, d.mx + d.dw), clamp(cy + rr * Math.sin(th), d.my, d.my + d.dh));
+      } else if (cur.length) { out.push({ layer: 0, pts: cur }); cur = []; }
+      th += ds / Math.max(r, 0.5);
+    }
+    if (cur.length) out.push({ layer: 0, pts: cur });
+    return out;
+  }
+
+  function genDots(d) {
+    const s = S.spacing, rowH = s * 0.866, out = [], amp = S.amp / 100;
+    const rows = Math.floor(d.dh / rowH);
+    for (let j = 0; j < rows; j++) {
+      const y = d.my + (j + 0.5) * rowH, off = j % 2 ? 0.5 : 0, rowDots = [];
+      for (let i = 0; (i + 0.5 + off) * s <= d.dw; i++) {
+        const x = d.mx + (i + 0.5 + off) * s, r = s * 0.5 * Math.sqrt(D(x, y)) * amp;
+        if (r < S.pen * 0.6) continue;
+        const n = clamp(Math.ceil(r * 5), 6, 24), pts = [];
+        for (let a = 0; a <= n; a++) { const t = a / n * Math.PI * 2; pts.push(x + Math.cos(t) * r, y + Math.sin(t) * r); }
+        rowDots.push({ layer: 0, pts });
+      }
+      if (j % 2) rowDots.reverse();
+      for (const o of rowDots) out.push(o);
+    }
+    return out;
+  }
+  const GEN = { wave: genWave, hatch: genHatch, spiral: genSpiral, dots: genDots };
+
+  // ---- render
+  let paths = [];
+  const view = $("view"), vctx = view.getContext("2d");
+  function draw(d) {
+    const k = 3, cw = Math.round(d.W * k), ch = Math.round(d.H * k);
+    if (view.width !== cw || view.height !== ch) { view.width = cw; view.height = ch; }
+    vctx.fillStyle = "#ffffff"; vctx.fillRect(0, 0, cw, ch);
+    vctx.strokeStyle = "#e3e3e3"; vctx.lineWidth = 1; vctx.setLineDash([6, 6]);
+    vctx.strokeRect(d.mx * k, d.my * k, d.dw * k, d.dh * k); vctx.setLineDash([]);
+    vctx.strokeStyle = "#111"; vctx.lineWidth = Math.max(S.pen * k, 1.1); vctx.lineCap = "round"; vctx.lineJoin = "round";
+    const byLayer = [];
+    paths.forEach((p) => (byLayer[p.layer] || (byLayer[p.layer] = [])).push(p));
+    byLayer.forEach((arr) => {
+      if (!arr) return;
+      vctx.beginPath();
+      for (const p of arr) {
+        const q = p.pts;
+        vctx.moveTo(q[0] * k, q[1] * k);
+        for (let i = 2; i < q.length; i += 2) vctx.lineTo(q[i] * k, q[i + 1] * k);
+      }
+      vctx.stroke();
+    });
+  }
+
+  function render() {
+    if (!gray) return;
+    const d = dims(); DM = d;
+    computeDark();
+    paths = GEN[S.mode](d);
+    draw(d);
+    let pts = 0, len = 0;
+    for (const p of paths) {
+      const q = p.pts; pts += q.length / 2;
+      for (let i = 2; i < q.length; i += 2) len += Math.hypot(q[i] - q[i - 2], q[i + 1] - q[i - 1]);
+    }
+    $("readout").innerHTML = `<span>${PAPERS[S.paper][2]}</span><span>${paths.length.toLocaleString()} strokes</span><span>${pts.toLocaleString()} points</span><span>≈ ${(len / 1000).toFixed(1)} m of line</span>`;
+  }
+
+  // ---- loop
+  let dirty = true, lastLive = 0;
+  function changed(reExtract) { if (reExtract) needExtract = true; dirty = true; syncLabels(); save(); }
+  function tick(t) {
+    requestAnimationFrame(tick);
+    if (live && !frozen && video && video.readyState >= 2) {
+      if (t - lastLive > 140) { lastLive = t; extract(video, video.videoWidth, video.videoHeight); dirty = true; needExtract = false; }
+    } else if (needExtract && still) {
+      extract(still, still.width, still.height); needExtract = false; dirty = true;
+    }
+    if (dirty) { dirty = false; render(); }
+  }
+
+  // ---- sources
+  const note = (m) => { $("note").textContent = m; };
+  function stopStream() {
+    if (stream) stream.getTracks().forEach((tr) => tr.stop());
+    stream = null; video = null; live = false; frozen = false;
+    $("btnFreeze").hidden = true; $("btnLive").textContent = "Live camera";
+  }
+  function setStill(src, w, h) {
+    const c = document.createElement("canvas"); c.width = w; c.height = h;
+    c.getContext("2d").drawImage(src, 0, 0, w, h);
+    still = c; needExtract = true; dirty = true;
+  }
+
+  async function startLive() {
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error("no camera API");
+      stopStream();
+      note("Starting camera…");
+      const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 6000));
+      stream = await Promise.race([
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 } }, audio: false }),
+        timeout
+      ]);
+      video = document.createElement("video");
+      video.playsInline = true; video.muted = true; video.srcObject = stream;
+      await video.play();
+      live = true; frozen = false; lastLive = 0;
+      $("btnFreeze").hidden = false; $("btnFreeze").textContent = "Freeze frame";
+      $("btnLive").textContent = "Restart camera";
+      note("Live. Filters update as you move the phone.");
+    } catch (e) {
+      stopStream();
+      note("Camera not available. Allow camera access for this site in your browser settings, then tap Live camera again. Take photo still works.");
+    }
+  }
+  $("btnLive").addEventListener("click", startLive);
+  $("btnFreeze").addEventListener("click", () => {
+    if (!video) return;
+    if (!frozen) {
+      setStill(video, video.videoWidth, video.videoHeight);
+      frozen = true; $("btnFreeze").textContent = "Resume live"; note("Frozen. Adjust the style, then save.");
+    } else { frozen = false; $("btnFreeze").textContent = "Freeze frame"; note("Live."); }
+  });
+
+  async function loadFile(file) {
+    if (!file) return;
+    stopStream();
+    try {
+      let bmp;
+      if (window.createImageBitmap) bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
+      else {
+        bmp = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = URL.createObjectURL(file); });
+      }
+      const w = bmp.width || bmp.naturalWidth, h = bmp.height || bmp.naturalHeight, sc = Math.min(1, 1600 / Math.max(w, h));
+      setStill(bmp, Math.round(w * sc), Math.round(h * sc));
+      note("Photo loaded. Sliders update the plot immediately.");
+    } catch (e) { note("That image could not be read. Try a JPEG or PNG."); }
+  }
+  $("fileCam").addEventListener("change", (e) => { loadFile(e.target.files[0]); e.target.value = ""; });
+  $("filePick").addEventListener("change", (e) => { loadFile(e.target.files[0]); e.target.value = ""; });
+
+  function makeSample() {
+    const c = document.createElement("canvas"); c.width = 600; c.height = 800;
+    const x = c.getContext("2d");
+    let g = x.createLinearGradient(0, 0, 0, 800);
+    g.addColorStop(0, "#d8d8d8"); g.addColorStop(0.55, "#bdbdbd"); g.addColorStop(0.56, "#6a6a6a"); g.addColorStop(1, "#2a2a2a");
+    x.fillStyle = g; x.fillRect(0, 0, 600, 800);
+    x.fillStyle = "rgba(0,0,0,.45)"; x.beginPath(); x.ellipse(330, 560, 250, 42, 0, 0, 7); x.fill();
+    g = x.createRadialGradient(230, 300, 20, 290, 360, 250);
+    g.addColorStop(0, "#ffffff"); g.addColorStop(0.45, "#8c8c8c"); g.addColorStop(1, "#0d0d0d");
+    x.fillStyle = g; x.beginPath(); x.arc(290, 360, 220, 0, 7); x.fill();
+    x.fillStyle = "rgba(0,0,0,.4)"; x.beginPath(); x.ellipse(470, 640, 90, 18, 0, 0, 7); x.fill();
+    g = x.createRadialGradient(440, 560, 8, 470, 590, 90);
+    g.addColorStop(0, "#f2f2f2"); g.addColorStop(1, "#2b2b2b");
+    x.fillStyle = g; x.beginPath(); x.arc(470, 590, 78, 0, 7); x.fill();
+    return c;
+  }
+
+  // ---- export
+  function buildSVG() {
+    const d = dims(), f = (n) => +n.toFixed(2), layers = [];
+    paths.forEach((p) => (layers[p.layer] || (layers[p.layer] = [])).push(p));
+    let s = `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="${d.W}mm" height="${d.H}mm" viewBox="0 0 ${d.W} ${d.H}">\n`;
+    layers.forEach((arr, li) => {
+      if (!arr) return;
+      let dd = "";
+      for (const p of arr) {
+        const q = p.pts;
+        dd += "M" + f(q[0]) + " " + f(q[1]);
+        for (let i = 2; i < q.length; i += 2) dd += "L" + f(q[i]) + " " + f(q[i + 1]);
+      }
+      s += `<g inkscape:groupmode="layer" inkscape:label="pen ${li + 1}" fill="none" stroke="#000" stroke-width="${S.pen}" stroke-linecap="round" stroke-linejoin="round"><path d="${dd}"/></g>\n`;
+    });
+    return s + "</svg>\n";
+  }
+  const stamp = () => { const t = new Date(), p = (n) => String(n).padStart(2, "0"); return `${t.getFullYear()}${p(t.getMonth() + 1)}${p(t.getDate())}-${p(t.getHours())}${p(t.getMinutes())}${p(t.getSeconds())}`; };
+  const xnote = (m) => { $("exportNote").textContent = m; };
+
+  let downloads = null;
+  (async () => {
+    try { downloads = window.claude && window.claude.use ? await window.claude.use("downloads") : null; } catch (e) { downloads = null; }
+
+  })();
+
+  async function copySVG() {
+    const svg = buildSVG();
+    try { await navigator.clipboard.writeText(svg); xnote("SVG copied. Paste it into a text file and name it .svg."); }
+    catch (e) { xnote("Copy was refused here. Use Save SVG instead."); }
+  }
+  $("btnCopy").addEventListener("click", copySVG);
+  $("btnSave").addEventListener("click", async () => {
+    if (!paths.length) { xnote("Nothing to save yet."); return; }
+    if (!downloads) {
+      const blob = new Blob([buildSVG()], { type: "image/svg+xml" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob); a.download = `terrapen-${S.mode}-${stamp()}.svg`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      xnote("Saved to your downloads.");
+      return;
+    }
+    try {
+      await downloads.save({ filename: `terrapen-${S.mode}-${stamp()}.svg`, data: buildSVG() });
+      xnote("Saved. Open it in your plotter software.");
+    } catch (e) {
+      if (e && e.code === "declined") xnote("Save cancelled.");
+      else if (e && e.code === "rate_limited") xnote("A save prompt is already open. Answer it, then try again.");
+      else xnote("Saving is not available in this view. Use Copy SVG.");
+    }
+  });
+
+  // ---- start
+  syncLabels();
+  const sample = makeSample();
+  setStill(sample, sample.width, sample.height);
+  note("Showing a sample scene. Use Live camera or Take photo to replace it.");
+  requestAnimationFrame(tick);
+})();
+</script>
+
+</body>
+</html>
