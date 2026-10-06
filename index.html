@@ -56,6 +56,7 @@ button:focus-visible, label:focus-visible, select:focus-visible, input:focus-vis
 .fmark::before, .fmark::after { content: ""; position: absolute; left: 50%; top: 50%; background: var(--accent); transform: translate(-50%, -50%); }
 .fmark::before { width: 2px; height: 44px; } .fmark::after { width: 44px; height: 2px; }
 .fmark.on { animation: fpop .35s ease-out; }
+.fmark[hidden] { display: block !important; opacity: 0; transition: opacity .4s ease; }
 @keyframes fpop { from { transform: scale(1.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 .pens { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
 .pen { display: grid; justify-items: center; gap: 4px; font-size: 12px; color: var(--muted); cursor: pointer; }
@@ -359,6 +360,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
           <input class="sr" type="radio" name="repel" id="fp-repel" value="1"><label for="fp-repel">Repel</label>
         </div>
         <div class="ctl" id="ctl-pull"><label class="name" for="pull">Pull</label><output id="o-pull" for="pull"></output><input type="range" id="pull" min="0" max="200" step="5"></div>
+        <div class="checks"><label><input type="checkbox" id="showTarget"> Show target</label></div>
         <div class="btnrow"><button class="btn" id="btnFocusOff" type="button">Remove point</button></div>
       </div>
     </div>
@@ -383,7 +385,8 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
         </button>
         <button class="btn" id="btnCopy" type="button">Copy SVG</button>
       </div>
-      <p class="tips">Send SVG opens your phone's share sheet, so you can AirDrop, Nearby Share or email the file straight to the plotter computer.</p>
+      <div class="checks"><label><input type="checkbox" id="splitPens"> Save each pen as its own file</label></div>
+      <p class="tips">Every SVG keeps each pen on its own coloured layer. Turn on the option above for plotter software that ignores layers: you get one file per colour. Send SVG opens your phone's share sheet, so you can AirDrop, Nearby Share or email the files straight to the plotter computer.</p>
     </div>
     <div class="sec" id="appSec" hidden>
       <p class="label">Get the app</p>
@@ -407,7 +410,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   // ISO 216 sizes in mm (short side, long side). Square uses the short side.
   const SIZES = { a6: [105, 148], a5: [148, 210], a4: [210, 297], a3: [297, 420], a2: [420, 594], a1: [594, 841], a0: [841, 1189] };
   const SHAPES = { p: "portrait", l: "landscape", sq: "square" };
-  const DEFAULTS = { pens: ["#1f2a5c", "#e4572e", "#2364aa", "#4f8a3b"], showColours: false, techBold: true, techFrame: true, focus: null, repel: false, pull: 100, levels: 8, blobFill: "hatch", mode: "wave", size: "a4", shape: "p", margin: 10, spacing: 3.5, amp: 100, layers: 3, contrast: 1.3, bright: 0, pen: 0.3, invert: false, auto: true, pip: true };
+  const DEFAULTS = { showTarget: false, splitPens: false, pens: ["#1f2a5c", "#e4572e", "#2364aa", "#4f8a3b"], showColours: false, techBold: true, techFrame: true, focus: null, repel: false, pull: 100, levels: 8, blobFill: "hatch", mode: "wave", size: "a4", shape: "p", margin: 10, spacing: 3.5, amp: 100, layers: 3, contrast: 1.3, bright: 0, pen: 0.3, invert: false, auto: true, pip: true };
   const S = Object.assign({}, DEFAULTS);
   const KEY = "terrapen-camera-plot";
   try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
@@ -534,7 +537,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   const focusName = () => (FOCUS_NAMES[S.mode] || ["Focal point"])[S.repel ? 1 : 0] || "Focal point";
   function syncFocus() {
     const on = !!S.focus, fm = $("fmark");
-    fm.hidden = !on;
+    fm.hidden = !(on && (S.showTarget || targetFlash)); // hidden unless placing, just placed, or Show target is on
     if (on) { fm.style.left = S.focus.x * 100 + "%"; fm.style.top = S.focus.y * 100 + "%"; }
     $("focusCtl").hidden = !on;
     $("focusTip").textContent = on
@@ -549,6 +552,8 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   }));
   $("pull").addEventListener("input", () => { S.pull = +$("pull").value; changed(false); });
   bindScrub($("pull"), $("ctl-pull"));
+  $("showTarget").checked = !!S.showTarget;
+  $("showTarget").addEventListener("change", () => { S.showTarget = $("showTarget").checked; syncFocus(); store(); });
   $("btnFocusOff").addEventListener("click", () => { S.focus = null; changed(false); toast("Focal point removed"); });
   document.querySelectorAll('input[name="blobFill"]').forEach((r) => {
     r.checked = r.value === S.blobFill;
@@ -1613,11 +1618,12 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     if (v !== S[id]) { S[id] = v; changed(false); }
     hud(sp.name(), fmt(id, v));
   }
-  let lpTimer = 0;
+  let lpTimer = 0, targetFlash = false, flashT = 0;
   function placeFocus(cx, cy, first) {
     const m = rel({ x: cx, y: cy });
     const u = clamp((m.x - tx) / z / fit.w, 0, 1), v = clamp((m.y - ty) / z / fit.h, 0, 1);
     S.focus = { x: +u.toFixed(4), y: +v.toFixed(4) };
+    targetFlash = true; clearTimeout(flashT);
     changed(false);
     if (first) {
       const fm = $("fmark"); fm.classList.remove("on"); void fm.offsetWidth; fm.classList.add("on");
@@ -1679,6 +1685,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     }
     if (pts.size > 0) return;
     clearTimeout(lpTimer);
+    if (g.type === "focus") { clearTimeout(flashT); flashT = setTimeout(() => { targetFlash = false; syncFocus(); }, 1200); }
     if (g.type === "h" || g.type === "v" || g.type === "focus") hudOff();
     if (g.type === "maybe" && e.type === "pointerup" && performance.now() - g.t0 < 350) onTap(e.clientX, e.clientY);
     g = null;
@@ -1835,9 +1842,12 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   }
 
   // ---------------- export ----------------
-  function buildSVG() {
+  // One layer per pen. Labels start with the pen number ("1 pen 1 #1f2a5c") so AxiDraw-style
+  // plotter software can plot a layer at a time; onlyLayer exports a single pen.
+  function usedLayers() { const u = []; paths.forEach((p) => { u[p.layer] = true; }); return u.map((v, i) => (v ? i : -1)).filter((i) => i >= 0); }
+  function buildSVG(onlyLayer) {
     const d = DM || dims(), f = (n) => +n.toFixed(2), layers = [];
-    paths.forEach((p) => (layers[p.layer] || (layers[p.layer] = [])).push(p));
+    paths.forEach((p) => { if (onlyLayer === undefined || p.layer === onlyLayer) (layers[p.layer] || (layers[p.layer] = [])).push(p); });
     let s = `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="${d.W}mm" height="${d.H}mm" viewBox="0 0 ${d.W} ${d.H}">\n`;
     layers.forEach((arr, li) => {
       if (!arr) return;
@@ -1847,7 +1857,8 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
         dd += "M" + f(q[0]) + " " + f(q[1]);
         for (let i = 2; i < q.length; i += 2) dd += "L" + f(q[i]) + " " + f(q[i + 1]);
       }
-      s += `<g inkscape:groupmode="layer" inkscape:label="pen ${li + 1}" fill="none" stroke="${penColour(li, true)}" stroke-width="${S.pen}" stroke-linecap="round" stroke-linejoin="round"><path d="${dd}"/></g>\n`;
+      const col = penColour(li, true);
+      s += `<g id="pen${li + 1}" inkscape:groupmode="layer" inkscape:label="${li + 1} pen ${li + 1} ${col}" fill="none" stroke="${col}" stroke-width="${S.pen}" stroke-linecap="round" stroke-linejoin="round"><path d="${dd}"/></g>\n`;
     });
     return s + "</svg>\n";
   }
@@ -1859,20 +1870,34 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     return paths.length ? buildSVG() : null;
   }
 
+  $("splitPens").checked = !!S.splitPens;
+  $("splitPens").addEventListener("change", () => { S.splitPens = $("splitPens").checked; store(); });
+  // The files to export: one combined SVG, or one per pen when "Save each pen" is on.
+  function exportFiles() {
+    const all = prepExport();
+    if (!all) return [];
+    const L = usedLayers();
+    if (!S.splitPens || L.length < 2) return [{ name: fname(), svg: all }];
+    const base = fname().replace(/\.svg$/, "");
+    return L.map((li) => ({ name: `${base}-pen${li + 1}-${penColour(li, true).slice(1)}.svg`, svg: buildSVG(li) }));
+  }
+  const pause = (ms) => new Promise((r) => setTimeout(r, ms));
   $("btnSave").addEventListener("click", async () => {
-    const svg = prepExport();
-    if (!svg) { toast("Nothing to save yet."); return; }
+    const files = exportFiles();
+    if (!files.length) { toast("Nothing to save yet."); return; }
     try {
       const dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null;
-      if (dl) { await dl.save({ filename: fname(), data: svg }); toast("Saved."); return; }
+      if (dl) { for (const fl of files) await dl.save({ filename: fl.name, data: fl.svg }); toast("Saved."); return; }
     } catch (e) { if (e && e.code === "declined") { toast("Save cancelled."); return; } }
-    const blob = new Blob([svg], { type: "image/svg+xml" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob); a.download = fname();
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    for (let i = 0; i < files.length; i++) {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([files[i].svg], { type: "image/svg+xml" })); a.download = files[i].name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(((u) => () => URL.revokeObjectURL(u))(a.href), 4000);
+      if (i < files.length - 1) await pause(450); // browsers block bursts of downloads
+    }
     if (navigator.vibrate) navigator.vibrate(12);
-    toast("SVG saved to your downloads.");
+    toast(files.length > 1 ? `${files.length} SVGs saved, one per pen.` : "SVG saved to your downloads.");
   });
 
   const canShareFiles = (() => {
@@ -1881,8 +1906,8 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   if (canShareFiles) {
     $("btnShare").hidden = false;
     $("btnShare").addEventListener("click", async () => {
-      const svg = prepExport(); if (!svg) return;
-      try { await navigator.share({ files: [new File([svg], fname(), { type: "image/svg+xml" })], title: "terraPen plot" }); }
+      const files = exportFiles(); if (!files.length) return;
+      try { await navigator.share({ files: files.map((fl) => new File([fl.svg], fl.name, { type: "image/svg+xml" })), title: "terraPen plot" }); }
       catch (e) { if (e && e.name !== "AbortError") toast("Sharing failed. Use the save button instead."); }
     });
   }
