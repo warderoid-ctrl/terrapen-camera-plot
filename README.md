@@ -32,8 +32,31 @@ Once installed it opens full screen, has its own icon, works offline and keeps y
 | Pinch             | Zoom in to check the lines   |
 | Double-tap        | Zoom in 3×, or back out      |
 | Tap               | Hide or show all controls    |
+| Long-press        | Place a focal point; keep holding and drag to move it |
 
 Swipe up on the bottom bar (or tap its handle) for every setting. While you drag a slider, the panel turns see-through so you can watch the full-size plot change.
+
+## Focal point
+
+Long-press the picture to drop a point that the current style reacts to. A target marker shows where it is (on screen only, never in the SVG). The settings sheet has **Attract / Repel**, a **Pull** strength slider and **Remove point**. With no point placed, every style behaves as normal.
+
+| Style   | Attract                                   | Repel                       |
+| ------- | ----------------------------------------- | --------------------------- |
+| Waves   | Lines pinch in towards the point          | Lines bulge away (lens)     |
+| Spiral  | Spiral starts at the point                | same                        |
+| Rings   | Rings centre on the point                 | same                        |
+| Contour | A hill rises at the point                 | A pit sinks                 |
+| Flow    | Whirlpool draining into the point         | Whirl spiralling outward    |
+| Blobs   | Hatch radiates, cross adds rings, spiral fill centres on the point | same |
+| Hatch   | Lines converge on the point (vanishing point); extra layers add rings | same |
+| Stipple | Dots fall towards the point (gravity)     | Dots pushed away            |
+| Dots    | Dots sit on rings around the point        | same                        |
+| Hairs   | Combed towards the point, like iron filings | Combed into circles around it |
+| Arrows  | Aim at the point                          | Aim away                    |
+| Suns    | Rays stretch towards the point            | Rays stretch away           |
+| Swirls  | Orbit the point, tighter close to it      | Orbit the other way         |
+| ASCII   | Characters sit on rings around the point  | same                        |
+| Growth  | Grows only around the point; Pull sets how far | same                   |
 
 ## Top bar
 
