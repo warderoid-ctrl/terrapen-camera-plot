@@ -121,7 +121,7 @@ svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-widt
   background: var(--chrome); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
   border-top: 1px solid var(--line); border-radius: 18px 18px 0 0;
   padding: 0 16px calc(env(safe-area-inset-bottom, 0px) + 10px);
-  display: flex; flex-direction: column; max-height: 74vh; max-height: 74dvh;
+  display: flex; flex-direction: column; max-height: 88vh; max-height: 88dvh;
   transition: transform .25s ease, background .15s ease, border-color .15s ease;
 }
 .head { touch-action: none; }
@@ -130,19 +130,22 @@ svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-widt
 /* Style carousel: thumbnails previewing each style; the one in the centre is active. */
 .modes {
   position: relative; display: flex; gap: 10px; margin-inline: -16px;
-  padding: 2px calc(50% - 31px) 10px;
+  padding: 14px calc(50% - 75px) 14px;
   overflow-x: auto; scrollbar-width: none; scroll-snap-type: x mandatory; touch-action: pan-x;
   -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%);
   mask-image: linear-gradient(90deg, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%);
 }
 .modes::-webkit-scrollbar { display: none; }
+/* Scrolled into the settings: fold the carousel away so the controls get the room. Scroll back to the top to bring it back. */
+.modes { max-height: 260px; transition: max-height .25s ease, opacity .2s ease, padding .25s ease; }
+.sheet.compact .modes { max-height: 0; opacity: 0; padding-block: 0; overflow: hidden; pointer-events: none; }
 .modes label {
-  flex: 0 0 auto; width: 62px; scroll-snap-align: center; cursor: pointer;
-  display: grid; justify-items: center; gap: 5px;
-  font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); white-space: nowrap;
+  flex: 0 0 auto; width: 150px; scroll-snap-align: center; cursor: pointer;
+  display: grid; justify-items: center; gap: 8px;
+  font-size: 15px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); white-space: nowrap;
 }
 .modes .th {
-  width: 56px; height: 56px; border-radius: 12px; background: #ffffff; display: block;
+  width: 136px; height: 136px; border-radius: 18px; background: #ffffff; display: block;
   box-shadow: 0 0 0 1px var(--line); transition: transform .15s ease, box-shadow .15s ease;
 }
 .modes input:checked + label { color: var(--ink); }
@@ -166,22 +169,22 @@ body.side .modes { flex-wrap: wrap; overflow: visible; margin-inline: 0; padding
 .shutter[data-state="frozen"] span { background: var(--accent); transform: scale(.5); border-radius: 6px; }
 .shutter:active span { transform: scale(.88); }
 .shutter[data-state="frozen"]:active span { transform: scale(.42); }
-.cap { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.cap { font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
 
-.more { display: none; overflow-y: auto; overscroll-behavior: contain; padding-block: 10px 6px; gap: 20px; }
+.more { display: none; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; padding-block: 10px 24px; gap: 24px; min-height: 0; flex: 1 1 auto; }
 .sheet.open .more { display: grid; }
 .sec { display: grid; gap: 10px; min-width: 0; }
-.label { margin: 0; font-size: 11px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.label { margin: 0; font-size: 13px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
 .ctl { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: baseline; border-radius: 10px; }
-.ctl .name { font-weight: 500; }
-.ctl output { font-family: var(--font-mono); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
-.ctl input[type=range] { grid-column: 1 / -1; width: 100%; min-height: 32px; margin: 0; accent-color: var(--accent); }
+.ctl .name { font-weight: 500; font-size: 17px; }
+.ctl output { font-family: var(--font-mono); font-size: 16px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.ctl input[type=range] { grid-column: 1 / -1; width: 100%; min-height: 44px; margin: 0; accent-color: var(--accent); }
 .checks { display: flex; flex-wrap: wrap; gap: 4px 22px; }
-.checks label { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; }
-.checks input { width: 20px; height: 20px; accent-color: var(--accent); }
+.checks label { display: inline-flex; align-items: center; gap: 10px; min-height: 48px; font-size: 16px; }
+.checks input { width: 24px; height: 24px; accent-color: var(--accent); }
 select {
   font: inherit; color: var(--ink); background: var(--chrome-solid); border: 1px solid var(--line);
-  border-radius: 8px; min-height: 44px; padding: 8px 10px; width: 100%;
+  border-radius: 8px; min-height: 48px; padding: 8px 10px; width: 100%; font-size: 16px;
 }
 .two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: end; }
 .shape { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--chrome-solid); min-height: 44px; }
@@ -191,7 +194,7 @@ select {
 .shape input:checked + label .pg { border-color: var(--accent-ink); }
 .shape input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: -3px; }
 .seg4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--chrome-solid); }
-.seg4 label { text-align: center; padding: 11px 2px; font-size: 13px; font-weight: 500; cursor: pointer; border-left: 1px solid var(--line); }
+.seg4 label { text-align: center; padding: 14px 2px; font-size: 16px; font-weight: 500; cursor: pointer; border-left: 1px solid var(--line); }
 .seg4 label:first-of-type { border-left: 0; }
 .seg4 input:checked + label { background: var(--accent); color: var(--accent-ink); }
 .seg4 input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: -3px; }
@@ -199,11 +202,11 @@ select {
 .pg.p { width: 14px; height: 20px; } .pg.l { width: 20px; height: 14px; } .pg.sq { width: 17px; height: 17px; }
 .btnrow { display: flex; flex-wrap: wrap; gap: 8px; }
 .btn {
-  flex: 1 1 130px; min-height: 44px; padding: 8px 14px; border-radius: 8px;
+  flex: 1 1 130px; min-height: 48px; padding: 8px 14px; font-size: 16px; border-radius: 8px;
   background: var(--chrome-solid); border: 1px solid var(--line); font-weight: 500;
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
 }
-.tips { margin: 0; color: var(--muted); font-size: 13px; }
+.tips { margin: 0; color: var(--muted); font-size: 14px; }
 .tips b { color: var(--ink); font-weight: 600; }
 .btn.primary-btn { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 
@@ -272,23 +275,23 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   <div class="head" id="head">
     <button class="grab" id="grab" type="button" aria-expanded="false" aria-controls="more" aria-label="Show all settings"></button>
     <div class="modes" role="radiogroup" aria-label="Plot style">
-      <input class="sr" type="radio" name="mode" id="m-wave" value="wave"><label for="m-wave"><canvas class="th" width="112" height="112" data-mode="wave" aria-hidden="true"></canvas>Waves</label>
-      <input class="sr" type="radio" name="mode" id="m-spiral" value="spiral"><label for="m-spiral"><canvas class="th" width="112" height="112" data-mode="spiral" aria-hidden="true"></canvas>Spiral</label>
-      <input class="sr" type="radio" name="mode" id="m-rings" value="rings"><label for="m-rings"><canvas class="th" width="112" height="112" data-mode="rings" aria-hidden="true"></canvas>Rings</label>
-      <input class="sr" type="radio" name="mode" id="m-contour" value="contour"><label for="m-contour"><canvas class="th" width="112" height="112" data-mode="contour" aria-hidden="true"></canvas>Contour</label>
-      <input class="sr" type="radio" name="mode" id="m-flow" value="flow"><label for="m-flow"><canvas class="th" width="112" height="112" data-mode="flow" aria-hidden="true"></canvas>Flow</label>
-      <input class="sr" type="radio" name="mode" id="m-blobs" value="blobs"><label for="m-blobs"><canvas class="th" width="112" height="112" data-mode="blobs" aria-hidden="true"></canvas>Blobs</label>
-      <input class="sr" type="radio" name="mode" id="m-hatch" value="hatch"><label for="m-hatch"><canvas class="th" width="112" height="112" data-mode="hatch" aria-hidden="true"></canvas>Hatch</label>
-      <input class="sr" type="radio" name="mode" id="m-technical" value="technical"><label for="m-technical"><canvas class="th" width="112" height="112" data-mode="technical" aria-hidden="true"></canvas>Technical</label>
-      <input class="sr" type="radio" name="mode" id="m-duotone" value="duotone"><label for="m-duotone"><canvas class="th" width="112" height="112" data-mode="duotone" aria-hidden="true"></canvas>Duotone</label>
-      <input class="sr" type="radio" name="mode" id="m-stipple" value="stipple"><label for="m-stipple"><canvas class="th" width="112" height="112" data-mode="stipple" aria-hidden="true"></canvas>Stipple</label>
-      <input class="sr" type="radio" name="mode" id="m-dots" value="dots"><label for="m-dots"><canvas class="th" width="112" height="112" data-mode="dots" aria-hidden="true"></canvas>Dots</label>
-      <input class="sr" type="radio" name="mode" id="m-hairs" value="hairs"><label for="m-hairs"><canvas class="th" width="112" height="112" data-mode="hairs" aria-hidden="true"></canvas>Hairs</label>
-      <input class="sr" type="radio" name="mode" id="m-arrows" value="arrows"><label for="m-arrows"><canvas class="th" width="112" height="112" data-mode="arrows" aria-hidden="true"></canvas>Arrows</label>
-      <input class="sr" type="radio" name="mode" id="m-suns" value="suns"><label for="m-suns"><canvas class="th" width="112" height="112" data-mode="suns" aria-hidden="true"></canvas>Suns</label>
-      <input class="sr" type="radio" name="mode" id="m-swirls" value="swirls"><label for="m-swirls"><canvas class="th" width="112" height="112" data-mode="swirls" aria-hidden="true"></canvas>Swirls</label>
-      <input class="sr" type="radio" name="mode" id="m-ascii" value="ascii"><label for="m-ascii"><canvas class="th" width="112" height="112" data-mode="ascii" aria-hidden="true"></canvas>ASCII</label>
-      <input class="sr" type="radio" name="mode" id="m-growth" value="growth"><label for="m-growth"><canvas class="th" width="112" height="112" data-mode="growth" aria-hidden="true"></canvas>Growth</label>
+      <input class="sr" type="radio" name="mode" id="m-wave" value="wave"><label for="m-wave"><canvas class="th" width="272" height="272" data-mode="wave" aria-hidden="true"></canvas>Waves</label>
+      <input class="sr" type="radio" name="mode" id="m-spiral" value="spiral"><label for="m-spiral"><canvas class="th" width="272" height="272" data-mode="spiral" aria-hidden="true"></canvas>Spiral</label>
+      <input class="sr" type="radio" name="mode" id="m-rings" value="rings"><label for="m-rings"><canvas class="th" width="272" height="272" data-mode="rings" aria-hidden="true"></canvas>Rings</label>
+      <input class="sr" type="radio" name="mode" id="m-contour" value="contour"><label for="m-contour"><canvas class="th" width="272" height="272" data-mode="contour" aria-hidden="true"></canvas>Contour</label>
+      <input class="sr" type="radio" name="mode" id="m-flow" value="flow"><label for="m-flow"><canvas class="th" width="272" height="272" data-mode="flow" aria-hidden="true"></canvas>Flow</label>
+      <input class="sr" type="radio" name="mode" id="m-blobs" value="blobs"><label for="m-blobs"><canvas class="th" width="272" height="272" data-mode="blobs" aria-hidden="true"></canvas>Blobs</label>
+      <input class="sr" type="radio" name="mode" id="m-hatch" value="hatch"><label for="m-hatch"><canvas class="th" width="272" height="272" data-mode="hatch" aria-hidden="true"></canvas>Hatch</label>
+      <input class="sr" type="radio" name="mode" id="m-technical" value="technical"><label for="m-technical"><canvas class="th" width="272" height="272" data-mode="technical" aria-hidden="true"></canvas>Technical</label>
+      <input class="sr" type="radio" name="mode" id="m-duotone" value="duotone"><label for="m-duotone"><canvas class="th" width="272" height="272" data-mode="duotone" aria-hidden="true"></canvas>Duotone</label>
+      <input class="sr" type="radio" name="mode" id="m-stipple" value="stipple"><label for="m-stipple"><canvas class="th" width="272" height="272" data-mode="stipple" aria-hidden="true"></canvas>Stipple</label>
+      <input class="sr" type="radio" name="mode" id="m-dots" value="dots"><label for="m-dots"><canvas class="th" width="272" height="272" data-mode="dots" aria-hidden="true"></canvas>Dots</label>
+      <input class="sr" type="radio" name="mode" id="m-hairs" value="hairs"><label for="m-hairs"><canvas class="th" width="272" height="272" data-mode="hairs" aria-hidden="true"></canvas>Hairs</label>
+      <input class="sr" type="radio" name="mode" id="m-arrows" value="arrows"><label for="m-arrows"><canvas class="th" width="272" height="272" data-mode="arrows" aria-hidden="true"></canvas>Arrows</label>
+      <input class="sr" type="radio" name="mode" id="m-suns" value="suns"><label for="m-suns"><canvas class="th" width="272" height="272" data-mode="suns" aria-hidden="true"></canvas>Suns</label>
+      <input class="sr" type="radio" name="mode" id="m-swirls" value="swirls"><label for="m-swirls"><canvas class="th" width="272" height="272" data-mode="swirls" aria-hidden="true"></canvas>Swirls</label>
+      <input class="sr" type="radio" name="mode" id="m-ascii" value="ascii"><label for="m-ascii"><canvas class="th" width="272" height="272" data-mode="ascii" aria-hidden="true"></canvas>ASCII</label>
+      <input class="sr" type="radio" name="mode" id="m-growth" value="growth"><label for="m-growth"><canvas class="th" width="272" height="272" data-mode="growth" aria-hidden="true"></canvas>Growth</label>
     </div>
     <div class="shutterrow">
       <div class="side">
@@ -1565,7 +1568,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     const k = Math.max(w / DM.W, h / DM.H) * 1.08, ox = (w - DM.W * k) / 2, oy = (h - DM.H * k) / 2;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, w, h);
-    ctx.lineWidth = 1; ctx.lineCap = "round"; ctx.lineJoin = "round";
+    ctx.lineWidth = 1.6; ctx.lineCap = "round"; ctx.lineJoin = "round";
     const byL = [];
     out.forEach((p) => (byL[p.layer] || (byL[p.layer] = [])).push(p));
     const saveMode = S.mode; S.mode = pick.mode; // colour by the thumbnail's own style
@@ -1720,9 +1723,20 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   const sheet = $("sheet"), grab = $("grab");
   function setOpen(open) {
     sheet.classList.toggle("open", open);
+    if (!open) sheet.classList.remove("compact");
     grab.setAttribute("aria-expanded", String(open));
     grab.setAttribute("aria-label", open ? "Hide settings" : "Show all settings");
   }
+  // Scrolling the settings folds the style carousel away (and scrolling back to the top restores it).
+  (() => {
+    const more = sheet.querySelector(".more");
+    more.addEventListener("scroll", () => {
+      if (body.classList.contains("side")) return;
+      const y = more.scrollTop, on = sheet.classList.contains("compact");
+      if (!on && y > 48 && more.scrollHeight - more.clientHeight > 260) sheet.classList.add("compact");
+      else if (on && y <= 4) sheet.classList.remove("compact");
+    }, { passive: true });
+  })();
   let swiped = false;
   grab.addEventListener("click", () => { if (swiped) { swiped = false; return; } setOpen(!sheet.classList.contains("open")); });
   (() => {
