@@ -106,6 +106,7 @@ svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-widt
   display: grid; gap: 6px; font-size: 14px; pointer-events: none; transition: opacity .3s ease;
 }
 .hint b { font-weight: 600; }
+body.side .hint { left: calc((100vw - 340px) / 2); }
 .toast {
   position: fixed; z-index: 12; left: 50%; transform: translateX(-50%);
   bottom: calc(var(--peek, 180px) + 12px); max-width: calc(100vw - 32px);
@@ -138,7 +139,7 @@ svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-widt
 .modes::-webkit-scrollbar { display: none; }
 /* Scrolled into the settings: fold the carousel away so the controls get the room. Scroll back to the top to bring it back. */
 .modes { max-height: 260px; transition: max-height .25s ease, opacity .2s ease, padding .25s ease; }
-.sheet.compact .modes { max-height: 0; opacity: 0; padding-block: 0; overflow: hidden; pointer-events: none; }
+body:not(.side) .sheet.compact .modes { max-height: 0; opacity: 0; padding-block: 0; overflow: hidden; pointer-events: none; }
 .modes label {
   flex: 0 0 auto; width: 150px; scroll-snap-align: center; cursor: pointer;
   display: grid; justify-items: center; gap: 8px;
@@ -153,7 +154,13 @@ svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-widt
 .modes input:focus-visible + label .th { outline: 2px solid var(--accent); outline-offset: 4px; }
 body.side .head { display: flex; flex-direction: column; }
 body.side .shutterrow { order: -1; padding-bottom: 14px; }
-body.side .modes { flex-wrap: wrap; overflow: visible; margin-inline: 0; padding: 4px 0 12px; scroll-snap-type: none; -webkit-mask-image: none; mask-image: none; }
+body.side .modes {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 8px; align-items: start;
+  max-height: none; overflow: visible; margin-inline: 0; padding: 10px 6px 14px;
+  scroll-snap-type: none; -webkit-mask-image: none; mask-image: none;
+}
+body.side .modes label { width: auto; min-width: 0; font-size: 12px; gap: 6px; }
+body.side .modes .th { width: 100%; height: auto; aspect-ratio: 1; border-radius: 12px; }
 .shutterrow { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; padding-bottom: 4px; }
 .side { display: flex; gap: 12px; }
 .side.right { justify-content: flex-end; }
