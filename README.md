@@ -126,7 +126,7 @@ Blobs puts the outlines on pen 1 and the fill on pen 2, so they can be plotted i
 
 - Units are millimetres (`width="210mm"` etc.), so it imports at true size.
 - Every stroke is a plain path with no fill, ordered back-and-forth to cut pen-up travel.
-- Each pen is its own Inkscape layer with its colour as the stroke, labelled with a leading number (`1 pen 1 #1f2a5c`, `2 pen 2 #e4572e` …) so AxiDraw-style software can plot one layer at a time.
+- Each pen is its own Inkscape layer with its colour as the stroke, labelled with a leading number (`1 pen 1 #17321b`, `2 pen 2 #e83b68` …) so AxiDraw-style software can plot one layer at a time.
 - **Save each pen as its own file** (Export section) saves one SVG per colour instead, for software that ignores layers. Send SVG shares them all together.
 
 ## Run locally
