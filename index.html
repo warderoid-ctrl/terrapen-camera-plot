@@ -2019,8 +2019,11 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   // frame, so the carousel shows what every style would do without slowing the main preview.
   const THUMBS = [...document.querySelectorAll(".modes .th")].map((cv) => ({ cv, ctx: cv.getContext("2d"), mode: cv.dataset.mode, stamp: -1 }));
   let thumbStamp = 0, lastThumb = 0, thumbNext = 0;
+  // While the camera is live the thumbnails work from one captured frame (taken just after the camera
+  // starts, or when settings change) instead of chasing every video frame.
+  let thumbSnap = null, snapAt = 0, settingsDirty = true;
   function drawNextThumb(t) {
-    if (!DM) return;
+    if (!DM || !thumbSnap) return;
     // the active style first, then its neighbours outward, then the rest
     const cur = THUMBS.findIndex((x) => x.mode === S.mode);
     let pick = null;
@@ -2033,12 +2036,18 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     lastThumb = t;
     pick.stamp = thumbStamp;
     const keep = { mode: S.mode, spacing: S.spacing, levels: S.levels };
+    const main = { gray, dark, gw, gh, fc: fieldCache };
     let out = [];
     try {
+      gray = thumbSnap.gray; dark = thumbSnap.dark; gw = thumbSnap.gw; gh = thumbSnap.gh; fieldCache = thumbSnap.fc;
       S.mode = pick.mode; S.spacing = keep.spacing * 2.2; S.levels = Math.min(keep.levels, 6);
       out = applyBands(GEN[pick.mode](DM), DM);
     } catch (e) { out = []; }
-    finally { S.mode = keep.mode; S.spacing = keep.spacing; S.levels = keep.levels; }
+    finally {
+      thumbSnap.fc = fieldCache;
+      S.mode = keep.mode; S.spacing = keep.spacing; S.levels = keep.levels;
+      gray = main.gray; dark = main.dark; gw = main.gw; gh = main.gh; fieldCache = main.fc;
+    }
     const { cv, ctx } = pick, w = cv.width, h = cv.height;
     const k = Math.max(w / DM.W, h / DM.H) * 1.08, ox = (w - DM.W * k) / 2, oy = (h - DM.H * k) / 2;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -2065,7 +2074,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
 
   // ---------------- loop ----------------
   let dirtyGen = true, dirtyDraw = false, lastLive = 0;
-  function changed(reExtract) { if (reExtract) needExtract = true; dirtyGen = true; syncLabels(); store(); }
+  function changed(reExtract) { if (reExtract) needExtract = true; dirtyGen = true; settingsDirty = true; syncLabels(); store(); }
   function tick(t) {
     requestAnimationFrame(tick);
     if (live && !frozen && video && video.readyState >= 2) {
@@ -2073,8 +2082,16 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     } else if (needExtract && still) {
       extract(still, still.width, still.height, 320); needExtract = false; dirtyGen = true;
     }
-    if (dirtyGen) { dirtyGen = false; dirtyDraw = false; render(); thumbStamp++; }
-    else if (gray && !body.classList.contains("clean") && !body.classList.contains("scrub") && t - lastThumb > (live && !frozen ? 380 : 25)) drawNextThumb(t);
+    const liveRun = live && !frozen;
+    if (liveRun && snapAt && t >= snapAt) { snapAt = 0; settingsDirty = true; }
+    if (dirtyGen) {
+      dirtyGen = false; dirtyDraw = false; render();
+      if (!liveRun || settingsDirty) {
+        settingsDirty = false; thumbStamp++;
+        thumbSnap = { gray: gray.slice(), dark: dark.slice(), gw, gh, fc: null };
+      }
+    }
+    else if (gray && thumbSnap && !body.classList.contains("clean") && !body.classList.contains("scrub") && t - lastThumb > (live && !frozen ? 380 : 25)) drawNextThumb(t);
     else if (dirtyDraw) { dirtyDraw = false; draw(); }
   }
 
@@ -2264,7 +2281,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
       video.srcObject = stream;
       await video.play();
       live = true; frozen = false; lastLive = 0;
-      setShutter("live"); wake(true);
+      setShutter("live"); wake(true); snapAt = performance.now() + 900;
     } catch (e) {
       stopStream();
       toast("Camera blocked. Allow camera access for this site in your browser settings, or use the photo button.", 5000);
