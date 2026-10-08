@@ -69,6 +69,9 @@ Long-press the picture to drop a point that the current style reacts to. A targe
 | Swirls  | Orbit the point, tighter close to it      | Orbit the other way         |
 | ASCII   | Characters sit on rings around the point  | same                        |
 | Growth  | Grows only around the point; Pull sets how far | same                   |
+| Voronoi | Cells shrink towards the point (attract) or grow (repel) | same |
+| Subdiv  | Mesh is pulled towards the point | same |
+| Ridges  | Raises (attract) or sinks (repel) a bump at the point | same |
 
 ## Top bar
 
@@ -99,6 +102,9 @@ Long-press the picture to drop a point that the current style reacts to. A targe
 | Swirls  | A small spiral per cell, turned by the image                                  |
 | ASCII   | Characters chosen by darkness, drawn as single pen strokes                    |
 | Growth  | Reaction-diffusion pattern grown inside the dark areas                        |
+| Voronoi | Cells packed small in the dark areas and large in the light; Cell gap shrinks each cell into its own outline, with extra rings in the darkest |
+| Subdiv  | A quad mesh pulled towards the dark areas and smoothed with Catmull-Clark subdivision (rows on pen 1, columns on pen 2) |
+| Ridges  | Rows lifted by the image as a height field, with hidden lines removed, like a joy-division plot |
 
 Contour, Flow, Stipple, Hairs, Arrows, Suns, Swirls, ASCII and Growth are ported from
 [hauntedPoints](https://github.com/warderoid-ctrl/hauntedPoints), where they were driven by
@@ -115,6 +121,10 @@ Blobs puts the outlines on pen 1 and the fill on pen 2, so they can be plotted i
 - **Spacing** goes down to 0.5 mm for very dense plots; the live preview slows down to keep up
 - **Technical options**: heavy outlines (each outline drawn three times, side by side) and a border frame; the second slider sets **Shading**
 - **Blob fill** (Blobs): hatch, cross-hatch, contours or spiral
+- **Cell fill** (Voronoi, Subdiv): fill each cell with hatch, cross-hatch, an orthogonal grid, an isometric grid or stipple. Fills go on their own pen, get tighter in darker cells, and Cross, Grid and Iso add directions as the tone deepens. **Fill density** scales it
+- **Curve smoothing** (Voronoi): rounds the cell corners from sharp polygons to soft pebbles
+- **Background**: culls the source image before any style sees it. Light or Dark removes tones past a cutoff, Flat removes areas of even tone (plain walls and skies), Radial keeps a disc around the focal point or the centre. Falloff sets how soft the edge is
+- **Colour bands**: Linear or Radial gradient of pens across the sheet, one pen per band (2 to 4). Edge blend scatters strokes across each boundary so some marks take the neighbouring pen. Replaces the style's own pen layers
 - **Contrast, Brightness, Auto levels, Invert**: tone adjustments before plotting
 - **Pen width**: stroke width for the preview and the SVG
 - **Paper**: A6 up to A0, each as portrait, landscape or square (square uses the short side, e.g. A4 square is 210 × 210 mm). Changing size scales the line spacing and margin with it, so the drawing keeps its look and the live preview stays fast

@@ -64,6 +64,10 @@ button:focus-visible, label:focus-visible, select:focus-visible, input:focus-vis
 .pen input { width: 100%; max-width: 64px; height: 40px; padding: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--chrome-solid); cursor: pointer; }
 .pen input::-webkit-color-swatch-wrapper { padding: 3px; } .pen input::-webkit-color-swatch { border: 0; border-radius: 5px; }
 .seg4.seg2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.seg4.seg3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.seg4.seg5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.seg4.seg5 label { font-size: 15px; padding-inline: 0; }
+.seg4.seg6 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .paper canvas { display: block; width: 100%; height: 100%; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,.4), 0 12px 32px rgba(0,0,0,.45); }
 
 .top {
@@ -286,8 +290,11 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
       <input class="sr" type="radio" name="mode" id="m-spiral" value="spiral"><label for="m-spiral"><canvas class="th" width="272" height="272" data-mode="spiral" aria-hidden="true"></canvas>Spiral</label>
       <input class="sr" type="radio" name="mode" id="m-rings" value="rings"><label for="m-rings"><canvas class="th" width="272" height="272" data-mode="rings" aria-hidden="true"></canvas>Rings</label>
       <input class="sr" type="radio" name="mode" id="m-contour" value="contour"><label for="m-contour"><canvas class="th" width="272" height="272" data-mode="contour" aria-hidden="true"></canvas>Contour</label>
+      <input class="sr" type="radio" name="mode" id="m-ridges" value="ridges"><label for="m-ridges"><canvas class="th" width="272" height="272" data-mode="ridges" aria-hidden="true"></canvas>Ridges</label>
       <input class="sr" type="radio" name="mode" id="m-flow" value="flow"><label for="m-flow"><canvas class="th" width="272" height="272" data-mode="flow" aria-hidden="true"></canvas>Flow</label>
       <input class="sr" type="radio" name="mode" id="m-blobs" value="blobs"><label for="m-blobs"><canvas class="th" width="272" height="272" data-mode="blobs" aria-hidden="true"></canvas>Blobs</label>
+      <input class="sr" type="radio" name="mode" id="m-voronoi" value="voronoi"><label for="m-voronoi"><canvas class="th" width="272" height="272" data-mode="voronoi" aria-hidden="true"></canvas>Voronoi</label>
+      <input class="sr" type="radio" name="mode" id="m-subdiv" value="subdiv"><label for="m-subdiv"><canvas class="th" width="272" height="272" data-mode="subdiv" aria-hidden="true"></canvas>Subdiv</label>
       <input class="sr" type="radio" name="mode" id="m-hatch" value="hatch"><label for="m-hatch"><canvas class="th" width="272" height="272" data-mode="hatch" aria-hidden="true"></canvas>Hatch</label>
       <input class="sr" type="radio" name="mode" id="m-technical" value="technical"><label for="m-technical"><canvas class="th" width="272" height="272" data-mode="technical" aria-hidden="true"></canvas>Technical</label>
       <input class="sr" type="radio" name="mode" id="m-duotone" value="duotone"><label for="m-duotone"><canvas class="th" width="272" height="272" data-mode="duotone" aria-hidden="true"></canvas>Duotone</label>
@@ -345,10 +352,49 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
         </div>
         <p class="tips">Outlines go on pen 1 and the fill on pen 2, so you can plot them in two colours.</p>
       </div>
+      <div class="sec" id="cellFillRow" hidden>
+        <p class="label">Cell fill</p>
+        <div class="seg4 seg6" role="radiogroup" aria-label="Cell fill pattern">
+          <input class="sr" type="radio" name="cellFill" id="cf-none" value="none"><label for="cf-none">None</label>
+          <input class="sr" type="radio" name="cellFill" id="cf-hatch" value="hatch"><label for="cf-hatch">Hatch</label>
+          <input class="sr" type="radio" name="cellFill" id="cf-cross" value="cross"><label for="cf-cross">Cross</label>
+          <input class="sr" type="radio" name="cellFill" id="cf-grid" value="grid"><label for="cf-grid">Grid</label>
+          <input class="sr" type="radio" name="cellFill" id="cf-iso" value="iso"><label for="cf-iso">Iso</label>
+          <input class="sr" type="radio" name="cellFill" id="cf-stipple" value="stipple"><label for="cf-stipple">Stipple</label>
+        </div>
+        <p class="tips" id="cellFillTip" hidden>Outlines stay on pen 1 and the fill goes on pen 2 (pen 3 for Subdiv), so you can plot it in two colours. Darker cells get tighter fills, and Cross, Grid and Iso add directions as the tone deepens.</p>
+      </div>
       <div class="sec" id="sliders"></div>
       <div class="checks">
         <label><input type="checkbox" id="auto"> Auto levels</label>
         <label><input type="checkbox" id="invert"> Invert</label>
+      </div>
+    </div>
+    <div class="sec" id="cullSec">
+      <p class="label">Background</p>
+      <div class="seg4 seg5" role="radiogroup" aria-label="Background culling">
+        <input class="sr" type="radio" name="cull" id="cu-off" value="off"><label for="cu-off">Off</label>
+        <input class="sr" type="radio" name="cull" id="cu-light" value="light"><label for="cu-light">Light</label>
+        <input class="sr" type="radio" name="cull" id="cu-dark" value="dark"><label for="cu-dark">Dark</label>
+        <input class="sr" type="radio" name="cull" id="cu-flat" value="flat"><label for="cu-flat">Flat</label>
+        <input class="sr" type="radio" name="cull" id="cu-radial" value="radial"><label for="cu-radial">Radial</label>
+      </div>
+      <div class="sec" id="cullCtl" hidden>
+        <div class="sec" id="cullSliders"></div>
+        <p class="tips" id="cullTip"></p>
+      </div>
+    </div>
+    <div class="sec" id="bandSec">
+      <p class="label">Colour bands</p>
+      <div class="seg4 seg3" role="radiogroup" aria-label="Colour bands">
+        <input class="sr" type="radio" name="bands" id="bd-off" value="off"><label for="bd-off">Off</label>
+        <input class="sr" type="radio" name="bands" id="bd-linear" value="linear"><label for="bd-linear">Linear</label>
+        <input class="sr" type="radio" name="bands" id="bd-radial" value="radial"><label for="bd-radial">Radial</label>
+      </div>
+      <div class="sec" id="bandCtl" hidden>
+        <div class="sec" id="bandSliders"></div>
+        <div class="checks"><label><input type="checkbox" id="bandRev"> Reverse order</label></div>
+        <p class="tips">One pen per band, pens 1 to N from the start of the gradient (set the inks under Pen colours). Edge blend scatters strokes across each boundary so some marks take the neighbouring pen. Radial bands centre on the focal point when you have placed one. This replaces the style's own pen layers.</p>
       </div>
     </div>
     <div class="sec" id="penSec">
@@ -424,7 +470,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   // Default pen inks come from the terraPen palette: shell green, coral, teal and black.
   const BRAND_PENS = ["#17321b", "#e83b68", "#66cccc", "#000000"];
   const OLD_PENS = ["#1f2a5c", "#e4572e", "#2364aa", "#4f8a3b"];
-  const DEFAULTS = { showTarget: false, splitPens: false, pens: BRAND_PENS, showColours: false, techBold: true, techFrame: true, focus: null, repel: false, pull: 100, levels: 8, blobFill: "hatch", mode: "wave", size: "a4", shape: "p", margin: 10, spacing: 3.5, amp: 100, layers: 3, contrast: 1.3, bright: 0, pen: 0.3, invert: false, auto: true, pip: true };
+  const DEFAULTS = { cellFill: "none", fillDens: 100, vorSmooth: 0, cull: "off", cullAt: 70, cullSoft: 30, bands: "off", bandN: 3, bandAngle: 0, bandBlend: 40, bandRev: false, showTarget: false, splitPens: false, pens: BRAND_PENS, showColours: false, techBold: true, techFrame: true, focus: null, repel: false, pull: 100, levels: 8, blobFill: "hatch", mode: "wave", size: "a4", shape: "p", margin: 10, spacing: 3.5, amp: 100, layers: 3, contrast: 1.3, bright: 0, pen: 0.3, invert: false, auto: true, pip: true };
   const S = Object.assign({}, DEFAULTS);
   const KEY = "terrapen-camera-plot";
   try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
@@ -436,25 +482,43 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     delete S.paper;
   }
   if (!SIZES[S.size]) S.size = DEFAULTS.size;
-  if (!["wave","spiral","rings","contour","flow","blobs","hatch","technical","duotone","stipple","dots","hairs","arrows","suns","swirls","ascii","growth"].includes(S.mode)) S.mode = "wave";
+  if (!["wave","spiral","rings","contour","flow","blobs","hatch","technical","duotone","stipple","dots","hairs","arrows","suns","swirls","ascii","growth","voronoi","subdiv","ridges"].includes(S.mode)) S.mode = "wave";
   if (!SHAPES[S.shape]) S.shape = DEFAULTS.shape;
+  if (!["none", "hatch", "cross", "grid", "iso", "stipple"].includes(S.cellFill)) S.cellFill = "none";
+  if (!["off", "light", "dark", "flat", "radial"].includes(S.cull)) S.cull = "off";
+  if (!["off", "linear", "radial"].includes(S.bands)) S.bands = "off";
   const paperWH = () => { const [a, b] = SIZES[S.size]; return S.shape === "l" ? [b, a] : S.shape === "sq" ? [a, a] : [a, b]; };
   const paperName = () => S.size.toUpperCase() + (S.shape === "p" ? "" : " " + SHAPES[S.shape]);
   // How much bigger than A4 the sheet is (by side length). Spacing ranges and sampling scale with it.
   const scaleOf = (size) => { const [a, b] = SIZES[size]; return Math.sqrt(a * b / (210 * 297)); };
   const store = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
 
-  const SPACE_NAMES = { wave: "Line spacing", spiral: "Ring spacing", rings: "Ring spacing", flow: "Line spacing", blobs: "Fill spacing", hatch: "Hatch spacing", technical: "Hatch spacing", duotone: "Screen spacing", stipple: "Dot spacing", dots: "Dot spacing", hairs: "Grid spacing", arrows: "Grid spacing", suns: "Grid spacing", swirls: "Grid spacing", ascii: "Character size", growth: "Cell size" };
-  const AMP_NAMES = { wave: "Wave height", spiral: "Wave height", rings: "Wave height", flow: "Line length", blobs: "Blob amount", technical: "Shading", duotone: "Wave height", stipple: "Dot size", dots: "Dot size", hairs: "Hair length", arrows: "Arrow length", suns: "Sun size", swirls: "Swirl size", ascii: "Glyph size", growth: "Growth" };
+  const SPACE_NAMES = { wave: "Line spacing", spiral: "Ring spacing", rings: "Ring spacing", flow: "Line spacing", blobs: "Fill spacing", hatch: "Hatch spacing", technical: "Hatch spacing", duotone: "Screen spacing", stipple: "Dot spacing", dots: "Dot spacing", hairs: "Grid spacing", arrows: "Grid spacing", suns: "Grid spacing", swirls: "Grid spacing", ascii: "Character size", growth: "Cell size", voronoi: "Cell size", subdiv: "Mesh spacing", ridges: "Row spacing" };
+  const AMP_NAMES = { wave: "Wave height", spiral: "Wave height", rings: "Wave height", flow: "Line length", blobs: "Blob amount", technical: "Shading", duotone: "Wave height", stipple: "Dot size", dots: "Dot size", hairs: "Hair length", arrows: "Arrow length", suns: "Sun size", swirls: "Swirl size", ascii: "Glyph size", growth: "Growth", voronoi: "Cell gap", subdiv: "Warp", ridges: "Relief height" };
   const SLIDERS = [
     { id: "spacing", min: 0.5, max: 10, step: 0.1, dp: 1, unit: " mm", name: () => SPACE_NAMES[S.mode], modes: Object.keys(SPACE_NAMES) },
     { id: "amp", min: 0, max: 200, step: 5, dp: 0, unit: "%", name: () => AMP_NAMES[S.mode], modes: Object.keys(AMP_NAMES) },
+    { id: "vorSmooth", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => "Curve smoothing", modes: ["voronoi"] },
+    { id: "fillDens", min: 20, max: 250, step: 5, dp: 0, unit: "%", name: () => "Fill density", modes: ["voronoi", "subdiv"], when: () => S.cellFill !== "none" },
     { id: "levels", min: 2, max: 200, step: 1, dp: 0, unit: "", name: () => "Contour levels", modes: ["contour"] },
     { id: "layers", min: 1, max: 4, step: 1, dp: 0, unit: "", name: () => "Hatch layers", modes: ["hatch"] },
     { id: "contrast", min: 0.4, max: 3, step: 0.05, dp: 2, unit: "×", name: () => "Contrast" },
     { id: "bright", min: -0.4, max: 0.4, step: 0.02, dp: 2, unit: "", name: () => "Brightness", sign: true },
-    { id: "pen", min: 0.1, max: 1, step: 0.05, dp: 2, unit: " mm", name: () => "Pen width" }
+    { id: "pen", min: 0.1, max: 1, step: 0.05, dp: 2, unit: " mm", name: () => "Pen width" },
+    { id: "cullAt", parent: "cullSliders", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => CULL_NAMES[S.cull] || "Cutoff", when: () => S.cull !== "off" },
+    { id: "cullSoft", parent: "cullSliders", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => "Falloff", when: () => S.cull !== "off" },
+    { id: "bandN", parent: "bandSliders", min: 2, max: 4, step: 1, dp: 0, unit: "", name: () => "Bands", when: () => S.bands !== "off" },
+    { id: "bandAngle", parent: "bandSliders", min: 0, max: 355, step: 5, dp: 0, unit: "°", name: () => "Angle", when: () => S.bands === "linear" },
+    { id: "bandBlend", parent: "bandSliders", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => "Edge blend", when: () => S.bands !== "off" }
   ];
+  const CULL_NAMES = { light: "Cull lighter than", dark: "Cull darker than", flat: "Keep detail above", radial: "Keep radius" };
+  const CULL_DEF = { light: 80, dark: 20, flat: 30, radial: 60 };
+  const CULL_TIPS = {
+    light: "Removes bright areas of the picture, like a white wall or sky, so nothing is drawn there. Falloff fades the edge instead of cutting it.",
+    dark: "Removes dark areas of the picture, like a black backdrop, so nothing is drawn there. Falloff fades the edge instead of cutting it.",
+    flat: "Removes plain, featureless areas such as a blank wall and keeps where there is detail. Raise it to cull more; Falloff softens the edge.",
+    radial: "Keeps a circle around the centre (or your focal point) and fades the rest away. Falloff sets how soft the edge is."
+  };
   const SP = Object.fromEntries(SLIDERS.map((s) => [s.id, s]));
   const fmt = (id, v) => { const s = SP[id]; return (s.sign && v > 0 ? "+" : "") + (+v).toFixed(s.dp) + s.unit; };
 
@@ -464,7 +528,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     const wrap = document.createElement("div");
     wrap.className = "ctl"; wrap.id = "ctl-" + sp.id;
     wrap.innerHTML = `<label class="name" for="${sp.id}"></label><output id="o-${sp.id}" for="${sp.id}"></output><input type="range" id="${sp.id}" min="${sp.min}" max="${sp.max}" step="${sp.step}">`;
-    slidersEl.appendChild(wrap);
+    ($(sp.parent || "sliders") || slidersEl).appendChild(wrap);
     const input = wrap.querySelector("input");
     input.value = S[sp.id];
     input.addEventListener("input", () => { S[sp.id] = +input.value; changed(false); });
@@ -519,7 +583,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
 
   // ---------------- pen colours and style options ----------------
   if (!Array.isArray(S.pens) || S.pens.length < 4) S.pens = DEFAULTS.pens.slice();
-  const penColour = (layer, forSvg) => (S.mode === "duotone" || S.showColours ? S.pens[layer % 4] : forSvg ? "#000000" : "#111111");
+  const penColour = (layer, forSvg) => (S.mode === "duotone" || S.showColours || S.bands !== "off" ? S.pens[layer % 4] : forSvg ? "#000000" : "#111111");
   for (let i = 0; i < 4; i++) {
     const inp = $("pen" + i);
     inp.value = S.pens[i];
@@ -537,7 +601,8 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     contour: ["Hill", "Pit"], flow: ["Whirlpool", "Outward whirl"], blobs: ["Fill centre", "Fill centre"],
     hatch: ["Vanishing point", "Vanishing point"], technical: ["Vanishing point", "Vanishing point"], duotone: ["Pinch", "Bulge"], stipple: ["Gravity", "Anti-gravity"], dots: ["Ring grid", "Ring grid"],
     hairs: ["Magnet", "Circle comb"], arrows: ["Aim here", "Aim away"], suns: ["Rays reach", "Rays recoil"],
-    swirls: ["Orbit", "Counter-orbit"], ascii: ["Ring grid", "Ring grid"], growth: ["Growth seed", "Growth seed"]
+    swirls: ["Orbit", "Counter-orbit"], ascii: ["Ring grid", "Ring grid"], growth: ["Growth seed", "Growth seed"],
+    voronoi: ["Cells shrink", "Cells grow"], subdiv: ["Pinch", "Bulge"], ridges: ["Hill", "Pit"]
   };
   const FOCUS_DESC = {
     wave: ["Lines pinch in towards the point", "Lines bulge away from the point"], spiral: ["The spiral starts at the point"], rings: ["The rings centre on the point"],
@@ -547,7 +612,8 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     stipple: ["Dots fall towards the point", "Dots are pushed away from the point"], dots: ["Dots sit on rings around the point"],
     hairs: ["Hairs comb towards the point", "Hairs circle the point"], arrows: ["Arrows aim at the point", "Arrows aim away from the point"],
     suns: ["Rays stretch towards the point", "Rays stretch away from the point"], swirls: ["Swirls orbit the point", "Swirls orbit the other way"],
-    ascii: ["Characters sit on rings around the point"], growth: ["The pattern grows out from the point; Pull sets how far"]
+    ascii: ["Characters sit on rings around the point"], growth: ["The pattern grows out from the point; Pull sets how far"],
+    voronoi: ["Cells get smaller towards the point", "Cells get bigger towards the point"], subdiv: ["The mesh pinches in towards the point", "The mesh bulges away from the point"], ridges: ["A hill rises at the point", "A pit sinks at the point"]
   };
   const focusDesc = () => { const d = FOCUS_DESC[S.mode] || ["The style reacts to the point"]; return d[S.repel && d[1] ? 1 : 0]; };
   const focusName = () => (FOCUS_NAMES[S.mode] || ["Focal point"])[S.repel ? 1 : 0] || "Focal point";
@@ -571,6 +637,10 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   $("showTarget").checked = !!S.showTarget;
   $("showTarget").addEventListener("change", () => { S.showTarget = $("showTarget").checked; syncFocus(); store(); });
   $("btnFocusOff").addEventListener("click", () => { S.focus = null; changed(false); toast("Focal point removed"); });
+  document.querySelectorAll('input[name="cellFill"]').forEach((r) => {
+    r.checked = r.value === S.cellFill;
+    r.addEventListener("change", () => { if (r.checked) { S.cellFill = r.value; changed(false); } });
+  });
   document.querySelectorAll('input[name="blobFill"]').forEach((r) => {
     r.checked = r.value === S.blobFill;
     r.addEventListener("change", () => { if (r.checked) { S.blobFill = r.value; changed(false); } });
@@ -629,6 +699,17 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     r.checked = r.value === S.mode;
     r.addEventListener("change", () => { if (r.checked) { S.mode = r.value; changed(false); } });
   });
+  document.querySelectorAll('input[name="cull"], input[name="bands"]').forEach((r) => {
+    r.checked = S[r.name] === r.value;
+    r.addEventListener("change", () => {
+      if (!r.checked) return;
+      S[r.name] = r.value;
+      if (r.name === "cull" && CULL_DEF[r.value] !== undefined) S.cullAt = CULL_DEF[r.value];
+      changed(false);
+    });
+  });
+  $("bandRev").checked = !!S.bandRev;
+  $("bandRev").addEventListener("change", () => { S.bandRev = $("bandRev").checked; changed(false); });
   $("auto").checked = !!S.auto; $("invert").checked = !!S.invert;
   $("auto").addEventListener("change", () => { S.auto = $("auto").checked; changed(false); });
   $("invert").addEventListener("change", () => { S.invert = $("invert").checked; changed(false); });
@@ -636,10 +717,14 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   function syncLabels() {
     SLIDERS.forEach((sp) => {
       const wrap = $("ctl-" + sp.id);
-      wrap.hidden = !!(sp.modes && !sp.modes.includes(S.mode));
+      wrap.hidden = !!(sp.modes && !sp.modes.includes(S.mode)) || !!(sp.when && !sp.when());
       $("blobFillRow").hidden = S.mode !== "blobs";
+      $("cellFillRow").hidden = S.mode !== "voronoi" && S.mode !== "subdiv";
+      $("cellFillTip").hidden = S.cellFill === "none";
       $("techRow").hidden = S.mode !== "technical";
       $("duoRow").hidden = S.mode !== "duotone";
+      $("cullCtl").hidden = S.cull === "off"; $("bandCtl").hidden = S.bands === "off";
+      $("cullTip").textContent = CULL_TIPS[S.cull] || "";
       syncFocus();
       wrap.querySelector(".name").textContent = sp.name();
       $("o-" + sp.id).textContent = fmt(sp.id, S[sp.id]);
@@ -719,6 +804,44 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
       let b = (gray[i] - lo) / rng;
       b = clamp((b - 0.5) * S.contrast + 0.5 + S.bright, 0, 1);
       dark[i] = S.invert ? b : 1 - b;
+    }
+    if (S.cull !== "off") applyCull(lo, rng);
+  }
+  // Background culling: a 0..1 mask over the picture that scales the darkness, so every style
+  // simply draws less (or nothing) where the mask is low. Falloff is a smoothstep around the cutoff.
+  function boxBlur(src, w, h, r) {
+    const tmp = new Float32Array(w * h), out = new Float32Array(w * h), k = 2 * r + 1;
+    for (let y = 0; y < h; y++) {
+      let acc = 0;
+      for (let x = -r; x <= r; x++) acc += src[y * w + clamp(x, 0, w - 1)];
+      for (let x = 0; x < w; x++) { tmp[y * w + x] = acc / k; acc += src[y * w + Math.min(w - 1, x + r + 1)] - src[y * w + Math.max(0, x - r)]; }
+    }
+    for (let x = 0; x < w; x++) {
+      let acc = 0;
+      for (let y = -r; y <= r; y++) acc += tmp[clamp(y, 0, h - 1) * w + x];
+      for (let y = 0; y < h; y++) { out[y * w + x] = acc / k; acc += tmp[Math.min(h - 1, y + r + 1) * w + x] - tmp[Math.max(0, y - r) * w + x]; }
+    }
+    return out;
+  }
+  function applyCull(lo, rng) {
+    const n = gw * gh, at = S.cullAt / 100, soft = Math.max(0.015, S.cullSoft / 100 * 0.5);
+    const ss = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+    const bn = new Float32Array(n);
+    for (let i = 0; i < n; i++) bn[i] = clamp((gray[i] - lo) / rng, 0, 1);
+    if (S.cull === "light") { for (let i = 0; i < n; i++) dark[i] *= 1 - ss(at - soft, at + soft, bn[i]); }
+    else if (S.cull === "dark") { for (let i = 0; i < n; i++) dark[i] *= ss(at - soft, at + soft, bn[i]); }
+    else if (S.cull === "flat") {
+      const r = Math.max(2, Math.round(gw / 45)), sq = new Float32Array(n);
+      for (let i = 0; i < n; i++) sq[i] = bn[i] * bn[i];
+      const m1 = boxBlur(bn, gw, gh, r), m2 = boxBlur(sq, gw, gh, r), dn = new Float32Array(n);
+      for (let i = 0; i < n; i++) dn[i] = clamp(Math.sqrt(Math.max(0, m2[i] - m1[i] * m1[i])) / 0.2, 0, 1);
+      const keep = boxBlur(dn, gw, gh, r * 2);
+      for (let i = 0; i < n; i++) dark[i] *= ss(at * 0.6 - soft, at * 0.6 + soft, keep[i]);
+    } else if (S.cull === "radial") {
+      const W = DM.W, H = DM.H;
+      const fx = S.focus ? (S.focus.x * W - DM.mx) / DM.dw * gw : gw / 2, fy = S.focus ? (S.focus.y * H - DM.my) / DM.dh * gh : gh / 2;
+      const half = 0.5 * Math.hypot(gw, gh);
+      for (let y = 0, i = 0; y < gh; y++) for (let x = 0; x < gw; x++, i++) dark[i] *= 1 - ss(at - soft, at + soft, Math.hypot(x + 0.5 - fx, y + 0.5 - fy) / half);
     }
   }
 
@@ -1466,7 +1589,308 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     return out;
   }
 
-  const GEN = { technical: genTechnical, duotone: genDuotone, wave: genWave, hatch: genHatch, spiral: genSpiral, dots: genDots, contour: genContour, rings: genRings, flow: genFlow, stipple: genStipple, blobs: genBlobs, hairs: genHairs, arrows: genArrows, suns: genSuns, swirls: genSwirls, ascii: genAscii, growth: genGrowth };
+  // ---------------- voronoi: terrapin-shell cells, small where it is dark ----------------
+  // Sites come from dart throwing along a low-discrepancy sequence (so the pattern holds still
+  // from frame to frame), with the allowed gap between sites following the picture. Each cell is
+  // the paper rectangle clipped by the bisector with every nearby site.
+  // ---------------- region fills (shared by voronoi and subdiv cells) ----------------
+  // Chaikin corner cutting: amount 0 keeps the polygon, 1 gives soft pebbles.
+  function smoothPoly(xs, ys, a) {
+    let X = xs.slice(), Y = ys.slice();
+    const c = 0.1 + 0.15 * a, it = 1 + Math.round(a * 2);
+    for (let k = 0; k < it; k++) {
+      const m = X.length, nx = [], ny = [];
+      for (let i = 0; i < m; i++) {
+        const j = (i + 1) % m;
+        nx.push(X[i] + (X[j] - X[i]) * c, X[j] - (X[j] - X[i]) * c);
+        ny.push(Y[i] + (Y[j] - Y[i]) * c, Y[j] - (Y[j] - Y[i]) * c);
+      }
+      X = nx; Y = ny;
+    }
+    return { x: X, y: Y };
+  }
+  // Parallel lines at `ang` across a (possibly concave) polygon. Lines sit on a global lattice so neighbouring cells line up.
+  function scanFill(X, Y, ang, step, layer, out, flip) {
+    const ca = Math.cos(ang), sa = Math.sin(ang), m = X.length, U = new Array(m), V = new Array(m);
+    let vmin = Infinity, vmax = -Infinity;
+    for (let i = 0; i < m; i++) { U[i] = X[i] * ca + Y[i] * sa; V[i] = -X[i] * sa + Y[i] * ca; if (V[i] < vmin) vmin = V[i]; if (V[i] > vmax) vmax = V[i]; }
+    let n = 0;
+    for (let v = Math.ceil(vmin / step) * step; v <= vmax && n < 400; v += step, n++) {
+      const hits = [];
+      for (let i = 0; i < m; i++) {
+        const j = (i + 1) % m, a = V[i] - v, b = V[j] - v;
+        if ((a <= 0) !== (b <= 0)) hits.push(U[i] + (U[j] - U[i]) * (a / (a - b)));
+      }
+      hits.sort((p, q) => p - q);
+      for (let h = 0; h + 1 < hits.length; h += 2) {
+        if (hits[h + 1] - hits[h] < S.pen) continue;
+        const u0 = hits[h], u1 = hits[h + 1], pts = [u0 * ca - v * sa, u0 * sa + v * ca, u1 * ca - v * sa, u1 * sa + v * ca];
+        out.push({ layer, pts: ((n + (flip ? 1 : 0)) % 2) ? rev(pts) : pts });
+      }
+    }
+  }
+  function fillCell(X, Y, dk, layer, out, seed) {
+    const kind = S.cellFill;
+    if (kind === "none" || dk < 0.12) return;
+    const m = X.length; let cx = 0, cy = 0, area = 0;
+    for (let i = 0; i < m; i++) { cx += X[i]; cy += Y[i]; } cx /= m; cy /= m;
+    const px = [], py = [], k = 0.86;
+    for (let i = 0; i < m; i++) { px.push(cx + (X[i] - cx) * k); py.push(cy + (Y[i] - cy) * k); }
+    for (let i = 0; i < m; i++) { const j = (i + 1) % m; area += px[i] * py[j] - px[j] * py[i]; }
+    area = Math.abs(area) / 2;
+    const step = clamp(S.spacing * 0.55 * (1.7 - 1.2 * dk) * 100 / S.fillDens, S.pen * 1.4, 40);
+    if (kind === "stipple") {
+      let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+      for (let i = 0; i < m; i++) { x0 = Math.min(x0, px[i]); x1 = Math.max(x1, px[i]); y0 = Math.min(y0, py[i]); y1 = Math.max(y1, py[i]); }
+      const want = Math.min(160, Math.round(area / (step * step) * (0.6 + dk)));
+      const r = Math.max(S.pen * 0.5, step * 0.12);
+      for (let t = 0, got = 0; got < want && t < want * 8; t++) {
+        const qx = x0 + hash(seed + t, 17) * (x1 - x0), qy = y0 + hash(t, seed + 31) * (y1 - y0);
+        let inn = false;
+        for (let a = 0, b = m - 1; a < m; b = a++) if ((py[a] > qy) !== (py[b] > qy) && qx < (px[b] - px[a]) * (qy - py[a]) / (py[b] - py[a]) + px[a]) inn = !inn;
+        if (inn) { out.push({ layer, pts: circ(qx, qy, r, 6) }); got++; }
+      }
+      return;
+    }
+    const D2R = Math.PI / 180;
+    if (kind === "hatch") scanFill(px, py, 45 * D2R, step, layer, out);
+    else if (kind === "cross") { scanFill(px, py, 45 * D2R, step, layer, out); if (dk > 0.3) scanFill(px, py, 135 * D2R, step, layer, out, true); }
+    else if (kind === "grid") { scanFill(px, py, 0, step, layer, out); if (dk > 0.3) scanFill(px, py, 90 * D2R, step, layer, out, true); }
+    else if (kind === "iso") { scanFill(px, py, 0, step, layer, out); if (dk > 0.3) scanFill(px, py, 60 * D2R, step, layer, out, true); if (dk > 0.55) scanFill(px, py, 120 * D2R, step, layer, out); }
+  }
+
+  function genVoronoi(d) {
+    const f = focus(d), area = d.dw * d.dh, CAP = 3200;
+    const smin = Math.max(S.spacing * 1.5, Math.sqrt(area / CAP) * 0.9);
+    const sizeAt = (x, y) => {
+      let s = smin * (1 + 2.4 * Math.pow(1 - D(x, y), 1.6));
+      if (f) { const w = fall(f, x, y) * f.k; s *= f.s > 0 ? 1 - 0.65 * w : 1 + 1.2 * w; }
+      return s;
+    };
+    const bs = smin * 0.8, bw = Math.ceil(d.dw / bs) + 1, bh = Math.ceil(d.dh / bs) + 1;
+    const head = new Int32Array(bw * bh).fill(-1), next = [], xs = [], ys = [], ss = [];
+    const A1 = 0.7548776662466927, A2 = 0.5698402909980532, NC = Math.min(120000, Math.ceil(area / (smin * smin) * 6));
+    for (let n = 1; n <= NC && xs.length < CAP; n++) {
+      const x = d.mx + ((0.5 + A1 * n) % 1) * d.dw, y = d.my + ((0.5 + A2 * n) % 1) * d.dh, s = sizeAt(x, y);
+      const gx = ((x - d.mx) / bs) | 0, gy = ((y - d.my) / bs) | 0, R = Math.ceil(0.78 * s / bs);
+      let ok = true;
+      for (let yy = Math.max(0, gy - R); yy <= Math.min(bh - 1, gy + R) && ok; yy++) {
+        for (let xx = Math.max(0, gx - R); xx <= Math.min(bw - 1, gx + R); xx++) {
+          for (let k = head[yy * bw + xx]; k >= 0; k = next[k]) {
+            const rr = 0.78 * Math.min(s, ss[k]);
+            if ((xs[k] - x) * (xs[k] - x) + (ys[k] - y) * (ys[k] - y) < rr * rr) { ok = false; break; }
+          }
+          if (!ok) break;
+        }
+      }
+      if (!ok) continue;
+      const id = xs.length; xs.push(x); ys.push(y); ss.push(s); next.push(head[gy * bw + gx]); head[gy * bw + gx] = id;
+    }
+    const N = xs.length, polys = new Array(N);
+    const x0 = d.mx, y0 = d.my, x1 = d.mx + d.dw, y1 = d.my + d.dh;
+    for (let i = 0; i < N; i++) {
+      const px = xs[i], py = ys[i], gx = ((px - d.mx) / bs) | 0, gy = ((py - d.my) / bs) | 0;
+      let Rb = 2, vx, vy, vt;
+      for (let attempt = 0; attempt < 6; attempt++) {
+        const cand = [];
+        for (let yy = Math.max(0, gy - Rb); yy <= Math.min(bh - 1, gy + Rb); yy++) {
+          for (let xx = Math.max(0, gx - Rb); xx <= Math.min(bw - 1, gx + Rb); xx++) {
+            for (let k = head[yy * bw + xx]; k >= 0; k = next[k]) if (k !== i) cand.push(k);
+          }
+        }
+        cand.sort((a, b) => ((xs[a] - px) ** 2 + (ys[a] - py) ** 2) - ((xs[b] - px) ** 2 + (ys[b] - py) ** 2));
+        vx = [x0, x1, x1, x0]; vy = [y0, y0, y1, y1]; vt = [-1, -1, -1, -1];
+        let maxV = Math.hypot(Math.max(px - x0, x1 - px), Math.max(py - y0, y1 - py));
+        for (const j of cand) {
+          const nx = xs[j] - px, ny = ys[j] - py, dist = Math.hypot(nx, ny);
+          if (dist > 2 * maxV) break;
+          const mx = px + nx / 2, my = py + ny / 2, m = vx.length, ox = [], oy = [], ot = [];
+          for (let k = 0; k < m; k++) {
+            const k2 = (k + 1) % m, sP = (vx[k] - mx) * nx + (vy[k] - my) * ny, sQ = (vx[k2] - mx) * nx + (vy[k2] - my) * ny;
+            const inP = sP <= 0, inQ = sQ <= 0;
+            if (inP) { ox.push(vx[k]); oy.push(vy[k]); ot.push(inQ ? vt[k] : j); }
+            if (inP !== inQ) {
+              const t = sP / (sP - sQ);
+              ox.push(vx[k] + (vx[k2] - vx[k]) * t); oy.push(vy[k] + (vy[k2] - vy[k]) * t); ot.push(inP ? j : vt[k]);
+            }
+          }
+          if (ox.length < 3) break;
+          vx = ox; vy = oy; vt = ot;
+          maxV = 0; for (let k = 0; k < vx.length; k++) maxV = Math.max(maxV, Math.hypot(vx[k] - px, vy[k] - py));
+        }
+        if (2 * maxV <= (Rb + 0.5) * bs) break;
+        Rb = Math.ceil(2 * maxV / bs) + 1;
+      }
+      polys[i] = { x: vx, y: vy, t: vt };
+    }
+    // pen order: snake across bands so travel between cells stays short
+    const band = smin * 2.2, order = Array.from({ length: N }, (_, i) => i);
+    order.sort((a, b) => { const ba = Math.floor((ys[a] - y0) / band), bb = Math.floor((ys[b] - y0) / band); return ba !== bb ? ba - bb : (ba % 2 ? xs[b] - xs[a] : xs[a] - xs[b]); });
+    const sm = clamp(S.vorSmooth / 100, 0, 1), filling = S.cellFill !== "none";
+    let gap = S.amp >= 10 ? clamp(1 - 0.0045 * S.amp, 0.1, 1) : 0;
+    if (sm > 0 && !gap) gap = 0.94; // rounded cells no longer share edges, so give each its own outline
+    const out = [];
+    for (const i of order) {
+      const P = polys[i], m = P.x.length;
+      if (filling) fillCell(P.x, P.y, D(xs[i], ys[i]), 1, out, i * 7 + 1);
+      if (!gap) { // shared edges drawn once, consecutive edges of a cell joined into one stroke
+        let start = 0; while (start < m && P.t[(start + m - 1) % m] > i) start++;
+        for (let c = 0; c < m;) {
+          const k = (start + c) % m;
+          if (P.t[k] > i) {
+            const pts = [P.x[k], P.y[k]];
+            while (c < m && P.t[(start + c) % m] > i) { const k2 = (start + c + 1) % m; pts.push(P.x[k2], P.y[k2]); c++; }
+            out.push({ layer: 0, pts });
+          } else c++;
+        }
+        continue;
+      }
+      const B = sm > 0 ? smoothPoly(P.x, P.y, sm) : P, bm = B.x.length;
+      let rad = 0; for (let k = 0; k < m; k++) rad += Math.hypot(P.x[k] - xs[i], P.y[k] - ys[i]); rad /= m;
+      const rings = filling ? 0 : Math.min(4, Math.floor(D(xs[i], ys[i]) * 3.4));
+      for (let r = 0, g = gap; r <= rings && rad * g > S.pen * 1.6; r++, g *= 0.72) {
+        const pts = [];
+        for (let k = 0; k <= bm; k++) { const kk = k % bm; pts.push(xs[i] + (B.x[kk] - xs[i]) * g, ys[i] + (B.y[kk] - ys[i]) * g); }
+        out.push({ layer: 0, pts });
+      }
+    }
+    return out;
+  }
+
+  // ---------------- subdiv: a quad mesh pulled towards the dark areas, then Catmull-Clark smoothed ----------------
+  function ccSubdivide(P, n, m) { // P: Float64Array of n*m points (x,y pairs), row-major; returns [grid, 2n-1, 2m-1]
+    const N = 2 * n - 1, M = 2 * m - 1, Q = new Float64Array(N * M * 2);
+    const get = (i, j, c) => P[(j * n + i) * 2 + c];
+    const face = (a, b, c) => (get(a, b, c) + get(a + 1, b, c) + get(a, b + 1, c) + get(a + 1, b + 1, c)) / 4;
+    for (let j = 0; j < m; j++) for (let i = 0; i < n; i++) for (let c = 0; c < 2; c++) {
+      const edgeI = i === 0 || i === n - 1, edgeJ = j === 0 || j === m - 1;
+      let v;
+      if (edgeI && edgeJ) v = get(i, j, c);
+      else if (edgeJ) v = (get(i - 1, j, c) + 6 * get(i, j, c) + get(i + 1, j, c)) / 8;
+      else if (edgeI) v = (get(i, j - 1, c) + 6 * get(i, j, c) + get(i, j + 1, c)) / 8;
+      else {
+        const q = (face(i - 1, j - 1, c) + face(i, j - 1, c) + face(i - 1, j, c) + face(i, j, c)) / 4;
+        const r = ((get(i - 1, j, c) + get(i + 1, j, c) + get(i, j - 1, c) + get(i, j + 1, c)) / 4 + get(i, j, c)) / 2;
+        v = (q + 2 * r + get(i, j, c)) / 4;
+      }
+      Q[((2 * j) * N + 2 * i) * 2 + c] = v;
+      if (i < n - 1) Q[((2 * j) * N + 2 * i + 1) * 2 + c] = edgeJ ? (get(i, j, c) + get(i + 1, j, c)) / 2 : (get(i, j, c) + get(i + 1, j, c) + face(i, j - 1, c) + face(i, j, c)) / 4;
+      if (j < m - 1) Q[((2 * j + 1) * N + 2 * i) * 2 + c] = edgeI ? (get(i, j, c) + get(i, j + 1, c)) / 2 : (get(i, j, c) + get(i, j + 1, c) + face(i - 1, j, c) + face(i, j, c)) / 4;
+      if (i < n - 1 && j < m - 1) Q[((2 * j + 1) * N + 2 * i + 1) * 2 + c] = face(i, j, c);
+    }
+    return [Q, N, M];
+  }
+  function genSubdiv(d) {
+    const f = focus(d), warp = clamp(S.amp / 100, 0, 1.6);
+    const cs = S.spacing * 4;
+    const nx = clamp(Math.round(d.dw / cs) + 1, 3, 70), ny = clamp(Math.round(d.dh / cs) + 1, 3, 70);
+    const wt = (x, y) => 0.1 + Math.pow(D(x, y), 1.2); // how much mesh a spot attracts
+    // inverse cumulative density, row by row for x and column by column for y
+    const S1 = 180, band = cs * 1.2;
+    const place = (fixed, vertical, count) => {
+      const cdf = new Float64Array(S1 + 1);
+      for (let k = 0; k < S1; k++) {
+        const t = (k + 0.5) / S1; let w = 0;
+        for (let b = -1; b <= 1; b++) {
+          const o = b * band;
+          w += vertical ? wt(clamp(fixed + o, d.mx, d.mx + d.dw), d.my + t * d.dh) : wt(d.mx + t * d.dw, clamp(fixed + o, d.my, d.my + d.dh));
+        }
+        cdf[k + 1] = cdf[k] + w / 3 + 1e-4;
+      }
+      const tot = cdf[S1], res = new Float64Array(count);
+      for (let q = 0, k = 0; q < count; q++) {
+        const target = q / (count - 1) * tot;
+        while (k < S1 - 1 && cdf[k + 1] < target) k++;
+        const seg = cdf[k + 1] - cdf[k] || 1;
+        res[q] = (k + clamp((target - cdf[k]) / seg, 0, 1)) / S1;
+      }
+      return res;
+    };
+    let P = new Float64Array(nx * ny * 2);
+    const rowT = [], colT = [];
+    for (let j = 0; j < ny; j++) rowT.push(place(d.my + j / (ny - 1) * d.dh, false, nx));
+    for (let i = 0; i < nx; i++) colT.push(place(d.mx + i / (nx - 1) * d.dw, true, ny));
+    for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
+      const ux = i / (nx - 1), uy = j / (ny - 1);
+      let x = d.mx + (ux + (rowT[j][i] - ux) * Math.min(1, warp)) * d.dw, y = d.my + (uy + (colT[i][j] - uy) * Math.min(1, warp)) * d.dh;
+      if (f) { const q = pull(f, x, y, f.R * 0.55); x = clamp(q[0], d.mx, d.mx + d.dw); y = clamp(q[1], d.my, d.my + d.dh); }
+      P[(j * nx + i) * 2] = x; P[(j * nx + i) * 2 + 1] = y;
+    }
+    let n = nx, m = ny;
+    for (let lv = 0; lv < 2; lv++) [P, n, m] = ccSubdivide(P, n, m);
+    const out = [], keep = (x, y) => D(x, y) > 0.08;
+    const strokes = (pick, count, layer, snake) => {
+      for (let a = 0; a < count; a++) {
+        let cur = [];
+        const run = [];
+        for (let b = 0; b < pick.len; b++) {
+          const [x, y] = pick.at(a, b);
+          if (keep(x, y)) cur.push(x, y); else { if (cur.length >= 4) run.push(cur); cur = []; }
+        }
+        if (cur.length >= 4) run.push(cur);
+        if (snake && a % 2) { run.reverse(); run.forEach((p) => out.push({ layer, pts: rev(p) })); } else run.forEach((p) => out.push({ layer, pts: p }));
+      }
+    };
+    strokes({ len: n, at: (j, i) => [P[(j * n + i) * 2], P[(j * n + i) * 2 + 1]] }, m, 0, true);
+    strokes({ len: m, at: (i, j) => [P[(j * n + i) * 2], P[(j * n + i) * 2 + 1]] }, n, 1, true);
+    if (S.cellFill !== "none") { // one fill per original mesh cell, following its subdivided (curved) edges
+      const B = 4, X = [], Y = [], at = (i, j) => { X.push(P[(j * n + i) * 2]); Y.push(P[(j * n + i) * 2 + 1]); };
+      for (let cj = 0; cj + B < m; cj += B) for (let ci = 0; ci + B < n; ci += B) {
+        X.length = 0; Y.length = 0;
+        for (let k = 0; k < B; k++) at(ci + k, cj);
+        for (let k = 0; k < B; k++) at(ci + B, cj + k);
+        for (let k = 0; k < B; k++) at(ci + B - k, cj + B);
+        for (let k = 0; k < B; k++) at(ci, cj + B - k);
+        let mx = 0, my = 0; for (let k = 0; k < X.length; k++) { mx += X[k]; my += Y[k]; }
+        fillCell(X.slice(), Y.slice(), D(mx / X.length, my / Y.length), 2, out, ci * 131 + cj);
+      }
+    }
+    return out;
+  }
+
+  // ---------------- ridges: rows lifted by a height field, back lines hidden behind front ones ----------------
+  function genRidges(d) {
+    const f = focus(d), sp = S.spacing, H = sp * 5 * S.amp / 100;
+    const rows = Math.max(2, Math.floor((d.dh - H) / sp) + 1), gap = rows > 1 ? (d.dh - H) / (rows - 1) : 0;
+    const dx = Math.max(0.3, sp * 0.12), cols = Math.max(2, Math.floor(d.dw / dx) + 1), step = d.dw / (cols - 1);
+    const env = new Float64Array(cols).fill(Infinity), lines = new Array(rows);
+    const hAt = (x, y) => {
+      let h = 0; for (let b = -2; b <= 2; b++) h += D(clamp(x + b * step * 1.5, d.mx, d.mx + d.dw), y);
+      h /= 5;
+      if (f) h += f.s * f.k * 0.9 * fall(f, x, y);
+      return h;
+    };
+    const ys = new Float64Array(cols);
+    for (let i = rows - 1; i >= 0; i--) { // front (bottom) to back
+      const yb = d.my + H + i * gap, runs = [];
+      let cur = [], prevVis = false;
+      for (let k = 0; k < cols; k++) {
+        const x = d.mx + k * step, y = Math.max(d.my, yb - H * hAt(x, yb));
+        ys[k] = y;
+        const vis = y < env[k] - 1e-6;
+        if (k > 0 && vis !== prevVis) { // the line crosses the front silhouette between two samples
+          const e0 = env[k - 1], e1 = env[k], y0 = ys[k - 1];
+          let t = 0.5;
+          if (isFinite(e0) && isFinite(e1)) { const dn = (y - y0) - (e1 - e0); t = Math.abs(dn) > 1e-9 ? clamp((e0 - y0) / dn, 0, 1) : 0.5; }
+          const xc = x - step + t * step, yc = y0 + (y - y0) * t;
+          if (vis) cur = [xc, yc]; else { cur.push(xc, yc); if (cur.length >= 4) runs.push(cur); cur = []; }
+        }
+        if (vis) cur.push(x, y);
+        prevVis = vis;
+      }
+      if (cur.length >= 4) runs.push(cur);
+      for (let k = 0; k < cols; k++) if (ys[k] < env[k]) env[k] = ys[k];
+      lines[i] = runs;
+    }
+    const out = [];
+    for (let i = 0; i < rows; i++) {
+      const r = lines[i];
+      if (i % 2) { for (let k = r.length - 1; k >= 0; k--) out.push({ layer: 0, pts: rev(r[k]) }); } else r.forEach((p) => out.push({ layer: 0, pts: p }));
+    }
+    return out;
+  }
+
+  const GEN = { voronoi: genVoronoi, subdiv: genSubdiv, ridges: genRidges, technical: genTechnical, duotone: genDuotone, wave: genWave, hatch: genHatch, spiral: genSpiral, dots: genDots, contour: genContour, rings: genRings, flow: genFlow, stipple: genStipple, blobs: genBlobs, hairs: genHairs, arrows: genArrows, suns: genSuns, swirls: genSwirls, ascii: genAscii, growth: genGrowth };
 
   // ---------------- viewport: fit, zoom, pan ----------------
   const stage = $("stage"), paperEl = $("paper"), view = $("view"), vctx = view.getContext("2d");
@@ -1534,6 +1958,45 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     });
     vctx.globalCompositeOperation = "source-over";
   }
+  // Colour bands: split every stroke by where it sits along a linear or radial gradient and give each
+  // band its own pen (layer). Edge blend jitters each short run of a stroke by a little noise, so
+  // near a boundary some marks take the neighbouring pen and the edge looks blurred rather than cut.
+  function applyBands(list, d) {
+    if (S.bands === "off") return list;
+    const N = clamp(S.bandN, 2, 4), blend = S.bandBlend / 100, linear = S.bands === "linear";
+    const cx = S.focus && !linear ? S.focus.x * d.W : d.mx + d.dw / 2, cy = S.focus && !linear ? S.focus.y * d.H : d.my + d.dh / 2;
+    const th = S.bandAngle * Math.PI / 180, c = Math.cos(th), sn = Math.sin(th), half = (Math.abs(d.dw * c) + Math.abs(d.dh * sn)) / 2 || 1;
+    const R = linear ? 1 : maxRFrom(d, cx, cy) || 1;
+    const tOf = (x, y) => {
+      let t = linear ? ((x - d.mx - d.dw / 2) * c + (y - d.my - d.dh / 2) * sn) / (2 * half) + 0.5 : Math.hypot(x - cx, y - cy) / R;
+      return S.bandRev ? 1 - t : t;
+    };
+    const CH = Math.max(1.5, S.spacing * 1.8);
+    const bandOf = (t, pid, ck) => {
+      const tri = hash(pid * 7 + 1, ck * 13 + 5) + hash(pid * 11 + 3, ck * 17 + 9) - 1;
+      return clamp(Math.floor((t + tri * blend / N) * N), 0, N - 1);
+    };
+    const out = [];
+    list.forEach((p, pid) => {
+      const q = p.pts, len = q.length;
+      if (len < 2) return;
+      let total = 0, mx = 0, my = 0;
+      for (let i = 0; i < len; i += 2) { mx += q[i]; my += q[i + 1]; if (i) total += Math.hypot(q[i] - q[i - 2], q[i + 1] - q[i - 1]); }
+      if (total <= CH * 1.5 || len < 6) { out.push({ layer: bandOf(tOf(mx / (len / 2), my / (len / 2)), pid, 0), pts: q }); return; }
+      let cur = null, curB = -1, acc = 0;
+      for (let i = 0; i < len; i += 2) {
+        if (i) acc += Math.hypot(q[i] - q[i - 2], q[i + 1] - q[i - 1]);
+        const b = bandOf(tOf(q[i], q[i + 1]), pid, Math.floor(acc / CH));
+        if (b !== curB) {
+          if (cur && cur.length >= 4) out.push({ layer: curB, pts: cur });
+          cur = i ? [q[i - 2], q[i - 1]] : []; curB = b;
+        }
+        cur.push(q[i], q[i + 1]);
+      }
+      if (cur && cur.length >= 4) out.push({ layer: curB, pts: cur });
+    });
+    return out;
+  }
   let liveGap = 120;
   function render() {
     if (!gray) return;
@@ -1541,7 +2004,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     DM = dims();
     computeDark();
     fieldCache = null;
-    paths = (GEN[S.mode] || genWave)(DM);
+    paths = applyBands((GEN[S.mode] || genWave)(DM), DM);
     draw();
     liveGap = Math.max(120, (performance.now() - t0) * 1.5); // slow devices or huge sheets: refresh less often
     let len = 0;
@@ -1573,7 +2036,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     let out = [];
     try {
       S.mode = pick.mode; S.spacing = keep.spacing * 2.2; S.levels = Math.min(keep.levels, 6);
-      out = GEN[pick.mode](DM);
+      out = applyBands(GEN[pick.mode](DM), DM);
     } catch (e) { out = []; }
     finally { S.mode = keep.mode; S.spacing = keep.spacing; S.levels = keep.levels; }
     const { cv, ctx } = pick, w = cv.width, h = cv.height;
