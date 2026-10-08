@@ -123,8 +123,8 @@ Blobs puts the outlines on pen 1 and the fill on pen 2, so they can be plotted i
 - **Blob fill** (Blobs): hatch, cross-hatch, contours or spiral
 - **Cell fill** (Voronoi, Subdiv): fill each cell with hatch, cross-hatch, an orthogonal grid, an isometric grid or stipple. Fills go on their own pen, get tighter in darker cells, and Cross, Grid and Iso add directions as the tone deepens. **Fill density** scales it
 - **Curve smoothing** (Voronoi): rounds the cell corners from sharp polygons to soft pebbles
-- **Background**: culls the source image before any style sees it. Light or Dark removes tones past a cutoff, Flat removes areas of even tone (plain walls and skies), Radial keeps a disc around the focal point or the centre. Falloff sets how soft the edge is
-- **Colour bands**: Linear or Radial gradient of pens across the sheet, one pen per band (2 to 4). Edge blend scatters strokes across each boundary so some marks take the neighbouring pen. Replaces the style's own pen layers
+- **Background**: culls the source image before any style sees it. Light or Dark removes tones past a cutoff, Flat removes areas of even tone (plain walls and skies), Radial keeps a disc around the focal point or the centre. Falloff sets how soft the edge is. Radial has Centre across and down sliders to move the disc
+- **Colour bands**: Linear or Radial gradient of pens across the sheet, one pen per band (2 to 4). Edge blend scatters strokes across each boundary so some marks take the neighbouring pen. Position sliders move the radial centre, or the line for Linear. Replaces the style's own pen layers
 - **Contrast, Brightness, Auto levels, Invert**: tone adjustments before plotting
 - **Pen width**: stroke width for the preview and the SVG
 - **Paper**: A6 up to A0, each as portrait, landscape or square (square uses the short side, e.g. A4 square is 210 × 210 mm). Changing size scales the line spacing and margin with it, so the drawing keeps its look and the live preview stays fast

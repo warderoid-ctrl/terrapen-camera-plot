@@ -394,7 +394,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
       <div class="sec" id="bandCtl" hidden>
         <div class="sec" id="bandSliders"></div>
         <div class="checks"><label><input type="checkbox" id="bandRev"> Reverse order</label></div>
-        <p class="tips">One pen per band, pens 1 to N from the start of the gradient (set the inks under Pen colours). Edge blend scatters strokes across each boundary so some marks take the neighbouring pen. Radial bands centre on the focal point when you have placed one. This replaces the style's own pen layers.</p>
+        <p class="tips">One pen per band, pens 1 to N from the start of the gradient (set the inks under Pen colours). Edge blend scatters strokes across each boundary so some marks take the neighbouring pen. Radial bands centre on the focal point, or move the centre (or the line, for Linear) with the position sliders. This replaces the style's own pen layers.</p>
       </div>
     </div>
     <div class="sec" id="penSec">
@@ -470,7 +470,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   // Default pen inks come from the terraPen palette: shell green, coral, teal and black.
   const BRAND_PENS = ["#17321b", "#e83b68", "#66cccc", "#000000"];
   const OLD_PENS = ["#1f2a5c", "#e4572e", "#2364aa", "#4f8a3b"];
-  const DEFAULTS = { cellFill: "none", fillDens: 100, vorSmooth: 0, cull: "off", cullAt: 70, cullSoft: 30, bands: "off", bandN: 3, bandAngle: 0, bandBlend: 40, bandRev: false, showTarget: false, splitPens: false, pens: BRAND_PENS, showColours: false, techBold: true, techFrame: true, focus: null, repel: false, pull: 100, levels: 8, blobFill: "hatch", mode: "wave", size: "a4", shape: "p", margin: 10, spacing: 3.5, amp: 100, layers: 3, contrast: 1.3, bright: 0, pen: 0.3, invert: false, auto: true, pip: true };
+  const DEFAULTS = { cullX: 50, cullY: 50, bandX: 50, bandY: 50, cellFill: "none", fillDens: 100, vorSmooth: 0, cull: "off", cullAt: 70, cullSoft: 30, bands: "off", bandN: 3, bandAngle: 0, bandBlend: 40, bandRev: false, showTarget: false, splitPens: false, pens: BRAND_PENS, showColours: false, techBold: true, techFrame: true, focus: null, repel: false, pull: 100, levels: 8, blobFill: "hatch", mode: "wave", size: "a4", shape: "p", margin: 10, spacing: 3.5, amp: 100, layers: 3, contrast: 1.3, bright: 0, pen: 0.3, invert: false, auto: true, pip: true };
   const S = Object.assign({}, DEFAULTS);
   const KEY = "terrapen-camera-plot";
   try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
@@ -506,7 +506,11 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     { id: "bright", min: -0.4, max: 0.4, step: 0.02, dp: 2, unit: "", name: () => "Brightness", sign: true },
     { id: "pen", min: 0.1, max: 1, step: 0.05, dp: 2, unit: " mm", name: () => "Pen width" },
     { id: "cullAt", parent: "cullSliders", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => CULL_NAMES[S.cull] || "Cutoff", when: () => S.cull !== "off" },
+    { id: "cullX", parent: "cullSliders", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => "Centre across", when: () => S.cull === "radial" },
+    { id: "cullY", parent: "cullSliders", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => "Centre down", when: () => S.cull === "radial" },
     { id: "cullSoft", parent: "cullSliders", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => "Falloff", when: () => S.cull !== "off" },
+    { id: "bandX", parent: "bandSliders", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => S.bands === "linear" ? "Line position across" : "Centre across", when: () => S.bands !== "off" },
+    { id: "bandY", parent: "bandSliders", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => S.bands === "linear" ? "Line position down" : "Centre down", when: () => S.bands !== "off" },
     { id: "bandN", parent: "bandSliders", min: 2, max: 4, step: 1, dp: 0, unit: "", name: () => "Bands", when: () => S.bands !== "off" },
     { id: "bandAngle", parent: "bandSliders", min: 0, max: 355, step: 5, dp: 0, unit: "°", name: () => "Angle", when: () => S.bands === "linear" },
     { id: "bandBlend", parent: "bandSliders", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => "Edge blend", when: () => S.bands !== "off" }
@@ -839,7 +843,8 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
       for (let i = 0; i < n; i++) dark[i] *= ss(at * 0.6 - soft, at * 0.6 + soft, keep[i]);
     } else if (S.cull === "radial") {
       const W = DM.W, H = DM.H;
-      const fx = S.focus ? (S.focus.x * W - DM.mx) / DM.dw * gw : gw / 2, fy = S.focus ? (S.focus.y * H - DM.my) / DM.dh * gh : gh / 2;
+      const own = S.cullX !== 50 || S.cullY !== 50;
+      const fx = own ? S.cullX / 100 * gw : S.focus ? (S.focus.x * W - DM.mx) / DM.dw * gw : gw / 2, fy = own ? S.cullY / 100 * gh : S.focus ? (S.focus.y * H - DM.my) / DM.dh * gh : gh / 2;
       const half = 0.5 * Math.hypot(gw, gh);
       for (let y = 0, i = 0; y < gh; y++) for (let x = 0; x < gw; x++, i++) dark[i] *= 1 - ss(at - soft, at + soft, Math.hypot(x + 0.5 - fx, y + 0.5 - fy) / half);
     }
@@ -1964,11 +1969,12 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   function applyBands(list, d) {
     if (S.bands === "off") return list;
     const N = clamp(S.bandN, 2, 4), blend = S.bandBlend / 100, linear = S.bands === "linear";
-    const cx = S.focus && !linear ? S.focus.x * d.W : d.mx + d.dw / 2, cy = S.focus && !linear ? S.focus.y * d.H : d.my + d.dh / 2;
+    const own = S.bandX !== 50 || S.bandY !== 50;
+    const cx = own ? d.mx + S.bandX / 100 * d.dw : S.focus && !linear ? S.focus.x * d.W : d.mx + d.dw / 2, cy = own ? d.my + S.bandY / 100 * d.dh : S.focus && !linear ? S.focus.y * d.H : d.my + d.dh / 2;
     const th = S.bandAngle * Math.PI / 180, c = Math.cos(th), sn = Math.sin(th), half = (Math.abs(d.dw * c) + Math.abs(d.dh * sn)) / 2 || 1;
     const R = linear ? 1 : maxRFrom(d, cx, cy) || 1;
     const tOf = (x, y) => {
-      let t = linear ? ((x - d.mx - d.dw / 2) * c + (y - d.my - d.dh / 2) * sn) / (2 * half) + 0.5 : Math.hypot(x - cx, y - cy) / R;
+      let t = linear ? ((x - cx) * c + (y - cy) * sn) / (2 * half) + 0.5 : Math.hypot(x - cx, y - cy) / R;
       return S.bandRev ? 1 - t : t;
     };
     const CH = Math.max(1.5, S.spacing * 1.8);
