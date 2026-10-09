@@ -68,7 +68,7 @@ button:focus-visible, label:focus-visible, select:focus-visible, input:focus-vis
 .seg4.seg5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 .seg4.seg5 label { font-size: 15px; padding-inline: 0; }
 .seg4.seg6 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.paper canvas { display: block; width: 100%; height: 100%; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,.4), 0 12px 32px rgba(0,0,0,.45); }
+.paper canvas { display: block; width: 100%; height: 100%; background: var(--sheet, #fff); box-shadow: 0 2px 4px rgba(0,0,0,.4), 0 12px 32px rgba(0,0,0,.45); }
 
 .top {
   position: fixed; left: 0; right: 0; top: 0; z-index: 10;
@@ -161,6 +161,11 @@ body.clean:not(.side) .sheet .head > :not(.modes) { display: none; }
 body.clean:not(.side) .sheet .more { display: none; }
 body.clean:not(.side) .sheet .modes { max-height: 260px; opacity: 1; padding-block: 10px 14px; pointer-events: auto; overflow-x: auto; }
 body.clean:not(.side) .sheet .modes label { color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.6); }
+.swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+.swatches button { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); padding: 0; cursor: pointer; }
+.swatches button[aria-checked="true"] { box-shadow: 0 0 0 2px var(--chrome-solid), 0 0 0 4px var(--accent); }
+.swatches label.custom { position: relative; width: 44px; height: 44px; border-radius: 50%; border: 1px dashed var(--muted); display: grid; place-items: center; color: var(--muted); font-size: 22px; overflow: hidden; cursor: pointer; }
+.swatches label.custom input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
 .rowhead { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .btn.small { flex: 0 0 auto; min-height: 40px; padding: 4px 14px; font-size: 15px; }
 .grp { border-top: 1px solid var(--line); }
@@ -452,6 +457,10 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
       </div>
       <p class="tips" id="paperInfo"></p>
       <div class="ctl" id="marginCtl"></div>
+      <p class="label">Paper colour</p>
+      <div class="swatches" id="paperSwatches" role="radiogroup" aria-label="Paper colour"></div>
+      <div class="checks"><label><input type="checkbox" id="paperSvg"> Include the paper colour in the SVG</label></div>
+      <p class="tips">Paper colour is a preview of the sheet you will plot on. Strokes that would vanish on a dark sheet are drawn light. It stays out of the SVG unless you tick the box, which adds a separate layer called Paper that you should hide before plotting.</p>
     </div></details>
     <details class="grp"><summary><span>Export</span><span class="sum" id="exportSum"></span></summary><div class="sec inner">
       <div class="btnrow">
@@ -488,7 +497,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   // Default pen inks come from the terraPen palette: shell green, coral, teal and black.
   const BRAND_PENS = ["#17321b", "#e83b68", "#66cccc", "#000000"];
   const OLD_PENS = ["#1f2a5c", "#e4572e", "#2364aa", "#4f8a3b"];
-  const DEFAULTS = { cullX: 50, cullY: 50, bandX: 50, bandY: 50, cellFill: "none", fillDens: 100, vorSmooth: 0, cull: "off", cullAt: 70, cullSoft: 30, bands: "off", bandN: 3, bandAngle: 0, bandBlend: 40, bandRev: false, showTarget: false, splitPens: false, pens: BRAND_PENS, showColours: false, techBold: true, techFrame: true, focus: null, repel: false, pull: 100, levels: 8, blobFill: "hatch", mode: "wave", size: "a4", shape: "p", margin: 10, spacing: 3.5, amp: 100, layers: 3, contrast: 1.3, bright: 0, pen: 0.3, invert: false, auto: true, pip: true };
+  const DEFAULTS = { paperCol: "#ffffff", paperSvg: false, cullX: 50, cullY: 50, bandX: 50, bandY: 50, cellFill: "none", fillDens: 100, vorSmooth: 0, cull: "off", cullAt: 70, cullSoft: 30, bands: "off", bandN: 3, bandAngle: 0, bandBlend: 40, bandRev: false, showTarget: false, splitPens: false, pens: BRAND_PENS, showColours: false, techBold: true, techFrame: true, focus: null, repel: false, pull: 100, levels: 8, blobFill: "hatch", mode: "wave", size: "a4", shape: "p", margin: 10, spacing: 3.5, amp: 100, layers: 3, contrast: 1.3, bright: 0, pen: 0.3, invert: false, auto: true, pip: true };
   const S = Object.assign({}, DEFAULTS);
   const KEY = "terrapen-camera-plot";
   try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
@@ -605,7 +614,11 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
 
   // ---------------- pen colours and style options ----------------
   if (!Array.isArray(S.pens) || S.pens.length < 4) S.pens = DEFAULTS.pens.slice();
-  const penColour = (layer, forSvg) => (S.mode === "duotone" || S.showColours || S.bands !== "off" ? S.pens[layer % 4] : forSvg ? "#000000" : "#111111");
+  const lumOf = (hex) => { const m = /^#?([0-9a-f]{6})$/i.exec(hex || ""); if (!m) return 1; const n = parseInt(m[1], 16); return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255; };
+  const darkPaper = () => lumOf(S.paperCol) < 0.4;
+  const penColour = (layer, forSvg) => (S.mode === "duotone" || S.showColours || S.bands !== "off" ? S.pens[layer % 4] : forSvg ? "#000000" : darkPaper() ? "#f2f2f2" : "#111111");
+  const PAPERS = [["#ffffff", "White"], ["#f6f0e1", "Cream"], ["#cdb18a", "Kraft"], ["#c9c9c4", "Grey"], ["#17321b", "Shell green"], ["#111111", "Black"]];
+  const applyPaper = () => { document.documentElement.style.setProperty("--sheet", S.paperCol); };
   for (let i = 0; i < 4; i++) {
     const inp = $("pen" + i);
     inp.value = S.pens[i];
@@ -759,12 +772,29 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     $("bandSum").textContent = S.bands === "off" ? "Off" : cap(S.bands) + " · " + S.bandN;
     $("penSum").textContent = S.showColours ? "Shown" : "Hidden";
     $("focusSum").textContent = S.focus ? (S.repel ? "Repel" : "Attract") : "None";
-    $("paperSum").textContent = S.size.toUpperCase() + " " + SHAPES[S.shape];
+    $("paperSum").textContent = S.size.toUpperCase() + " " + SHAPES[S.shape] + (S.paperCol.toLowerCase() === "#ffffff" ? "" : " · coloured");
     const nm = document.querySelector(`label[for="m-${S.mode}"]`); if (nm) $("styleName").textContent = nm.textContent;
     const [W, H] = paperWH();
     $("paperInfo").textContent = `${S.size.toUpperCase()} ${SHAPES[S.shape]}: ${W} × ${H} mm`;
   }
 
+  (() => {
+    const box = $("paperSwatches");
+    const mark = () => box.querySelectorAll("button").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.c.toLowerCase() === S.paperCol.toLowerCase())));
+    const set = (c) => { S.paperCol = c; applyPaper(); mark(); dirtyDraw = true; thumbStamp++; store(); };
+    PAPERS.forEach(([c, n]) => {
+      const b = document.createElement("button"); b.type = "button"; b.dataset.c = c; b.title = n; b.setAttribute("role", "radio"); b.setAttribute("aria-label", n + " paper");
+      b.style.background = c; b.addEventListener("click", () => set(c)); box.appendChild(b);
+    });
+    const cl = document.createElement("label"); cl.className = "custom"; cl.title = "Pick any colour";
+    cl.innerHTML = '+<input type="color" aria-label="Custom paper colour">'; box.appendChild(cl);
+    const ci = cl.querySelector("input"); ci.value = /^#[0-9a-f]{6}$/i.test(S.paperCol) ? S.paperCol : "#ffffff";
+    ci.addEventListener("input", () => set(ci.value));
+    $("paperSvg").checked = !!S.paperSvg;
+    $("paperSvg").addEventListener("change", () => { S.paperSvg = $("paperSvg").checked; store(); });
+    if (!/^#[0-9a-f]{6}$/i.test(S.paperCol)) S.paperCol = "#ffffff";
+    applyPaper(); mark();
+  })();
   $("styleBar").addEventListener("click", () => { setOpen(false); setTimeout(() => showMode(false), 60); });
   $("btnReset").addEventListener("click", () => {
     SLIDERS.forEach((sp) => { if (DEFAULTS[sp.id] !== undefined) S[sp.id] = DEFAULTS[sp.id]; });
@@ -1985,13 +2015,13 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     k = clamp(k, 1, Math.sqrt(9e6 / (d.W * d.H)));
     const cw = Math.round(d.W * k), ch = Math.round(d.H * k);
     if (view.width !== cw || view.height !== ch) { view.width = cw; view.height = ch; }
-    vctx.fillStyle = "#ffffff"; vctx.fillRect(0, 0, cw, ch);
-    vctx.strokeStyle = "#e4e4e4"; vctx.lineWidth = 1; vctx.setLineDash([5, 5]);
+    vctx.fillStyle = S.paperCol; vctx.fillRect(0, 0, cw, ch);
+    vctx.strokeStyle = darkPaper() ? "rgba(255,255,255,.18)" : "#e4e4e4"; vctx.lineWidth = 1; vctx.setLineDash([5, 5]);
     vctx.strokeRect(d.mx * k, d.my * k, d.dw * k, d.dh * k); vctx.setLineDash([]);
     vctx.lineWidth = Math.max(S.pen * k, 1); vctx.lineCap = "round"; vctx.lineJoin = "round";
     const byLayer = [], duo = S.mode === "duotone";
     paths.forEach((p) => (byLayer[p.layer] || (byLayer[p.layer] = [])).push(p));
-    vctx.globalCompositeOperation = duo ? "multiply" : "source-over"; // overlapping inks mix like print
+    vctx.globalCompositeOperation = duo ? (darkPaper() ? "screen" : "multiply") : "source-over"; // overlapping inks mix like print
     byLayer.forEach((arr, li) => {
       if (!arr) return;
       vctx.strokeStyle = penColour(li);
@@ -2099,12 +2129,12 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     const { cv, ctx } = pick, w = cv.width, h = cv.height;
     const k = Math.max(w / DM.W, h / DM.H) * 1.08, ox = (w - DM.W * k) / 2, oy = (h - DM.H * k) / 2;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = S.paperCol; ctx.fillRect(0, 0, w, h);
     ctx.lineWidth = 1.6; ctx.lineCap = "round"; ctx.lineJoin = "round";
     const byL = [];
     out.forEach((p) => (byL[p.layer] || (byL[p.layer] = [])).push(p));
     const saveMode = S.mode; S.mode = pick.mode; // colour by the thumbnail's own style
-    ctx.globalCompositeOperation = pick.mode === "duotone" ? "multiply" : "source-over";
+    ctx.globalCompositeOperation = pick.mode === "duotone" ? (darkPaper() ? "screen" : "multiply") : "source-over";
     byL.forEach((arr, li) => {
       if (!arr) return;
       ctx.strokeStyle = penColour(li);
@@ -2393,6 +2423,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     const d = DM || dims(), f = (n) => +n.toFixed(2), layers = [];
     paths.forEach((p) => { if (onlyLayer === undefined || p.layer === onlyLayer) (layers[p.layer] || (layers[p.layer] = [])).push(p); });
     let s = `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="${d.W}mm" height="${d.H}mm" viewBox="0 0 ${d.W} ${d.H}">\n`;
+    if (S.paperSvg && onlyLayer === undefined) s += `<g inkscape:groupmode="layer" inkscape:label="Paper (hide before plotting)"><rect width="${d.W}" height="${d.H}" fill="${S.paperCol}"/></g>\n`;
     layers.forEach((arr, li) => {
       if (!arr) return;
       let dd = "";

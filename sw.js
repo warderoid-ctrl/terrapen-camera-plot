@@ -1,7 +1,7 @@
 // terraLens service worker.
 // The page is fetched network-first so every push to GitHub reaches people straight away;
 // the cached copy is only used when offline. Icons and fonts are cache-first.
-const CACHE = "terralens-v13";
+const CACHE = "terralens-v14";
 const CORE = ["./", "./index.html", "./manifest.webmanifest", "./icons/icon-192.png", "./icons/icon-512.png", "./icons/apple-touch-icon.png", "./icons/favicon-32.png", "./icons/favicon.svg", "./icons/logo.svg"];
 
 self.addEventListener("install", (e) => {
