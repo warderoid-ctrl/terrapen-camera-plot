@@ -60,7 +60,7 @@ Long-press the picture to drop a point that the current style reacts to. A targe
 | Flow    | Whirlpool draining into the point         | Whirl spiralling outward    |
 | Blobs   | Hatch radiates, cross adds rings, spiral fill centres on the point | same |
 | Hatch   | Lines converge on the point (vanishing point); extra layers add rings | same |
-| Engrave | Hatch patches turn to face the point, dots fall towards it | Dots pushed away |
+| Engrave | Hatch converges on the point | Hatch rings round the point |
 | Dots    | Dots sit on rings around the point        | same                        |
 | Hairs   | Combed towards the point, like iron filings | Combed into circles around it |
 | Arrows  | Aim at the point                          | Aim away                    |
@@ -92,7 +92,7 @@ Long-press the picture to drop a point that the current style reacts to. A targe
 | Hatch   | 1–4 layers of cross-hatching; darker areas get more layers                    |
 | Technical | Technical drawing: heavy outlines (pen 1), tone lines (pen 2) and section hatching in tonal bands (pen 3), with an optional border frame |
 | Duotone | Two-ink print: angled line screens, dark ink (pen 1) for shadows and light ink (pen 2) for highlights and midtones |
-| Engrave | Wood-block / acid-etch look: a mosaic of hatch patches (more directions as it gets darker), dots and small rings for soft tones, short strokes along the form. Pen 1 hatch, pen 2 dots, pen 3 strokes |
+| Engrave | Etching hybrid: blob outlines (or form contours), evenly spaced hatch lines that end and split as the tone lightens, cross-hatch building up in the shadows, dots in the light tones. Hatch: Flow (wraps round forms), Rigid (straight diagonal) or Facets (shards). Pen 1 outlines, pen 2 hatch and dots, pen 3 cross-hatch |
 | Dots    | Hexagonal grid of circles sized by darkness                                   |
 | Hairs   | Short strokes along the edges                                                 |
 | Arrows  | Arrows pointing towards darker areas                                          |

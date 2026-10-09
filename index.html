@@ -373,6 +373,22 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
       <div class="sec" id="duoRow" hidden>
         <p class="tips">Pen 1 is the dark ink for the shadows, pen 2 the light ink for highlights and midtones. Where they overlap you get the mix. Pick the inks under Pen colours.</p>
       </div>
+      <div class="sec" id="engRow" hidden>
+        <p class="label">Hatch</p>
+        <div class="seg4 seg5b" role="radiogroup" aria-label="Engrave hatch">
+          <input class="sr" type="radio" name="engHatch" id="eh-flow" value="flow"><label for="eh-flow">Flow</label>
+          <input class="sr" type="radio" name="engHatch" id="eh-rigid" value="rigid"><label for="eh-rigid">Rigid</label>
+          <input class="sr" type="radio" name="engHatch" id="eh-facets" value="facets"><label for="eh-facets">Facets</label>
+        </div>
+        <p class="label">Lines</p>
+        <div class="seg4 seg5b" role="radiogroup" aria-label="Engrave lines">
+          <input class="sr" type="radio" name="engLines" id="el-none" value="none"><label for="el-none">None</label>
+          <input class="sr" type="radio" name="engLines" id="el-outline" value="outline"><label for="el-outline">Outline</label>
+          <input class="sr" type="radio" name="engLines" id="el-contours" value="contours"><label for="el-contours">Contours</label>
+        </div>
+        <div class="checks"><label><input type="checkbox" id="engDots"> Dots in the light tones</label></div>
+        <p class="tips">Flow hatch wraps round the forms, Rigid keeps an engraver's straight diagonal, Facets cuts the sheet into shards each hatched its own way. Lines thin out and end as the tone lightens; cross-hatch builds up in the shadows. Pen 1 outlines, pen 2 hatch and dots, pen 3 cross-hatch. Shading pushes the hatching lighter or darker.</p>
+      </div>
       <div class="sec" id="blobFillRow" hidden>
         <div class="seg4 seg5b" role="radiogroup" aria-label="Blob fill">
           <input class="sr" type="radio" name="blobFill" id="bf-hatch" value="hatch"><label for="bf-hatch">Hatch</label>
@@ -503,7 +519,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   // Default pen inks come from the terraPen palette: shell green, coral, teal and black.
   const BRAND_PENS = ["#17321b", "#e83b68", "#66cccc", "#000000"];
   const OLD_PENS = ["#1f2a5c", "#e4572e", "#2364aa", "#4f8a3b"];
-  const DEFAULTS = { clipZone: 35, clipKeep: 10, jitLine: 0, jitHatch: 0, paperCol: "#ffffff", paperSvg: false, cullX: 50, cullY: 50, bandX: 50, bandY: 50, cellFill: "none", fillDens: 100, vorSmooth: 0, cull: "off", cullAt: 70, cullSoft: 30, bands: "off", bandN: 3, bandAngle: 0, bandBlend: 40, bandRev: false, showTarget: false, splitPens: false, pens: BRAND_PENS, showColours: false, techBold: true, techFrame: true, focus: null, repel: false, pull: 100, levels: 8, blobFill: "hatch", mode: "wave", size: "a4", shape: "p", margin: 10, spacing: 3.5, amp: 100, layers: 3, contrast: 1.3, bright: 0, pen: 0.3, invert: false, auto: true, pip: true };
+  const DEFAULTS = { engHatch: "flow", engLines: "outline", engDots: true, clipZone: 35, clipKeep: 10, jitLine: 0, jitHatch: 0, paperCol: "#ffffff", paperSvg: false, cullX: 50, cullY: 50, bandX: 50, bandY: 50, cellFill: "none", fillDens: 100, vorSmooth: 0, cull: "off", cullAt: 70, cullSoft: 30, bands: "off", bandN: 3, bandAngle: 0, bandBlend: 40, bandRev: false, showTarget: false, splitPens: false, pens: BRAND_PENS, showColours: false, techBold: true, techFrame: true, focus: null, repel: false, pull: 100, levels: 8, blobFill: "hatch", mode: "wave", size: "a4", shape: "p", margin: 10, spacing: 3.5, amp: 100, layers: 3, contrast: 1.3, bright: 0, pen: 0.3, invert: false, auto: true, pip: true };
   const S = Object.assign({}, DEFAULTS);
   const KEY = "terrapen-camera-plot";
   try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
@@ -517,6 +533,8 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   if (!SIZES[S.size]) S.size = DEFAULTS.size;
   if (S.mode === "rings") S.mode = "spiral"; // Rings was folded into Spiral
   if (S.mode === "stipple") S.mode = "engrave";
+  if (!["flow", "rigid", "facets"].includes(S.engHatch)) S.engHatch = "flow";
+  if (!["none", "outline", "contours"].includes(S.engLines)) S.engLines = "outline";
   if (!["wave","spiral","contour","flow","blobs","hatch","technical","duotone","engrave","dots","hairs","arrows","suns","swirls","ascii","growth","voronoi","subdiv","ridges"].includes(S.mode)) S.mode = "wave";
   if (!SHAPES[S.shape]) S.shape = DEFAULTS.shape;
   if (!["none", "hatch", "cross", "grid", "iso", "zig", "stipple"].includes(S.cellFill)) S.cellFill = "none";
@@ -529,7 +547,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   const store = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
 
   const SPACE_NAMES = { wave: "Line spacing", spiral: "Ring spacing", flow: "Line spacing", blobs: "Fill spacing", hatch: "Hatch spacing", technical: "Hatch spacing", duotone: "Screen spacing", engrave: "Line spacing", dots: "Dot spacing", hairs: "Grid spacing", arrows: "Grid spacing", suns: "Grid spacing", swirls: "Grid spacing", ascii: "Character size", growth: "Cell size", voronoi: "Cell size", subdiv: "Mesh spacing", ridges: "Row spacing" };
-  const AMP_NAMES = { wave: "Wave height", spiral: "Wave height", flow: "Line length", blobs: "Blob amount", technical: "Shading", duotone: "Wave height", engrave: "Dot size", dots: "Dot size", hairs: "Hair length", arrows: "Arrow length", suns: "Sun size", swirls: "Swirl size", ascii: "Glyph size", growth: "Growth", voronoi: "Cell gap", subdiv: "Warp", ridges: "Relief height" };
+  const AMP_NAMES = { wave: "Wave height", spiral: "Wave height", flow: "Line length", blobs: "Blob amount", technical: "Shading", duotone: "Wave height", engrave: "Shading", dots: "Dot size", hairs: "Hair length", arrows: "Arrow length", suns: "Sun size", swirls: "Swirl size", ascii: "Glyph size", growth: "Growth", voronoi: "Cell gap", subdiv: "Warp", ridges: "Relief height" };
   const SLIDERS = [
     { id: "spacing", min: 0.5, max: 10, step: 0.1, dp: 1, unit: " mm", name: () => SPACE_NAMES[S.mode], modes: Object.keys(SPACE_NAMES) },
     { id: "amp", min: 0, max: 200, step: 5, dp: 0, unit: "%", name: () => AMP_NAMES[S.mode], modes: Object.keys(AMP_NAMES) },
@@ -688,6 +706,12 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     r.checked = r.value === S.cellFill;
     r.addEventListener("change", () => { if (r.checked) { S.cellFill = r.value; changed(false); } });
   });
+  for (const k of ["engHatch", "engLines"]) document.querySelectorAll(`input[name="${k}"]`).forEach((r) => {
+    r.checked = r.value === S[k];
+    r.addEventListener("change", () => { if (r.checked) { S[k] = r.value; changed(false); } });
+  });
+  $("engDots").checked = !!S.engDots;
+  $("engDots").addEventListener("change", () => { S.engDots = $("engDots").checked; changed(false); });
   document.querySelectorAll('input[name="blobFill"]').forEach((r) => {
     r.checked = r.value === S.blobFill;
     r.addEventListener("change", () => { if (r.checked) { S.blobFill = r.value; changed(false); } });
@@ -773,6 +797,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
       $("cellFillRow").hidden = S.mode !== "voronoi" && S.mode !== "subdiv";
       $("cellFillTip").hidden = S.cellFill === "none";
       $("techRow").hidden = S.mode !== "technical";
+      $("engRow").hidden = S.mode !== "engrave";
       $("duoRow").hidden = S.mode !== "duotone";
       $("cullCtl").hidden = S.cull === "off"; $("bandCtl").hidden = S.bands === "off";
       $("cullTip").textContent = CULL_TIPS[S.cull] || "";
@@ -1316,53 +1341,157 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     return out;
   }
 
-  // ---------------- engrave: wood-block / acid-etch mix of hatch patches, dots, rings and strokes ----------------
-  // The sheet is split into an irregular mosaic of patches. Each patch is hatched at its own angle, with more
-  // directions as the tone deepens (like the flat facets in an etching). Dots and small rings add the soft
-  // tones in between and short strokes follow the form. Pen 1 hatch, pen 2 dots and rings, pen 3 strokes.
-  function genEngrave(d) {
-    const sp = S.spacing, amp = S.amp / 100, out = [], f = focus(d), D2R = Math.PI / 180;
-    const P = Math.max(5, sp * 4.5), cols = Math.max(1, Math.round(d.dw / P)), rows = Math.max(1, Math.round(d.dh / P));
-    const cw = d.dw / cols, ch = d.dh / rows, V = [];
-    for (let j = 0; j <= rows; j++) { V[j] = []; for (let i = 0; i <= cols; i++) {
-      const edge = i === 0 || j === 0 || i === cols || j === rows;
-      V[j][i] = [d.mx + (i + (edge && (i === 0 || i === cols) ? 0 : (hash(i, j) - 0.5) * 0.75)) * cw, d.my + (j + (edge && (j === 0 || j === rows) ? 0 : (hash(j + 9, i) - 0.5) * 0.75)) * ch];
-    } }
-    // patches: hatch (pen 1)
-    for (let j = 0; j < rows; j++) for (let k = 0; k < cols; k++) {
-      const i = j % 2 ? cols - 1 - k : k, q = [V[j][i], V[j][i + 1], V[j + 1][i + 1], V[j + 1][i]];
-      const X = q.map((v) => v[0]), Y = q.map((v) => v[1]);
-      const cx = (X[0] + X[1] + X[2] + X[3]) / 4, cy = (Y[0] + Y[1] + Y[2] + Y[3]) / 4;
-      let t = D(cx, cy) * 0.4; for (let m = 0; m < 4; m++) t += D((X[m] + cx) / 2, (Y[m] + cy) / 2) * 0.15;
-      if (t < 0.2) continue;
-      let ang = (hash(i, j) * 180 + 15) * D2R;
-      if (f) { const w = clamp(f.k * (0.4 + fall(f, cx, cy)), 0, 1); if (hash(i + 5, j + 3) < w) ang = Math.atan2(f.y - cy, f.x - cx); }
-      const step = Math.max(S.pen * 1.6, sp * (1.15 - 0.6 * t)), first = out.length;
-      scanFill(X, Y, ang, step, 0, out);
-      if (t > 0.42) scanFill(X, Y, ang + (62 + 40 * hash(j, i + 2)) * D2R, step * 1.05, 0, out, true);
-      if (t > 0.68) scanFill(X, Y, ang + 45 * D2R, step * 1.3, 0, out);
-      if (t > 0.85) scanFill(X, Y, ang - 40 * D2R, step * 1.6, 0, out, true);
+  // ---------------- engrave: an etching built from outlines, form-following hatch, cross-hatch and dots ----------------
+  // Hatch lines are evenly spaced streamlines (Jobard and Lefer): each new line starts a set distance beside
+  // an existing one and stops when it gets too close to another, so lines end and split as the tone lightens,
+  // the way an engraver's lines do. The spacing follows the tone; more directions build up in the shadows.
+  function engField() { // smoothed structure tensor of the tone: gives a calm direction that wraps around forms
+    const F = fields();
+    if (F.ET) return F.ET;
+    const B = F.B, n = gw * gh, xx = new Float32Array(n), xy = new Float32Array(n), yy = new Float32Array(n);
+    let tr = 0;
+    for (let j = 0; j < gh; j++) for (let i = 0; i < gw; i++) {
+      const c = j * gw + i;
+      const gx = (B[j * gw + Math.min(i + 1, gw - 1)] - B[j * gw + Math.max(i - 1, 0)]) / 2;
+      const gy = (B[Math.min(j + 1, gh - 1) * gw + i] - B[Math.max(j - 1, 0) * gw + i]) / 2;
+      xx[c] = gx * gx; xy[c] = gx * gy; yy[c] = gy * gy; tr += xx[c] + yy[c];
     }
-    // dots and little rings (pen 2): the soft tones
-    const s = Math.max(1, sp * 0.55), r = Math.max(S.pen * 0.5, s * 0.17 * amp);
-    cellGrid(d, s, (x, y, i, j) => {
-      const dk = D(x, y);
-      if (dk < 0.1) return;
-      const p = dk * (dk > 0.5 ? 0.45 : 1) * 0.95;
-      if (hash(i, j) >= p) return;
-      let px = x + (hash(i + 3, j) - 0.5) * s * 0.9, py = y + (hash(i, j + 5) - 0.5) * s * 0.9;
-      if (f) [px, py] = pull(f, px, py, f.R * 0.6);
-      const ring = hash(i + 11, j + 17) < 0.07;
-      out.push({ layer: 1, pts: circ(px, py, ring ? r * 2.4 : r, ring ? 14 : 8) });
+    const r = Math.max(2, Math.round(gw / 45)), bl = (A) => boxBlur(boxBlur(boxBlur(A, gw, gh, r), gw, gh, r), gw, gh, r);
+    const ET = { xx: bl(xx), xy: bl(xy), yy: bl(yy) };
+    // a little bias towards the classic engraver's diagonal, so flat areas get calm parallel lines
+    const g = (-35 + 90) * Math.PI / 180, bias = 0.12 * tr / n + 1e-9, cg = Math.cos(g), sg = Math.sin(g);
+    for (let c = 0; c < n; c++) { ET.xx[c] += bias * cg * cg; ET.xy[c] += bias * cg * sg; ET.yy[c] += bias * sg * sg; }
+    return (F.ET = ET);
+  }
+  // Evenly spaced streamlines. dir(x, y) gives an angle (radians, lines are unsigned), sep(x, y) the spacing
+  // there (0 = no lines), cut(x, y) an optional region id: a line stops when it leaves its region.
+  function streamHatch(d, dir, sep, minSep, cut, layer, out, budget) {
+    const cs = minSep, cols = Math.ceil(d.dw / cs) + 1, rows = Math.ceil(d.dh / cs) + 1;
+    const head = new Int32Array(cols * rows).fill(-1), PX = [], PY = [], NX = [];
+    const cellOf = (x, y) => clamp(Math.floor((y - d.my) / cs), 0, rows - 1) * cols + clamp(Math.floor((x - d.mx) / cs), 0, cols - 1);
+    const near = (x, y, r) => {
+      const ci = Math.floor((x - d.mx) / cs), cj = Math.floor((y - d.my) / cs), k = Math.ceil(r / cs), r2 = r * r;
+      for (let j = Math.max(0, cj - k); j <= Math.min(rows - 1, cj + k); j++) for (let i = Math.max(0, ci - k); i <= Math.min(cols - 1, ci + k); i++)
+        for (let q = head[j * cols + i]; q >= 0; q = NX[q]) { const dx = PX[q] - x, dy = PY[q] - y; if (dx * dx + dy * dy < r2) return true; }
+      return false;
+    };
+    const h = clamp(minSep * 0.35, 0.2, 0.8), dtest = 0.5, maxSteps = Math.ceil((d.dw + d.dh) * 1.5 / h);
+    let steps = 0;
+    const vec = (x, y, px, py) => { const a = dir(x, y); let vx = Math.cos(a), vy = Math.sin(a); if (vx * px + vy * py < 0) { vx = -vx; vy = -vy; } return [vx, vy]; };
+    const half = (x0, y0, sx, sy, region) => {
+      const pts = []; let x = x0, y = y0, px = sx, py = sy;
+      for (let k = 0; k < maxSteps && steps < budget; k++, steps++) {
+        const v1 = vec(x, y, px, py), mx = x + v1[0] * h / 2, my = y + v1[1] * h / 2, v2 = vec(mx, my, v1[0], v1[1]);
+        const nx = x + v2[0] * h, ny = y + v2[1] * h;
+        if (!inside(d, nx, ny)) break;
+        const sp = sep(nx, ny);
+        if (!sp || near(nx, ny, sp * dtest)) break;
+        if (cut && cut(nx, ny) !== region) break;
+        if (v2[0] * px + v2[1] * py < 0.5 && k > 0) break; // no sharp kinks
+        x = nx; y = ny; px = v2[0]; py = v2[1]; pts.push(x, y);
+      }
+      return pts;
+    };
+    const queue = [];
+    const trace = (x0, y0) => {
+      if (!inside(d, x0, y0)) return;
+      const sp = sep(x0, y0);
+      if (!sp || near(x0, y0, sp * 0.92)) return;
+      const region = cut ? cut(x0, y0) : 0, a = dir(x0, y0), vx = Math.cos(a), vy = Math.sin(a);
+      const f = half(x0, y0, vx, vy, region), b = half(x0, y0, -vx, -vy, region);
+      const pts = rev(b).concat([x0, y0], f);
+      let len = 0; for (let k = 2; k < pts.length; k += 2) len += Math.hypot(pts[k] - pts[k - 2], pts[k + 1] - pts[k - 1]);
+      if (len < sp * 2.4) return;
+      for (let k = 0; k < pts.length; k += 2) { const c = cellOf(pts[k], pts[k + 1]); PX.push(pts[k]); PY.push(pts[k + 1]); NX.push(head[c]); head[c] = PX.length - 1; }
+      out.push({ layer, h: 1, pts: out.length % 2 ? rev(pts) : pts });
+      const every = Math.max(1, Math.round(sp / h * 0.5));
+      for (let k = 2; k < pts.length - 2; k += 2 * every) {
+        let tx = pts[k + 2] - pts[k - 2], ty = pts[k + 3] - pts[k - 1]; const l = Math.hypot(tx, ty) || 1; tx /= l; ty /= l;
+        const s2 = sep(pts[k], pts[k + 1]) || sp;
+        queue.push(pts[k] - ty * s2, pts[k + 1] + tx * s2, pts[k] + ty * s2, pts[k + 1] - tx * s2);
+      }
+    };
+    const g = Math.max(minSep * 2, 2);
+    cellGrid(d, g, (x, y) => {
+      if (steps >= budget) return;
+      trace(x, y);
+      while (queue.length && steps < budget) { const qy = queue.pop(), qx = queue.pop(); trace(qx, qy); }
+      queue.length = 0;
     });
-    // short strokes along the form (pen 3)
-    const s2 = sp * 2.6;
-    cellGrid(d, s2, (x, y, i, j) => {
-      const dk = D(x, y);
-      if (dk < 0.25 || hash(i + 21, j + 4) > dk * 0.55 || dk > 0.8) return;
-      const v = flowDir(x, y, null, f), L = sp * (0.5 + 0.5 * dk) * amp;
-      out.push({ layer: 2, h: 1, pts: [x - v[0] * L, y - v[1] * L, x + v[0] * L, y + v[1] * L] });
-    });
+  }
+  function genEngrave(d) {
+    const out = [], f = focus(d), sh = Math.max(0.05, S.amp / 100), base = Math.max(0.35, S.spacing * 0.5), D2R = Math.PI / 180;
+    const ET = engField(), mode = S.engHatch;
+    // pen 1: outlines (blob silhouettes), plus form contours
+    if (S.engLines !== "none") {
+      const BB = blobField(), lv = S.engLines === "contours" ? [0.3, 0.5, 0.72] : [0.5];
+      isoMulti(BB, gw, gh, lv).forEach((ls) => ls.forEach((pts) => {
+        let len = 0; for (let k = 2; k < pts.length; k += 2) len += Math.hypot(pts[k] - pts[k - 2], pts[k + 1] - pts[k - 1]);
+        if (len > base * 4) out.push({ layer: 0, pts });
+      }));
+    }
+    // the hatch direction field
+    const flowAng = (x, y) => { // along the tone contours, i.e. wrapping round the form
+      const a = sampleArr(ET.xx, x, y), b = sampleArr(ET.xy, x, y), c = sampleArr(ET.yy, x, y);
+      return 0.5 * Math.atan2(2 * b, a - c) + Math.PI / 2;
+    };
+    let P = 0, sites = null, scol = 0, srow = 0;
+    if (mode === "facets") { // an irregular mosaic of facets, each hatched at its own angle
+      P = Math.max(8, S.spacing * 7); scol = Math.ceil(d.dw / P) + 1; srow = Math.ceil(d.dh / P) + 1; sites = [];
+      for (let j = 0; j < srow; j++) for (let i = 0; i < scol; i++) {
+        const x = d.mx + (i + 0.15 + 0.7 * hash(i, j)) * P, y = d.my + (j + 0.15 + 0.7 * hash(j + 9, i)) * P;
+        sites.push([x, y, hash(i + 3, j + 7) < 0.5 ? flowAng(clamp(x, d.mx, d.mx + d.dw), clamp(y, d.my, d.my + d.dh)) : hash(i + 5, j) * Math.PI]);
+      }
+    }
+    const facet = (x, y) => {
+      const ci = Math.floor((x - d.mx) / P), cj = Math.floor((y - d.my) / P); let best = 0, bd = Infinity;
+      for (let j = Math.max(0, cj - 1); j <= Math.min(srow - 1, cj + 1); j++) for (let i = Math.max(0, ci - 1); i <= Math.min(scol - 1, ci + 1); i++) {
+        const s = sites[j * scol + i], dd = (s[0] - x) * (s[0] - x) + (s[1] - y) * (s[1] - y); if (dd < bd) { bd = dd; best = j * scol + i; }
+      }
+      return best;
+    };
+    const baseAng = (x, y) => {
+      let a = mode === "rigid" ? -35 * D2R : mode === "facets" ? sites[facet(x, y)][2] : flowAng(x, y);
+      if (f) { // lines converge on the point (or ring round it when repelling); blended on doubled angles as lines have no direction
+        const w = clamp(f.k * (0.2 + 0.9 * fall(f, x, y)), 0, 1), t = Math.atan2(f.y - y, f.x - x) + (f.s > 0 ? 0 : Math.PI / 2);
+        const cx = Math.cos(2 * a) * (1 - w) + Math.cos(2 * t) * w, cy = Math.sin(2 * a) * (1 - w) + Math.sin(2 * t) * w;
+        a = 0.5 * Math.atan2(cy, cx);
+      }
+      return a;
+    };
+    const cut = mode === "facets" ? facet : null;
+    // ragged, etched edges where a layer of hatching fades out
+    const edge = (x, y) => 0.05 * (Math.sin(x * 0.83 + Math.cos(y * 0.31) * 2) + Math.sin(y * 0.67 - x * 0.29));
+    const minP = Math.max(S.pen * 1.8, base * 0.7), budget = 260000;
+    const layerSpec = [ // threshold, offset angle, spacing light -> dark, pen
+      [0.16, 0, 3.4, 0.75, 1],
+      [0.42, mode === "flow" ? 90 : 62, 3.0, 0.85, 2],
+      [0.7, mode === "flow" ? 45 : 118, 2.6, 1.1, 2],
+      [0.88, mode === "flow" ? 135 : 31, 2.4, 1.3, 2]
+    ];
+    for (const [thr0, off, dl, dd, pen] of layerSpec) {
+      const thr = thr0 / sh;
+      if (thr >= 0.98) continue;
+      const sep = (x, y) => {
+        const t = D(x, y), th = thr + edge(x, y);
+        if (t < th) return 0;
+        const u = Math.pow(clamp((t - th) / (1 - th), 0, 1), 0.85);
+        return Math.max(minP, base * (dl - (dl - dd) * u));
+      };
+      streamHatch(d, (x, y) => baseAng(x, y) + off * D2R, sep, Math.max(minP, base * dd), cut, pen, out, budget);
+    }
+    // dots: soften where the first hatch begins, and a scatter in the half-tones (pen 2)
+    if (S.engDots) {
+      const sst = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); }, t1 = 0.16 / sh, s = base * 1.1, r = Math.max(S.pen * 0.5, base * 0.1);
+      cellGrid(d, s, (x, y, i, j) => {
+        const t = D(x, y);
+        const p = sst(t1 * 0.35, t1, t) * (1 - sst(t1 + 0.02, t1 + 0.16, t)) * 0.45 + sst(t1 + 0.15, 0.95, t) * 0.05;
+        if (hash(i, j) >= p) return;
+        let px = x + (hash(i + 3, j) - 0.5) * s, py = y + (hash(i, j + 5) - 0.5) * s;
+        if (f) [px, py] = pull(f, px, py, f.R * 0.5);
+        out.push({ layer: 1, pts: circ(px, py, r, 6) });
+      });
+    }
     return out;
   }
 
