@@ -116,6 +116,9 @@ Blobs puts the outlines on pen 1 and the fill on pen 2, so they can be plotted i
 - **Reset sliders** (top of the settings) puts every slider back to its default. Double-tap a slider's name to reset just that one
 - The settings are grouped into folding sections (Background, Colour bands, Layer colours, Focal point, Paper, Export). With the menu open the style carousel steps aside and a Style bar shows the current style. Tap the picture to hide the menu and keep just the carousel, so you can swipe through styles while pointing at a subject
 - **Paper colour** (in Paper): white, cream, kraft, grey, shell green, black or any colour, as a preview of the sheet you plot on. Strokes that would vanish on dark paper are drawn light. Optionally adds a hidden-able Paper layer to the SVG
+- **Cell fill** also offers **Zigzag**, one continuous back-and-forth line; Blobs has a Zigzag fill too
+- **Line wobble** and **Hatch wobble**: hand-drawn wobble, set separately for the main lines and for hatching or fills (Hatch wobble shows for Hatch, Blobs, Technical and filled Voronoi or Subdiv cells). Each stroke wobbles differently and the wobble is saved in the SVG
+- The menu is an accordion: Settings, Background, Colour bands, Layer colours, Focal point, Paper and Export. Opening one folds the others
 - **Layer colours**: pick an ink for each pen layer; choosing one turns the colour preview on. Reset colours returns the pens, preview and paper to the defaults
 
 - **Spacing**: distance between lines, rings, dots or grid cells (mm); the label changes with the style
