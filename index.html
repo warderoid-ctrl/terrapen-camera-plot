@@ -143,12 +143,35 @@ body.side .hint { left: calc((100vw - 340px) / 2); }
 .modes::-webkit-scrollbar { display: none; }
 /* Scrolled into the settings: fold the carousel away so the controls get the room. Scroll back to the top to bring it back. */
 .modes { max-height: 260px; transition: max-height .25s ease, opacity .2s ease, padding .25s ease; }
-body:not(.side) .sheet.compact .modes { max-height: 0; opacity: 0; padding-block: 0; overflow: hidden; pointer-events: none; }
 .modes label {
   flex: 0 0 auto; width: 150px; scroll-snap-align: center; cursor: pointer;
   display: grid; justify-items: center; gap: 8px;
   font-size: 15px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); white-space: nowrap;
 }
+.stylebar { display: none; align-items: center; gap: 10px; width: 100%; min-height: 48px; margin: 0 0 6px; padding: 6px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--chrome-solid); color: var(--ink); font: inherit; font-size: 16px; }
+.stylebar span { color: var(--muted); font-size: 13px; letter-spacing: .1em; text-transform: uppercase; }
+.stylebar b { font-weight: 600; flex: 1; text-align: left; }
+.stylebar i { font-style: normal; color: var(--accent); font-size: 14px; }
+body:not(.side) .sheet.open .stylebar { display: flex; }
+/* Menu open: the carousel steps aside (the style bar replaces it). */
+body:not(.side) .sheet.open .modes { max-height: 0; opacity: 0; padding-block: 0; overflow: hidden; pointer-events: none; }
+/* Clean view: only the carousel stays, floating over the plot. */
+body.clean:not(.side) .sheet { transform: none; background: transparent; border-color: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 4px); }
+body.clean:not(.side) .sheet .head > :not(.modes) { display: none; }
+body.clean:not(.side) .sheet .more { display: none; }
+body.clean:not(.side) .sheet .modes { max-height: 260px; opacity: 1; padding-block: 10px 14px; pointer-events: auto; overflow-x: auto; }
+body.clean:not(.side) .sheet .modes label { color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.6); }
+.rowhead { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.btn.small { flex: 0 0 auto; min-height: 40px; padding: 4px 14px; font-size: 15px; }
+.grp { border-top: 1px solid var(--line); }
+.grp > summary { list-style: none; display: flex; align-items: center; gap: 10px; min-height: 52px; cursor: pointer; font-size: 13px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.grp > summary::-webkit-details-marker { display: none; }
+.grp > summary > span:first-child { flex: 1; }
+.grp > summary .sum { font-size: 15px; letter-spacing: 0; text-transform: none; color: var(--ink); }
+.grp > summary::after { content: ""; width: 9px; height: 9px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg); margin: -4px 4px 0 2px; transition: transform .15s ease; }
+.grp[open] > summary::after { transform: rotate(-135deg); margin-top: 4px; }
+.grp[open] > summary { color: var(--ink); }
+.grp > .inner { padding-bottom: 14px; }
 .modes .th {
   width: 136px; height: 136px; border-radius: 18px; background: #ffffff; display: block;
   box-shadow: 0 0 0 1px var(--line); transition: transform .15s ease, box-shadow .15s ease;
@@ -278,7 +301,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   <div><b>Drag up or down</b> to change contrast</div>
   <div><b>Pinch</b> to zoom in on the lines, <b>double-tap</b> to reset</div>
   <div><b>Long-press</b> to set a focal point the style reacts to</div>
-  <div><b>Tap</b> to hide the controls</div>
+  <div><b>Tap</b> to hide the menu and leave just the style carousel</div>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -307,6 +330,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
       <input class="sr" type="radio" name="mode" id="m-ascii" value="ascii"><label for="m-ascii"><canvas class="th" width="272" height="272" data-mode="ascii" aria-hidden="true"></canvas>ASCII</label>
       <input class="sr" type="radio" name="mode" id="m-growth" value="growth"><label for="m-growth"><canvas class="th" width="272" height="272" data-mode="growth" aria-hidden="true"></canvas>Growth</label>
     </div>
+    <button class="stylebar" id="styleBar" type="button" aria-label="Back to the style carousel"><span>Style</span><b id="styleName">Waves</b><i>Change</i></button>
     <div class="shutterrow">
       <div class="side">
         <input id="filePick" class="sr" type="file" accept="image/*">
@@ -332,7 +356,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
 
   <div class="more" id="more">
     <div class="sec">
-      <p class="label">Line</p>
+      <div class="rowhead"><p class="label">Settings</p><button class="btn small" id="btnReset" type="button">Reset sliders</button></div>
       <div class="sec" id="techRow" hidden>
         <div class="checks">
           <label><input type="checkbox" id="techBold"> Heavy outlines</label>
@@ -370,8 +394,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
         <label><input type="checkbox" id="invert"> Invert</label>
       </div>
     </div>
-    <div class="sec" id="cullSec">
-      <p class="label">Background</p>
+    <details class="grp" id="cullSec"><summary><span>Background</span><span class="sum" id="cullSum"></span></summary><div class="sec inner">
       <div class="seg4 seg5" role="radiogroup" aria-label="Background culling">
         <input class="sr" type="radio" name="cull" id="cu-off" value="off"><label for="cu-off">Off</label>
         <input class="sr" type="radio" name="cull" id="cu-light" value="light"><label for="cu-light">Light</label>
@@ -383,9 +406,8 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
         <div class="sec" id="cullSliders"></div>
         <p class="tips" id="cullTip"></p>
       </div>
-    </div>
-    <div class="sec" id="bandSec">
-      <p class="label">Colour bands</p>
+    </div></details>
+    <details class="grp" id="bandSec"><summary><span>Colour bands</span><span class="sum" id="bandSum"></span></summary><div class="sec inner">
       <div class="seg4 seg3" role="radiogroup" aria-label="Colour bands">
         <input class="sr" type="radio" name="bands" id="bd-off" value="off"><label for="bd-off">Off</label>
         <input class="sr" type="radio" name="bands" id="bd-linear" value="linear"><label for="bd-linear">Linear</label>
@@ -396,20 +418,18 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
         <div class="checks"><label><input type="checkbox" id="bandRev"> Reverse order</label></div>
         <p class="tips">One pen per band, pens 1 to N from the start of the gradient (set the inks under Pen colours). Edge blend scatters strokes across each boundary so some marks take the neighbouring pen. Radial bands centre on the focal point, or move the centre (or the line, for Linear) with the position sliders. This replaces the style's own pen layers.</p>
       </div>
-    </div>
-    <div class="sec" id="penSec">
-      <p class="label">Pen colours</p>
+    </div></details>
+    <details class="grp" id="penSec"><summary><span>Layer colours</span><span class="sum" id="penSum"></span></summary><div class="sec inner">
       <div class="pens">
         <label class="pen"><input type="color" id="pen0" aria-label="Pen 1 colour"><span>Pen 1</span></label>
         <label class="pen"><input type="color" id="pen1" aria-label="Pen 2 colour"><span>Pen 2</span></label>
         <label class="pen"><input type="color" id="pen2" aria-label="Pen 3 colour"><span>Pen 3</span></label>
         <label class="pen"><input type="color" id="pen3" aria-label="Pen 4 colour"><span>Pen 4</span></label>
       </div>
-      <div class="checks"><label><input type="checkbox" id="showColours"> Show pen colours in every style</label></div>
+      <div class="checks"><label><input type="checkbox" id="showColours"> Show layer colours in every style</label></div>
       <p class="tips">Duotone always uses pens 1 and 2. Each pen is its own layer in the SVG, coloured to match, so you can swap pens between layers.</p>
-    </div>
-    <div class="sec" id="focusSec">
-      <p class="label">Focal point</p>
+    </div></details>
+    <details class="grp" id="focusSec"><summary><span>Focal point</span><span class="sum" id="focusSum"></span></summary><div class="sec inner">
       <p class="tips" id="focusTip">Long-press the picture to place a point the style reacts to. Keep holding and drag to move it.</p>
       <div class="sec" id="focusCtl" hidden>
         <div class="seg4 seg2" role="radiogroup" aria-label="Focal point behaviour">
@@ -420,9 +440,8 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
         <div class="checks"><label><input type="checkbox" id="showTarget"> Show target</label></div>
         <div class="btnrow"><button class="btn" id="btnFocusOff" type="button">Remove point</button></div>
       </div>
-    </div>
-    <div class="sec">
-      <p class="label">Paper</p>
+    </div></details>
+    <details class="grp"><summary><span>Paper</span><span class="sum" id="paperSum"></span></summary><div class="sec inner">
       <div class="two">
         <select id="paperSize" aria-label="Paper size"></select>
         <div class="shape" role="radiogroup" aria-label="Paper shape">
@@ -433,9 +452,8 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
       </div>
       <p class="tips" id="paperInfo"></p>
       <div class="ctl" id="marginCtl"></div>
-    </div>
-    <div class="sec">
-      <p class="label">Export</p>
+    </div></details>
+    <details class="grp"><summary><span>Export</span><span class="sum" id="exportSum"></span></summary><div class="sec inner">
       <div class="btnrow">
         <button class="btn" id="btnShare" type="button" hidden>
           <svg class="i" viewBox="0 0 24 24"><path d="M12 15V4M8 8l4-4 4 4M5 12v8h14v-8"/></svg>Send SVG
@@ -444,7 +462,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
       </div>
       <div class="checks"><label><input type="checkbox" id="splitPens"> Save each pen as its own file</label></div>
       <p class="tips">Every SVG keeps each pen on its own coloured layer. Turn on the option above for plotter software that ignores layers: you get one file per colour. Send SVG opens your phone's share sheet, so you can AirDrop, Nearby Share or email the files straight to the plotter computer.</p>
-    </div>
+    </div></details>
     <div class="sec" id="appSec" hidden>
       <p class="label">Get the app</p>
       <button class="btn primary-btn" id="btnInstall" type="button" hidden>
@@ -591,7 +609,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   for (let i = 0; i < 4; i++) {
     const inp = $("pen" + i);
     inp.value = S.pens[i];
-    inp.addEventListener("input", () => { S.pens[i] = inp.value; dirtyDraw = true; thumbStamp++; store(); });
+    inp.addEventListener("input", () => { S.pens[i] = inp.value; if (!S.showColours) { S.showColours = true; $("showColours").checked = true; } dirtyDraw = true; thumbStamp++; store(); });
   }
   $("showColours").checked = !!S.showColours;
   $("showColours").addEventListener("change", () => { S.showColours = $("showColours").checked; dirtyDraw = true; thumbStamp++; store(); });
@@ -661,38 +679,39 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   // scroll came from the viewer's finger, trackpad or wheel. Scrolls the browser makes on its
   // own (layout changes, the page being restored, Safari re-snapping) just re-centre the
   // current style instead of changing it.
-  let stripActive = false;
+  let stripLastInput = 0, stripDown = false;
+  const stripLive = () => stripDown || performance.now() - stripLastInput < 1800;
   (() => {
     const strip = document.querySelector(".modes");
-    let t = 0, idle = 0, fingerDown = false;
-    const arm = () => {
-      stripActive = true; clearTimeout(idle);
-      idle = setTimeout(() => { if (!fingerDown) stripActive = false; }, 700);
-    };
-    const down = () => { fingerDown = true; arm(); };
-    const up = () => { fingerDown = false; arm(); };
+    let t = 0;
+    const arm = () => { stripLastInput = performance.now(); };
+    let moved = false;
+    const down = () => { stripDown = true; moved = false; arm(); };
+    const up = () => { stripDown = false; arm(); if (moved) { clearTimeout(t); t = setTimeout(() => { if (!stripDown) settle(); }, 260); } }; // finger lifted: pick whatever is centred once any momentum has had a moment
     strip.addEventListener("touchstart", down, { passive: true });
     strip.addEventListener("touchend", up, { passive: true });
     strip.addEventListener("touchcancel", up, { passive: true });
     strip.addEventListener("pointerdown", (e) => { if (e.pointerType !== "touch") down(); });
-    addEventListener("pointerup", (e) => { if (e.pointerType !== "touch" && fingerDown) up(); });
+    addEventListener("pointerup", (e) => { if (e.pointerType !== "touch" && stripDown) up(); });
     strip.addEventListener("wheel", arm, { passive: true });
     strip.addEventListener("keydown", arm);
+    const settle = () => {
+      const c = strip.scrollLeft + strip.clientWidth / 2;
+      let best = null, bd = 1e9;
+      strip.querySelectorAll("label").forEach((l) => { const dd = Math.abs(l.offsetLeft + l.offsetWidth / 2 - c); if (dd < bd) { bd = dd; best = l; } });
+      const r = best && $(best.htmlFor);
+      if (r && !r.checked) { r.checked = true; r.dispatchEvent(new Event("change", { bubbles: true })); if (navigator.vibrate) navigator.vibrate(6); }
+    };
     strip.addEventListener("scroll", () => {
       if (body.classList.contains("side")) return;
       clearTimeout(t);
-      if (!stripActive) { t = setTimeout(() => showMode(false), 120); return; } // not the viewer: put the current style back in the centre
-      arm(); // keep listening through momentum scrolling
-      t = setTimeout(() => {
-        const c = strip.scrollLeft + strip.clientWidth / 2;
-        let best = null, bd = 1e9;
-        strip.querySelectorAll("label").forEach((l) => { const dd = Math.abs(l.offsetLeft + l.offsetWidth / 2 - c); if (dd < bd) { bd = dd; best = l; } });
-        const r = best && $(best.htmlFor);
-        if (r && !r.checked) { r.checked = true; r.dispatchEvent(new Event("change", { bubbles: true })); if (navigator.vibrate) navigator.vibrate(6); }
-      }, 90);
+      if (!stripLive()) { t = setTimeout(() => { if (!stripLive()) showMode(false); }, 120); return; } // not the viewer: put the current style back in the centre
+      arm(); moved = true; // keep listening through momentum scrolling
+      t = setTimeout(() => { if (stripDown) return; settle(); }, 140);
     }, { passive: true });
+    if ("onscrollend" in window) strip.addEventListener("scrollend", () => { if (!stripDown && stripLive()) { clearTimeout(t); settle(); } });
     // Re-centre whenever the strip changes size (rotation, fonts arriving, the page being restored).
-    const recentre = () => { if (!stripActive) showMode(false); };
+    const recentre = () => { if (!stripLive()) showMode(false); };
     new ResizeObserver(recentre).observe(strip);
     addEventListener("pageshow", recentre);
     addEventListener("load", recentre);
@@ -735,10 +754,26 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
       const inp = $(sp.id); if (+inp.value !== S[sp.id]) inp.value = S[sp.id];
     });
     $("o-margin").textContent = S.margin + " mm";
+    const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+    $("cullSum").textContent = S.cull === "off" ? "Off" : cap(S.cull);
+    $("bandSum").textContent = S.bands === "off" ? "Off" : cap(S.bands) + " · " + S.bandN;
+    $("penSum").textContent = S.showColours ? "Shown" : "Hidden";
+    $("focusSum").textContent = S.focus ? (S.repel ? "Repel" : "Attract") : "None";
+    $("paperSum").textContent = S.size.toUpperCase() + " " + SHAPES[S.shape];
+    const nm = document.querySelector(`label[for="m-${S.mode}"]`); if (nm) $("styleName").textContent = nm.textContent;
     const [W, H] = paperWH();
     $("paperInfo").textContent = `${S.size.toUpperCase()} ${SHAPES[S.shape]}: ${W} × ${H} mm`;
   }
 
+  $("styleBar").addEventListener("click", () => { setOpen(false); setTimeout(() => showMode(false), 60); });
+  $("btnReset").addEventListener("click", () => {
+    SLIDERS.forEach((sp) => { if (DEFAULTS[sp.id] !== undefined) S[sp.id] = DEFAULTS[sp.id]; });
+    if (CULL_DEF[S.cull] !== undefined) S.cullAt = CULL_DEF[S.cull];
+    S.margin = DEFAULTS.margin; $("margin").value = S.margin;
+    changed(true); toast("Sliders reset");
+  });
+  // double-tap a slider's name to reset just that one
+  SLIDERS.forEach((sp) => { const nm = $("ctl-" + sp.id).querySelector(".name"); nm.addEventListener("dblclick", (e) => { e.preventDefault(); S[sp.id] = sp.id === "cullAt" && CULL_DEF[S.cull] !== undefined ? CULL_DEF[S.cull] : DEFAULTS[sp.id]; changed(false); }); });
   // ---------------- toast / hud ----------------
   let toastT = 0;
   function toast(msg, ms = 2600) {
@@ -979,19 +1014,37 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
       }
     }
   }
+  // Walks a parametric line from q0 to q1 and returns the runs where ok(x, y) holds. Where a run starts or
+  // ends, the edge is found by bisection, so strokes stop on the boundary instead of up to a step beyond it.
+  function traceRuns(at, q0, q1, step, ok) {
+    const runs = []; let cur = [], prevQ = null, prevIn = false;
+    const edge = (qa, qb) => { // qa is inside, qb is outside
+      for (let k = 0; k < 7; k++) { const qm = (qa + qb) / 2, p = at(qm); if (ok(p[0], p[1])) qa = qm; else qb = qm; }
+      return at(qa);
+    };
+    for (let q = q0; ; q += step) {
+      const last = q >= q1; if (last) q = q1;
+      const p = at(q), isIn = ok(p[0], p[1]);
+      if (isIn) {
+        if (!prevIn && prevQ !== null) { const e = edge(q, prevQ); cur.push(e[0], e[1]); }
+        cur.push(p[0], p[1]);
+      } else if (prevIn) {
+        const e = edge(prevQ, q); cur.push(e[0], e[1]);
+        if (cur.length >= 4) runs.push(cur); cur = [];
+      }
+      prevQ = q; prevIn = isIn;
+      if (last) break;
+    }
+    if (cur.length >= 4) runs.push(cur);
+    return runs;
+  }
   // Lines radiating from the focal point, kept where test(x, y) is true.
   function radialLines(d, f, spacing, test, layer, out, offset) {
     const maxR = maxRFrom(d, f.x, f.y), step = Math.max(0.35, spacing * 0.2);
     const N = Math.max(24, Math.round(2 * Math.PI * maxR * 0.35 / spacing));
     for (let q = 0; q < N; q++) {
-      const a = (q + (offset || 0)) / N * Math.PI * 2, c = Math.cos(a), sn = Math.sin(a), segs = [];
-      let cur = [];
-      for (let r = 0; r <= maxR; r += step) {
-        const x = f.x + c * r, y = f.y + sn * r;
-        if (inside(d, x, y) && test(x, y)) cur.push(x, y);
-        else { if (cur.length >= 4) segs.push(cur); cur = []; }
-      }
-      if (cur.length >= 4) segs.push(cur);
+      const a = (q + (offset || 0)) / N * Math.PI * 2, c = Math.cos(a), sn = Math.sin(a);
+      const segs = traceRuns((r) => [f.x + c * r, f.y + sn * r], 0, maxR, step, (x, y) => inside(d, x, y) && test(x, y));
       if (q % 2) { segs.reverse(); segs.forEach((p) => out.push({ layer, pts: rev(p) })); } else segs.forEach((p) => out.push({ layer, pts: p }));
     }
   }
@@ -999,14 +1052,9 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   function ringLines(d, f, spacing, test, layer, out, phase) {
     const maxR = maxRFrom(d, f.x, f.y), ds = Math.max(0.35, spacing * 0.2);
     for (let k = 0, r = spacing * (1 + (phase || 0)); r <= maxR; k++, r += spacing) {
-      const N = Math.max(12, Math.ceil(2 * Math.PI * r / ds));
-      let cur = [];
-      for (let q = 0; q <= N; q++) {
-        const a = (k % 2 ? q : N - q) / N * Math.PI * 2, x = f.x + r * Math.cos(a), y = f.y + r * Math.sin(a);
-        if (inside(d, x, y) && test(x, y)) cur.push(x, y);
-        else { if (cur.length >= 4) out.push({ layer, pts: cur }); cur = []; }
-      }
-      if (cur.length >= 4) out.push({ layer, pts: cur });
+      const N = Math.max(12, Math.ceil(2 * Math.PI * r / ds)), dir = k % 2 ? 1 : -1, a0 = k % 2 ? 0 : Math.PI * 2;
+      traceRuns((u) => { const a = a0 + dir * u; return [f.x + r * Math.cos(a), f.y + r * Math.sin(a)]; }, 0, Math.PI * 2, Math.PI * 2 / N, (x, y) => inside(d, x, y) && test(x, y))
+        .forEach((pts) => out.push({ layer, pts }));
     }
   }
 
@@ -1155,14 +1203,8 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     const cx = d.mx + d.dw / 2, cy = d.my + d.dh / 2, c = Math.cos(angle), s = Math.sin(angle);
     let idx = 0;
     for (let t = -diag / 2 + (phase || 0); t <= diag / 2; t += spacing) {
-      const ox = cx - s * t, oy = cy + c * t, segs = [];
-      let cur = [];
-      for (let q = -diag / 2; q <= diag / 2; q += step) {
-        const x = ox + c * q, y = oy + s * q;
-        if (inside(d, x, y) && test(x, y)) cur.push(x, y);
-        else { if (cur.length >= 4) segs.push(cur); cur = []; }
-      }
-      if (cur.length >= 4) segs.push(cur);
+      const ox = cx - s * t, oy = cy + c * t;
+      const segs = traceRuns((q) => [ox + c * q, oy + s * q], -diag / 2, diag / 2, step, (x, y) => inside(d, x, y) && test(x, y));
       const flip = idx++ % 2;
       if (flip) segs.reverse();
       segs.forEach((p) => out.push({ layer, pts: flip ? rev(p) : p }));
@@ -1912,7 +1954,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     const clean = body.classList.contains("clean");
     const topH = clean ? 0 : $("top").offsetHeight;
     const availW = innerWidth - (side && !clean ? $("sheet").offsetWidth : 0);
-    const peek = side || clean ? 0 : peekHeight();
+    const peek = side ? 0 : peekHeight();
     document.documentElement.style.setProperty("--peek", peek + "px");
     const pad = clean ? 6 : 10, d = dims();
     const aw = availW - 2 * pad, ah = innerHeight - topH - peek - 2 * pad;
@@ -2097,7 +2139,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
         thumbSnap = { gray: gray.slice(), dark: dark.slice(), gw, gh, fc: null };
       }
     }
-    else if (gray && thumbSnap && !body.classList.contains("clean") && !body.classList.contains("scrub") && t - lastThumb > (live && !frozen ? 380 : 25)) drawNextThumb(t);
+    else if (gray && thumbSnap && !stripLive() && !body.classList.contains("scrub") && t - lastThumb > (live && !frozen ? 380 : 25)) drawNextThumb(t);
     else if (dirtyDraw) { dirtyDraw = false; draw(); }
   }
 
@@ -2221,20 +2263,9 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   const sheet = $("sheet"), grab = $("grab");
   function setOpen(open) {
     sheet.classList.toggle("open", open);
-    if (!open) sheet.classList.remove("compact");
     grab.setAttribute("aria-expanded", String(open));
     grab.setAttribute("aria-label", open ? "Hide settings" : "Show all settings");
   }
-  // Scrolling the settings folds the style carousel away (and scrolling back to the top restores it).
-  (() => {
-    const more = sheet.querySelector(".more");
-    more.addEventListener("scroll", () => {
-      if (body.classList.contains("side")) return;
-      const y = more.scrollTop, on = sheet.classList.contains("compact");
-      if (!on && y > 48 && more.scrollHeight - more.clientHeight > 260) sheet.classList.add("compact");
-      else if (on && y <= 4) sheet.classList.remove("compact");
-    }, { passive: true });
-  })();
   let swiped = false;
   grab.addEventListener("click", () => { if (swiped) { swiped = false; return; } setOpen(!sheet.classList.contains("open")); });
   (() => {
