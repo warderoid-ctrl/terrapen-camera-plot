@@ -431,6 +431,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
         <label class="pen"><input type="color" id="pen2" aria-label="Pen 3 colour"><span>Pen 3</span></label>
         <label class="pen"><input type="color" id="pen3" aria-label="Pen 4 colour"><span>Pen 4</span></label>
       </div>
+      <div class="btnrow"><button class="btn small" id="btnResetColours" type="button">Reset colours</button></div>
       <div class="checks"><label><input type="checkbox" id="showColours"> Show layer colours in every style</label></div>
       <p class="tips">Duotone always uses pens 1 and 2. Each pen is its own layer in the SVG, coloured to match, so you can swap pens between layers.</p>
     </div></details>
@@ -795,6 +796,14 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     if (!/^#[0-9a-f]{6}$/i.test(S.paperCol)) S.paperCol = "#ffffff";
     applyPaper(); mark();
   })();
+  $("btnResetColours").addEventListener("click", () => {
+    S.pens = DEFAULTS.pens.slice();
+    for (let i = 0; i < 4; i++) $("pen" + i).value = S.pens[i];
+    S.showColours = false; $("showColours").checked = false;
+    S.paperSvg = false; $("paperSvg").checked = false;
+    document.querySelector("#paperSwatches button").click(); // back to white paper
+    dirtyDraw = true; thumbStamp++; store(); syncLabels(); toast("Colours reset");
+  });
   $("styleBar").addEventListener("click", () => { setOpen(false); setTimeout(() => showMode(false), 60); });
   $("btnReset").addEventListener("click", () => {
     SLIDERS.forEach((sp) => { if (DEFAULTS[sp.id] !== undefined) S[sp.id] = DEFAULTS[sp.id]; });
