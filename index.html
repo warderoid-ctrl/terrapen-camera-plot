@@ -182,7 +182,8 @@ body.clean:not(.side) .sheet .modes label { color: #fff; text-shadow: 0 1px 3px 
   box-shadow: 0 0 0 1px var(--line); transition: transform .15s ease, box-shadow .15s ease;
 }
 .modes input:checked + label { color: var(--ink); }
-.modes input:checked + label .th { box-shadow: 0 0 0 2px var(--chrome-solid), 0 0 0 4px var(--accent); transform: scale(1.06); }
+.modes input:checked + label .th { box-shadow: 0 0 0 2px var(--chrome-solid), 0 0 0 4px var(--accent); transform: scale(1.12); }
+body:not(.side) .modes input:not(:checked) + label { opacity: .72; transition: opacity .15s ease; }
 .modes input:focus-visible + label .th { outline: 2px solid var(--accent); outline-offset: 4px; }
 body.side .head { display: flex; flex-direction: column; }
 body.side .shutterrow { order: -1; padding-bottom: 14px; }
@@ -681,11 +682,13 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     r.checked = r.value === S.blobFill;
     r.addEventListener("change", () => { if (r.checked) { S.blobFill = r.value; changed(false); } });
   });
+  let progUntil = 0; // while the app itself is scrolling the carousel (a tap centring a tile), don't read that as a swipe
   const showMode = (smooth) => {
     const strip = document.querySelector(".modes"), on = document.querySelector('input[name="mode"]:checked');
     const l = document.querySelector(`label[for="m-${on ? on.value : S.mode}"]`);
     if (!strip || !l || strip.scrollWidth <= strip.clientWidth) return;
     const left = l.offsetLeft - (strip.clientWidth - l.offsetWidth) / 2;
+    progUntil = performance.now() + (smooth ? 900 : 200);
     try { strip.scrollTo({ left, behavior: smooth ? "smooth" : "auto" }); } catch (e) { strip.scrollLeft = left; }
   };
   document.querySelectorAll('input[name="mode"]').forEach((r) => r.addEventListener("change", () => showMode(true)));
@@ -719,11 +722,12 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     strip.addEventListener("scroll", () => {
       if (body.classList.contains("side")) return;
       clearTimeout(t);
+      if (performance.now() < progUntil) return;
       if (!stripLive()) { t = setTimeout(() => { if (!stripLive()) showMode(false); }, 120); return; } // not the viewer: put the current style back in the centre
       arm(); moved = true; // keep listening through momentum scrolling
       t = setTimeout(() => { if (stripDown) return; settle(); }, 140);
     }, { passive: true });
-    if ("onscrollend" in window) strip.addEventListener("scrollend", () => { if (!stripDown && stripLive()) { clearTimeout(t); settle(); } });
+    if ("onscrollend" in window) strip.addEventListener("scrollend", () => { if (!stripDown && stripLive() && performance.now() >= progUntil) { clearTimeout(t); settle(); } });
     // Re-centre whenever the strip changes size (rotation, fonts arriving, the page being restored).
     const recentre = () => { if (!stripLive()) showMode(false); };
     new ResizeObserver(recentre).observe(strip);
