@@ -327,7 +327,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
       <input class="sr" type="radio" name="mode" id="m-hatch" value="hatch"><label for="m-hatch"><canvas class="th" width="272" height="272" data-mode="hatch" aria-hidden="true"></canvas>Hatch</label>
       <input class="sr" type="radio" name="mode" id="m-technical" value="technical"><label for="m-technical"><canvas class="th" width="272" height="272" data-mode="technical" aria-hidden="true"></canvas>Technical</label>
       <input class="sr" type="radio" name="mode" id="m-duotone" value="duotone"><label for="m-duotone"><canvas class="th" width="272" height="272" data-mode="duotone" aria-hidden="true"></canvas>Duotone</label>
-      <input class="sr" type="radio" name="mode" id="m-stipple" value="stipple"><label for="m-stipple"><canvas class="th" width="272" height="272" data-mode="stipple" aria-hidden="true"></canvas>Stipple</label>
+      <input class="sr" type="radio" name="mode" id="m-engrave" value="engrave"><label for="m-engrave"><canvas class="th" width="272" height="272" data-mode="engrave" aria-hidden="true"></canvas>Engrave</label>
       <input class="sr" type="radio" name="mode" id="m-dots" value="dots"><label for="m-dots"><canvas class="th" width="272" height="272" data-mode="dots" aria-hidden="true"></canvas>Dots</label>
       <input class="sr" type="radio" name="mode" id="m-hairs" value="hairs"><label for="m-hairs"><canvas class="th" width="272" height="272" data-mode="hairs" aria-hidden="true"></canvas>Hairs</label>
       <input class="sr" type="radio" name="mode" id="m-arrows" value="arrows"><label for="m-arrows"><canvas class="th" width="272" height="272" data-mode="arrows" aria-hidden="true"></canvas>Arrows</label>
@@ -339,8 +339,8 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     <button class="stylebar" id="styleBar" type="button" aria-label="Back to the style carousel"><span>Style</span><b id="styleName">Waves</b><i>Change</i></button>
     <div class="shutterrow">
       <div class="side">
-        <input id="filePick" class="sr" type="file" accept="image/*">
-        <label class="roundbtn" for="filePick" aria-label="Choose an image from your gallery">
+        <input id="filePick" class="sr" type="file" accept="image/*,video/*">
+        <label class="roundbtn" for="filePick" aria-label="Choose an image or a short video from your gallery">
           <svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="16" cy="9.5" r="1.5"/></svg>
         </label>
         <input id="fileCam" class="sr" type="file" accept="image/*" capture="environment">
@@ -452,7 +452,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
         <div class="btnrow"><button class="btn" id="btnFocusOff" type="button">Remove point</button></div>
       </div>
     </div></details>
-    <details class="grp"><summary><span>Paper</span><span class="sum" id="paperSum"></span></summary><div class="sec inner">
+    <details class="grp" id="paperSec"><summary><span>Paper</span><span class="sum" id="paperSum"></span></summary><div class="sec inner">
       <div class="two">
         <select id="paperSize" aria-label="Paper size"></select>
         <div class="shape" role="radiogroup" aria-label="Paper shape">
@@ -468,7 +468,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
       <div class="checks"><label><input type="checkbox" id="paperSvg"> Include the paper colour in the SVG</label></div>
       <p class="tips">Paper colour is a preview of the sheet you will plot on. Strokes that would vanish on a dark sheet are drawn light. It stays out of the SVG unless you tick the box, which adds a separate layer called Paper that you should hide before plotting.</p>
     </div></details>
-    <details class="grp"><summary><span>Export</span><span class="sum" id="exportSum"></span></summary><div class="sec inner">
+    <details class="grp" id="exportSec"><summary><span>Export</span><span class="sum" id="exportSum"></span></summary><div class="sec inner">
       <div class="btnrow">
         <button class="btn" id="btnShare" type="button" hidden>
           <svg class="i" viewBox="0 0 24 24"><path d="M12 15V4M8 8l4-4 4 4M5 12v8h14v-8"/></svg>Send SVG
@@ -516,7 +516,8 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   }
   if (!SIZES[S.size]) S.size = DEFAULTS.size;
   if (S.mode === "rings") S.mode = "spiral"; // Rings was folded into Spiral
-  if (!["wave","spiral","contour","flow","blobs","hatch","technical","duotone","stipple","dots","hairs","arrows","suns","swirls","ascii","growth","voronoi","subdiv","ridges"].includes(S.mode)) S.mode = "wave";
+  if (S.mode === "stipple") S.mode = "engrave";
+  if (!["wave","spiral","contour","flow","blobs","hatch","technical","duotone","engrave","dots","hairs","arrows","suns","swirls","ascii","growth","voronoi","subdiv","ridges"].includes(S.mode)) S.mode = "wave";
   if (!SHAPES[S.shape]) S.shape = DEFAULTS.shape;
   if (!["none", "hatch", "cross", "grid", "iso", "zig", "stipple"].includes(S.cellFill)) S.cellFill = "none";
   if (!["off", "light", "dark", "flat", "radial"].includes(S.cull)) S.cull = "off";
@@ -527,8 +528,8 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   const scaleOf = (size) => { const [a, b] = SIZES[size]; return Math.sqrt(a * b / (210 * 297)); };
   const store = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
 
-  const SPACE_NAMES = { wave: "Line spacing", spiral: "Ring spacing", flow: "Line spacing", blobs: "Fill spacing", hatch: "Hatch spacing", technical: "Hatch spacing", duotone: "Screen spacing", stipple: "Dot spacing", dots: "Dot spacing", hairs: "Grid spacing", arrows: "Grid spacing", suns: "Grid spacing", swirls: "Grid spacing", ascii: "Character size", growth: "Cell size", voronoi: "Cell size", subdiv: "Mesh spacing", ridges: "Row spacing" };
-  const AMP_NAMES = { wave: "Wave height", spiral: "Wave height", flow: "Line length", blobs: "Blob amount", technical: "Shading", duotone: "Wave height", stipple: "Dot size", dots: "Dot size", hairs: "Hair length", arrows: "Arrow length", suns: "Sun size", swirls: "Swirl size", ascii: "Glyph size", growth: "Growth", voronoi: "Cell gap", subdiv: "Warp", ridges: "Relief height" };
+  const SPACE_NAMES = { wave: "Line spacing", spiral: "Ring spacing", flow: "Line spacing", blobs: "Fill spacing", hatch: "Hatch spacing", technical: "Hatch spacing", duotone: "Screen spacing", engrave: "Line spacing", dots: "Dot spacing", hairs: "Grid spacing", arrows: "Grid spacing", suns: "Grid spacing", swirls: "Grid spacing", ascii: "Character size", growth: "Cell size", voronoi: "Cell size", subdiv: "Mesh spacing", ridges: "Row spacing" };
+  const AMP_NAMES = { wave: "Wave height", spiral: "Wave height", flow: "Line length", blobs: "Blob amount", technical: "Shading", duotone: "Wave height", engrave: "Dot size", dots: "Dot size", hairs: "Hair length", arrows: "Arrow length", suns: "Sun size", swirls: "Swirl size", ascii: "Glyph size", growth: "Growth", voronoi: "Cell gap", subdiv: "Warp", ridges: "Relief height" };
   const SLIDERS = [
     { id: "spacing", min: 0.5, max: 10, step: 0.1, dp: 1, unit: " mm", name: () => SPACE_NAMES[S.mode], modes: Object.keys(SPACE_NAMES) },
     { id: "amp", min: 0, max: 200, step: 5, dp: 0, unit: "%", name: () => AMP_NAMES[S.mode], modes: Object.keys(AMP_NAMES) },
@@ -542,7 +543,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     { id: "bright", min: -0.4, max: 0.4, step: 0.02, dp: 2, unit: "", name: () => "Brightness", sign: true },
     { id: "pen", min: 0.1, max: 1, step: 0.05, dp: 2, unit: " mm", name: () => "Pen width" },
     { id: "jitLine", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => "Line wobble" },
-    { id: "jitHatch", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => "Hatch wobble", modes: ["hatch", "blobs", "technical", "voronoi", "subdiv"], when: () => !(S.mode === "voronoi" || S.mode === "subdiv") || S.cellFill !== "none" },
+    { id: "jitHatch", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => "Hatch wobble", modes: ["hatch", "blobs", "technical", "voronoi", "subdiv", "engrave"], when: () => !(S.mode === "voronoi" || S.mode === "subdiv") || S.cellFill !== "none" },
     { id: "cullAt", parent: "cullSliders", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => CULL_NAMES[S.cull] || "Cutoff", when: () => S.cull !== "off" },
     { id: "cullX", parent: "cullSliders", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => "Centre across", when: () => S.cull === "radial" },
     { id: "cullY", parent: "cullSliders", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => "Centre down", when: () => S.cull === "radial" },
@@ -645,7 +646,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   const FOCUS_NAMES = {
     wave: ["Pinch", "Bulge"], spiral: ["Spiral centre", "Spiral centre"],
     contour: ["Hill", "Pit"], flow: ["Whirlpool", "Outward whirl"], blobs: ["Fill centre", "Fill centre"],
-    hatch: ["Vanishing point", "Vanishing point"], technical: ["Vanishing point", "Vanishing point"], duotone: ["Pinch", "Bulge"], stipple: ["Gravity", "Anti-gravity"], dots: ["Ring grid", "Ring grid"],
+    hatch: ["Vanishing point", "Vanishing point"], technical: ["Vanishing point", "Vanishing point"], duotone: ["Pinch", "Bulge"], engrave: ["Converge", "Radiate"], dots: ["Ring grid", "Ring grid"],
     hairs: ["Magnet", "Circle comb"], arrows: ["Aim here", "Aim away"], suns: ["Rays reach", "Rays recoil"],
     swirls: ["Orbit", "Counter-orbit"], ascii: ["Ring grid", "Ring grid"], growth: ["Growth seed", "Growth seed"],
     voronoi: ["Cells shrink", "Cells grow"], subdiv: ["Pinch", "Bulge"], ridges: ["Hill", "Pit"]
@@ -655,7 +656,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     contour: ["A hill rises at the point", "A pit sinks at the point"], flow: ["Lines whirl into the point", "Lines whirl out from the point"],
     blobs: ["Fills radiate from the point (contour fill is unchanged)"], hatch: ["Lines converge on the point, like a vanishing point"],
     technical: ["Section hatching converges on the point"], duotone: ["Both screens pinch in towards the point", "Both screens bulge away from the point"],
-    stipple: ["Dots fall towards the point", "Dots are pushed away from the point"], dots: ["Dots sit on rings around the point"],
+    engrave: ["Hatch patches turn to face the point, dots fall towards it", "Dots are pushed away from the point"], dots: ["Dots sit on rings around the point"],
     hairs: ["Hairs comb towards the point", "Hairs circle the point"], arrows: ["Arrows aim at the point", "Arrows aim away from the point"],
     suns: ["Rays stretch towards the point", "Rays stretch away from the point"], swirls: ["Swirls orbit the point", "Swirls orbit the other way"],
     ascii: ["Characters sit on rings around the point"], growth: ["The pattern grows out from the point; Pull sets how far"],
@@ -855,6 +856,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   let gray = null, dark = null, gw = 0, gh = 0;
   let still = null, needExtract = true;
   let stream = null, video = null, live = false, frozen = false, facing = "environment";
+  let clipMode = false; // a video file standing in for the camera
 
   const dims = () => {
     const [W, H] = paperWH();
@@ -1314,14 +1316,52 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     return out;
   }
 
-  // ---------------- stipple: dots, more of them where it's darker ----------------
-  function genStipple(d) {
-    const s = S.spacing * 0.5, out = [], r = Math.max(S.pen * 0.5, s * 0.18 * S.amp / 100), f = focus(d);
+  // ---------------- engrave: wood-block / acid-etch mix of hatch patches, dots, rings and strokes ----------------
+  // The sheet is split into an irregular mosaic of patches. Each patch is hatched at its own angle, with more
+  // directions as the tone deepens (like the flat facets in an etching). Dots and small rings add the soft
+  // tones in between and short strokes follow the form. Pen 1 hatch, pen 2 dots and rings, pen 3 strokes.
+  function genEngrave(d) {
+    const sp = S.spacing, amp = S.amp / 100, out = [], f = focus(d), D2R = Math.PI / 180;
+    const P = Math.max(5, sp * 4.5), cols = Math.max(1, Math.round(d.dw / P)), rows = Math.max(1, Math.round(d.dh / P));
+    const cw = d.dw / cols, ch = d.dh / rows, V = [];
+    for (let j = 0; j <= rows; j++) { V[j] = []; for (let i = 0; i <= cols; i++) {
+      const edge = i === 0 || j === 0 || i === cols || j === rows;
+      V[j][i] = [d.mx + (i + (edge && (i === 0 || i === cols) ? 0 : (hash(i, j) - 0.5) * 0.75)) * cw, d.my + (j + (edge && (j === 0 || j === rows) ? 0 : (hash(j + 9, i) - 0.5) * 0.75)) * ch];
+    } }
+    // patches: hatch (pen 1)
+    for (let j = 0; j < rows; j++) for (let k = 0; k < cols; k++) {
+      const i = j % 2 ? cols - 1 - k : k, q = [V[j][i], V[j][i + 1], V[j + 1][i + 1], V[j + 1][i]];
+      const X = q.map((v) => v[0]), Y = q.map((v) => v[1]);
+      const cx = (X[0] + X[1] + X[2] + X[3]) / 4, cy = (Y[0] + Y[1] + Y[2] + Y[3]) / 4;
+      let t = D(cx, cy) * 0.4; for (let m = 0; m < 4; m++) t += D((X[m] + cx) / 2, (Y[m] + cy) / 2) * 0.15;
+      if (t < 0.2) continue;
+      let ang = (hash(i, j) * 180 + 15) * D2R;
+      if (f) { const w = clamp(f.k * (0.4 + fall(f, cx, cy)), 0, 1); if (hash(i + 5, j + 3) < w) ang = Math.atan2(f.y - cy, f.x - cx); }
+      const step = Math.max(S.pen * 1.6, sp * (1.15 - 0.6 * t)), first = out.length;
+      scanFill(X, Y, ang, step, 0, out);
+      if (t > 0.42) scanFill(X, Y, ang + (62 + 40 * hash(j, i + 2)) * D2R, step * 1.05, 0, out, true);
+      if (t > 0.68) scanFill(X, Y, ang + 45 * D2R, step * 1.3, 0, out);
+      if (t > 0.85) scanFill(X, Y, ang - 40 * D2R, step * 1.6, 0, out, true);
+    }
+    // dots and little rings (pen 2): the soft tones
+    const s = Math.max(1, sp * 0.55), r = Math.max(S.pen * 0.5, s * 0.17 * amp);
     cellGrid(d, s, (x, y, i, j) => {
-      if (hash(i, j) >= D(x, y)) return;
+      const dk = D(x, y);
+      if (dk < 0.1) return;
+      const p = dk * (dk > 0.5 ? 0.45 : 1) * 0.95;
+      if (hash(i, j) >= p) return;
       let px = x + (hash(i + 3, j) - 0.5) * s * 0.9, py = y + (hash(i, j + 5) - 0.5) * s * 0.9;
-      if (f) [px, py] = pull(f, px, py, f.R * 0.6); // gravity (or anti-gravity) towards the point
-      out.push({ layer: 0, pts: circ(px, py, r, 8) });
+      if (f) [px, py] = pull(f, px, py, f.R * 0.6);
+      const ring = hash(i + 11, j + 17) < 0.07;
+      out.push({ layer: 1, pts: circ(px, py, ring ? r * 2.4 : r, ring ? 14 : 8) });
+    });
+    // short strokes along the form (pen 3)
+    const s2 = sp * 2.6;
+    cellGrid(d, s2, (x, y, i, j) => {
+      const dk = D(x, y);
+      if (dk < 0.25 || hash(i + 21, j + 4) > dk * 0.55 || dk > 0.8) return;
+      const v = flowDir(x, y, null, f), L = sp * (0.5 + 0.5 * dk) * amp;
+      out.push({ layer: 2, h: 1, pts: [x - v[0] * L, y - v[1] * L, x + v[0] * L, y + v[1] * L] });
     });
     return out;
   }
@@ -2057,7 +2097,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     return out;
   }
 
-  const GEN = { voronoi: genVoronoi, subdiv: genSubdiv, ridges: genRidges, technical: genTechnical, duotone: genDuotone, wave: genWave, hatch: genHatch, spiral: genSpiral, dots: genDots, contour: genContour, flow: genFlow, stipple: genStipple, blobs: genBlobs, hairs: genHairs, arrows: genArrows, suns: genSuns, swirls: genSwirls, ascii: genAscii, growth: genGrowth };
+  const GEN = { voronoi: genVoronoi, subdiv: genSubdiv, ridges: genRidges, technical: genTechnical, duotone: genDuotone, wave: genWave, hatch: genHatch, spiral: genSpiral, dots: genDots, contour: genContour, flow: genFlow, engrave: genEngrave, blobs: genBlobs, hairs: genHairs, arrows: genArrows, suns: genSuns, swirls: genSwirls, ascii: genAscii, growth: genGrowth };
 
   // ---------------- viewport: fit, zoom, pan ----------------
   const stage = $("stage"), paperEl = $("paper"), view = $("view"), vctx = view.getContext("2d");
@@ -2419,7 +2459,8 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   }
   function stopStream() {
     if (stream) stream.getTracks().forEach((tr) => tr.stop());
-    stream = null; video = null; live = false; frozen = false;
+    if (video && clipMode) { try { video.pause(); URL.revokeObjectURL(video.src); } catch (e) {} }
+    stream = null; video = null; live = false; frozen = false; clipMode = false;
     setShutter("off"); wake(false);
   }
   function setStill(src, w, h) {
@@ -2454,6 +2495,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   // After the phone locks or the app is backgrounded, the browser may end or pause the camera while the
   // page still thinks it is live. Check the stream is really delivering frames, and restart it if not.
   const cameraHealthy = () => {
+    if (clipMode) return true;
     const tr = stream && stream.getVideoTracks()[0];
     return !!(tr && tr.readyState === "live" && !tr.muted && video && !video.paused && video.readyState >= 2);
   };
@@ -2487,8 +2529,22 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     wake(true); recoverCamera();
   });
 
+  // A video file loops as the live source, so everything behaves as if the camera were pointed at it.
+  async function loadClip(file) {
+    stopStream();
+    try {
+      video = document.createElement("video");
+      video.playsInline = true; video.muted = true; video.loop = true; video.setAttribute("playsinline", "");
+      video.src = URL.createObjectURL(file);
+      await video.play();
+      clipMode = true; live = true; frozen = false; lastLive = 0; lastVT = -1;
+      setShutter("live"); $("btnFlip").hidden = true; wake(true); snapAt = performance.now() + 900;
+      return true;
+    } catch (e) { stopStream(); toast("That video could not be played. Try an MP4 or WebM clip."); return false; }
+  }
   async function loadFile(file) {
     if (!file) return;
+    if (file.type && file.type.startsWith("video/")) { await loadClip(file); return; }
     stopStream();
     try {
       let bmp;
@@ -2651,6 +2707,12 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
       deferredPrompt = null; $("btnInstall").hidden = true;
     });
     addEventListener("appinstalled", () => { $("appSec").hidden = true; toast("Installed. Open terraLens from your home screen."); });
+  }
+
+  // ?demo: expose a few handles and load the scripted tour (demo.js) that drives the real controls.
+  if (/[?&]demo\b/.test(location.search)) {
+    window.__demo = { S, toggleClean, setOpen, syncLabels, changed, loadClip, isClean: () => body.classList.contains("clean"), isOpen: () => sheet.classList.contains("open") };
+    const sc = document.createElement("script"); sc.src = "demo.js"; document.body.appendChild(sc);
   }
 
   // Start the camera straight away when permission was already given.

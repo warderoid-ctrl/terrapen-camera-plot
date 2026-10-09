@@ -60,7 +60,7 @@ Long-press the picture to drop a point that the current style reacts to. A targe
 | Flow    | Whirlpool draining into the point         | Whirl spiralling outward    |
 | Blobs   | Hatch radiates, cross adds rings, spiral fill centres on the point | same |
 | Hatch   | Lines converge on the point (vanishing point); extra layers add rings | same |
-| Stipple | Dots fall towards the point (gravity)     | Dots pushed away            |
+| Engrave | Hatch patches turn to face the point, dots fall towards it | Dots pushed away |
 | Dots    | Dots sit on rings around the point        | same                        |
 | Hairs   | Combed towards the point, like iron filings | Combed into circles around it |
 | Arrows  | Aim at the point                          | Aim away                    |
@@ -92,7 +92,7 @@ Long-press the picture to drop a point that the current style reacts to. A targe
 | Hatch   | 1–4 layers of cross-hatching; darker areas get more layers                    |
 | Technical | Technical drawing: heavy outlines (pen 1), tone lines (pen 2) and section hatching in tonal bands (pen 3), with an optional border frame |
 | Duotone | Two-ink print: angled line screens, dark ink (pen 1) for shadows and light ink (pen 2) for highlights and midtones |
-| Stipple | Scattered dots, more of them where it's darker                                |
+| Engrave | Wood-block / acid-etch look: a mosaic of hatch patches (more directions as it gets darker), dots and small rings for soft tones, short strokes along the form. Pen 1 hatch, pen 2 dots, pen 3 strokes |
 | Dots    | Hexagonal grid of circles sized by darkness                                   |
 | Hairs   | Short strokes along the edges                                                 |
 | Arrows  | Arrows pointing towards darker areas                                          |
@@ -104,7 +104,7 @@ Long-press the picture to drop a point that the current style reacts to. A targe
 | Subdiv  | A quad mesh pulled towards the dark areas and smoothed with Catmull-Clark subdivision (rows on pen 1, columns on pen 2) |
 | Ridges  | Rows lifted by the image as a height field, with hidden lines removed, like a joy-division plot |
 
-Contour, Flow, Stipple, Hairs, Arrows, Suns, Swirls, ASCII and Growth are ported from
+Contour, Flow, Hairs, Arrows, Suns, Swirls, ASCII and Growth are ported from
 [hauntedPoints](https://github.com/warderoid-ctrl/hauntedPoints), where they were driven by
 point-cloud displacement. Here darkness takes the place of the data value and the image's
 gradient takes the place of the displacement direction.
@@ -166,3 +166,9 @@ Inspired by [mitxela/plotterfun](https://github.com/mitxela/plotterfun). Built f
 ## License
 
 MIT. See [LICENSE](LICENSE).
+
+## Video clips as the live source
+Tap the gallery button and pick a short video instead of a picture: it loops as the "live" feed, so every filter, gesture and slider works on it. Handy for demos and for working without a camera.
+
+## Demo mode
+Open `index.html?demo` to get a scripted tour of every feature with on-screen captions and a simulated finger. Options: `&speed=2` (faster), `&notitle` (skip the title card). Pick one or two clips in the panel, then press Play tour. `record.js` (Playwright) records it headlessly to video.
