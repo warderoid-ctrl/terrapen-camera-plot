@@ -141,7 +141,7 @@
 
     cap("Twenty styles. Swipe the carousel and the picture redraws as you go", "Styles");
     await swipeStrip(520); await swipeStrip(520);
-    for (const [m, nm] of [["contour", "Contour"], ["ridges", "Ridges"], ["flow", "Flow"], ["blobs", "Blobs"], ["voronoi", "Voronoi"], ["subdiv", "Subdivision"], ["hatch", "Hatch"], ["technical", "Technical"], ["duotone", "Duotone"], ["engrave", "Engrave"]]) {
+    for (const [m, nm] of [["contour", "Contour"], ["ridges", "Ridges"], ["flow", "Flow"], ["blobs", "Blobs"], ["voronoi", "Voronoi"], ["subdiv", "Subdivision"], ["hatch", "Hatch"], ["technical", "Technical"], ["duotone", "Duotone"], ["engrave", "Engrave"], ["etch", "Etch"]]) {
       cap(`${nm}`, "Tap any tile"); await mode(m, 1700);
     }
     await mode("wave", 1200);

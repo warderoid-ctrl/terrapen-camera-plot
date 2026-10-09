@@ -328,6 +328,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
       <input class="sr" type="radio" name="mode" id="m-technical" value="technical"><label for="m-technical"><canvas class="th" width="272" height="272" data-mode="technical" aria-hidden="true"></canvas>Technical</label>
       <input class="sr" type="radio" name="mode" id="m-duotone" value="duotone"><label for="m-duotone"><canvas class="th" width="272" height="272" data-mode="duotone" aria-hidden="true"></canvas>Duotone</label>
       <input class="sr" type="radio" name="mode" id="m-engrave" value="engrave"><label for="m-engrave"><canvas class="th" width="272" height="272" data-mode="engrave" aria-hidden="true"></canvas>Engrave</label>
+      <input class="sr" type="radio" name="mode" id="m-etch" value="etch"><label for="m-etch"><canvas class="th" width="272" height="272" data-mode="etch" aria-hidden="true"></canvas>Etch</label>
       <input class="sr" type="radio" name="mode" id="m-dots" value="dots"><label for="m-dots"><canvas class="th" width="272" height="272" data-mode="dots" aria-hidden="true"></canvas>Dots</label>
       <input class="sr" type="radio" name="mode" id="m-hairs" value="hairs"><label for="m-hairs"><canvas class="th" width="272" height="272" data-mode="hairs" aria-hidden="true"></canvas>Hairs</label>
       <input class="sr" type="radio" name="mode" id="m-arrows" value="arrows"><label for="m-arrows"><canvas class="th" width="272" height="272" data-mode="arrows" aria-hidden="true"></canvas>Arrows</label>
@@ -372,6 +373,14 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
       </div>
       <div class="sec" id="duoRow" hidden>
         <p class="tips">Pen 1 is the dark ink for the shadows, pen 2 the light ink for highlights and midtones. Where they overlap you get the mix. Pick the inks under Pen colours.</p>
+      </div>
+      <div class="sec" id="etchRow" hidden>
+        <div class="checks">
+          <label><input type="checkbox" id="etchOutline"> Broken outlines</label>
+          <label><input type="checkbox" id="etchCurls"> Curls and flicks</label>
+          <label><input type="checkbox" id="etchVig"> Fade to the edges</label>
+        </div>
+        <p class="tips">A needle etching: tone is built from little groups of parallel strokes, each at its own angle, stacking up in the shadows and leaving the light almost bare. Pen 1 outlines, pen 2 light hatching, curls and flicks, pen 3 the deep shadows. Hatch wobble makes the strokes looser.</p>
       </div>
       <div class="sec" id="engRow" hidden>
         <p class="label">Hatch</p>
@@ -519,7 +528,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   // Default pen inks come from the terraPen palette: shell green, coral, teal and black.
   const BRAND_PENS = ["#17321b", "#e83b68", "#66cccc", "#000000"];
   const OLD_PENS = ["#1f2a5c", "#e4572e", "#2364aa", "#4f8a3b"];
-  const DEFAULTS = { engHatch: "flow", engLines: "outline", engDots: true, clipZone: 35, clipKeep: 10, jitLine: 0, jitHatch: 0, paperCol: "#ffffff", paperSvg: false, cullX: 50, cullY: 50, bandX: 50, bandY: 50, cellFill: "none", fillDens: 100, vorSmooth: 0, cull: "off", cullAt: 70, cullSoft: 30, bands: "off", bandN: 3, bandAngle: 0, bandBlend: 40, bandRev: false, showTarget: false, splitPens: false, pens: BRAND_PENS, showColours: false, techBold: true, techFrame: true, focus: null, repel: false, pull: 100, levels: 8, blobFill: "hatch", mode: "wave", size: "a4", shape: "p", margin: 10, spacing: 3.5, amp: 100, layers: 3, contrast: 1.3, bright: 0, pen: 0.3, invert: false, auto: true, pip: true };
+  const DEFAULTS = { etchVig: true, etchCurls: true, etchOutline: true, engHatch: "flow", engLines: "outline", engDots: true, clipZone: 35, clipKeep: 10, jitLine: 0, jitHatch: 0, paperCol: "#ffffff", paperSvg: false, cullX: 50, cullY: 50, bandX: 50, bandY: 50, cellFill: "none", fillDens: 100, vorSmooth: 0, cull: "off", cullAt: 70, cullSoft: 30, bands: "off", bandN: 3, bandAngle: 0, bandBlend: 40, bandRev: false, showTarget: false, splitPens: false, pens: BRAND_PENS, showColours: false, techBold: true, techFrame: true, focus: null, repel: false, pull: 100, levels: 8, blobFill: "hatch", mode: "wave", size: "a4", shape: "p", margin: 10, spacing: 3.5, amp: 100, layers: 3, contrast: 1.3, bright: 0, pen: 0.3, invert: false, auto: true, pip: true };
   const S = Object.assign({}, DEFAULTS);
   const KEY = "terrapen-camera-plot";
   try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
@@ -535,7 +544,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   if (S.mode === "stipple") S.mode = "engrave";
   if (!["flow", "rigid", "facets"].includes(S.engHatch)) S.engHatch = "flow";
   if (!["none", "outline", "contours"].includes(S.engLines)) S.engLines = "outline";
-  if (!["wave","spiral","contour","flow","blobs","hatch","technical","duotone","engrave","dots","hairs","arrows","suns","swirls","ascii","growth","voronoi","subdiv","ridges"].includes(S.mode)) S.mode = "wave";
+  if (!["wave","spiral","contour","flow","blobs","hatch","technical","duotone","engrave","etch","dots","hairs","arrows","suns","swirls","ascii","growth","voronoi","subdiv","ridges"].includes(S.mode)) S.mode = "wave";
   if (!SHAPES[S.shape]) S.shape = DEFAULTS.shape;
   if (!["none", "hatch", "cross", "grid", "iso", "zig", "stipple"].includes(S.cellFill)) S.cellFill = "none";
   if (!["off", "light", "dark", "flat", "radial"].includes(S.cull)) S.cull = "off";
@@ -546,8 +555,8 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   const scaleOf = (size) => { const [a, b] = SIZES[size]; return Math.sqrt(a * b / (210 * 297)); };
   const store = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
 
-  const SPACE_NAMES = { wave: "Line spacing", spiral: "Ring spacing", flow: "Line spacing", blobs: "Fill spacing", hatch: "Hatch spacing", technical: "Hatch spacing", duotone: "Screen spacing", engrave: "Line spacing", dots: "Dot spacing", hairs: "Grid spacing", arrows: "Grid spacing", suns: "Grid spacing", swirls: "Grid spacing", ascii: "Character size", growth: "Cell size", voronoi: "Cell size", subdiv: "Mesh spacing", ridges: "Row spacing" };
-  const AMP_NAMES = { wave: "Wave height", spiral: "Wave height", flow: "Line length", blobs: "Blob amount", technical: "Shading", duotone: "Wave height", engrave: "Shading", dots: "Dot size", hairs: "Hair length", arrows: "Arrow length", suns: "Sun size", swirls: "Swirl size", ascii: "Glyph size", growth: "Growth", voronoi: "Cell gap", subdiv: "Warp", ridges: "Relief height" };
+  const SPACE_NAMES = { wave: "Line spacing", spiral: "Ring spacing", flow: "Line spacing", blobs: "Fill spacing", hatch: "Hatch spacing", technical: "Hatch spacing", duotone: "Screen spacing", engrave: "Line spacing", etch: "Stroke spacing", dots: "Dot spacing", hairs: "Grid spacing", arrows: "Grid spacing", suns: "Grid spacing", swirls: "Grid spacing", ascii: "Character size", growth: "Cell size", voronoi: "Cell size", subdiv: "Mesh spacing", ridges: "Row spacing" };
+  const AMP_NAMES = { wave: "Wave height", spiral: "Wave height", flow: "Line length", blobs: "Blob amount", technical: "Shading", duotone: "Wave height", engrave: "Shading", etch: "Shading", dots: "Dot size", hairs: "Hair length", arrows: "Arrow length", suns: "Sun size", swirls: "Swirl size", ascii: "Glyph size", growth: "Growth", voronoi: "Cell gap", subdiv: "Warp", ridges: "Relief height" };
   const SLIDERS = [
     { id: "spacing", min: 0.5, max: 10, step: 0.1, dp: 1, unit: " mm", name: () => SPACE_NAMES[S.mode], modes: Object.keys(SPACE_NAMES) },
     { id: "amp", min: 0, max: 200, step: 5, dp: 0, unit: "%", name: () => AMP_NAMES[S.mode], modes: Object.keys(AMP_NAMES) },
@@ -561,7 +570,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     { id: "bright", min: -0.4, max: 0.4, step: 0.02, dp: 2, unit: "", name: () => "Brightness", sign: true },
     { id: "pen", min: 0.1, max: 1, step: 0.05, dp: 2, unit: " mm", name: () => "Pen width" },
     { id: "jitLine", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => "Line wobble" },
-    { id: "jitHatch", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => "Hatch wobble", modes: ["hatch", "blobs", "technical", "voronoi", "subdiv", "engrave"], when: () => !(S.mode === "voronoi" || S.mode === "subdiv") || S.cellFill !== "none" },
+    { id: "jitHatch", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => "Hatch wobble", modes: ["hatch", "blobs", "technical", "voronoi", "subdiv", "engrave", "etch"], when: () => !(S.mode === "voronoi" || S.mode === "subdiv") || S.cellFill !== "none" },
     { id: "cullAt", parent: "cullSliders", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => CULL_NAMES[S.cull] || "Cutoff", when: () => S.cull !== "off" },
     { id: "cullX", parent: "cullSliders", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => "Centre across", when: () => S.cull === "radial" },
     { id: "cullY", parent: "cullSliders", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => "Centre down", when: () => S.cull === "radial" },
@@ -664,7 +673,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   const FOCUS_NAMES = {
     wave: ["Pinch", "Bulge"], spiral: ["Spiral centre", "Spiral centre"],
     contour: ["Hill", "Pit"], flow: ["Whirlpool", "Outward whirl"], blobs: ["Fill centre", "Fill centre"],
-    hatch: ["Vanishing point", "Vanishing point"], technical: ["Vanishing point", "Vanishing point"], duotone: ["Pinch", "Bulge"], engrave: ["Converge", "Radiate"], dots: ["Ring grid", "Ring grid"],
+    hatch: ["Vanishing point", "Vanishing point"], technical: ["Vanishing point", "Vanishing point"], duotone: ["Pinch", "Bulge"], engrave: ["Converge", "Radiate"], etch: ["Converge", "Radiate"], dots: ["Ring grid", "Ring grid"],
     hairs: ["Magnet", "Circle comb"], arrows: ["Aim here", "Aim away"], suns: ["Rays reach", "Rays recoil"],
     swirls: ["Orbit", "Counter-orbit"], ascii: ["Ring grid", "Ring grid"], growth: ["Growth seed", "Growth seed"],
     voronoi: ["Cells shrink", "Cells grow"], subdiv: ["Pinch", "Bulge"], ridges: ["Hill", "Pit"]
@@ -674,7 +683,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     contour: ["A hill rises at the point", "A pit sinks at the point"], flow: ["Lines whirl into the point", "Lines whirl out from the point"],
     blobs: ["Fills radiate from the point (contour fill is unchanged)"], hatch: ["Lines converge on the point, like a vanishing point"],
     technical: ["Section hatching converges on the point"], duotone: ["Both screens pinch in towards the point", "Both screens bulge away from the point"],
-    engrave: ["Hatch patches turn to face the point, dots fall towards it", "Dots are pushed away from the point"], dots: ["Dots sit on rings around the point"],
+    etch: ["Strokes turn towards the point and the vignette centres on it", "Strokes turn across the point and the vignette centres on it"], engrave: ["Hatch patches turn to face the point, dots fall towards it", "Dots are pushed away from the point"], dots: ["Dots sit on rings around the point"],
     hairs: ["Hairs comb towards the point", "Hairs circle the point"], arrows: ["Arrows aim at the point", "Arrows aim away from the point"],
     suns: ["Rays stretch towards the point", "Rays stretch away from the point"], swirls: ["Swirls orbit the point", "Swirls orbit the other way"],
     ascii: ["Characters sit on rings around the point"], growth: ["The pattern grows out from the point; Pull sets how far"],
@@ -710,6 +719,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     r.checked = r.value === S[k];
     r.addEventListener("change", () => { if (r.checked) { S[k] = r.value; changed(false); } });
   });
+  for (const k of ["etchVig", "etchCurls", "etchOutline"]) { $(k).checked = !!S[k]; $(k).addEventListener("change", () => { S[k] = $(k).checked; changed(false); }); }
   $("engDots").checked = !!S.engDots;
   $("engDots").addEventListener("change", () => { S.engDots = $("engDots").checked; changed(false); });
   document.querySelectorAll('input[name="blobFill"]').forEach((r) => {
@@ -798,6 +808,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
       $("cellFillTip").hidden = S.cellFill === "none";
       $("techRow").hidden = S.mode !== "technical";
       $("engRow").hidden = S.mode !== "engrave";
+      $("etchRow").hidden = S.mode !== "etch";
       $("duoRow").hidden = S.mode !== "duotone";
       $("cullCtl").hidden = S.cull === "off"; $("bandCtl").hidden = S.bands === "off";
       $("cullTip").textContent = CULL_TIPS[S.cull] || "";
@@ -1490,6 +1501,100 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
         let px = x + (hash(i + 3, j) - 0.5) * s, py = y + (hash(i, j + 5) - 0.5) * s;
         if (f) [px, py] = pull(f, px, py, f.R * 0.5);
         out.push({ layer: 1, pts: circ(px, py, r, 6) });
+      });
+    }
+    return out;
+  }
+
+  // ---------------- etch: a needle etching built from little groups of parallel strokes ----------------
+  // Like a 17th-century etching: one fine line weight, tone from how many strokes stack up. Each group is
+  // 4 to 9 slightly bent strokes at its own angle round the form; more groups at shifting angles in the
+  // shadows, almost nothing in the light. Outlines are broken and restated; the drawing fades to the edges.
+  function genEtch(d) {
+    const out = [], f = focus(d), sh = Math.max(0.05, S.amp / 100), sp = Math.max(0.4, S.spacing * 0.5), D2R = Math.PI / 180;
+    const ET = engField();
+    const formAng = (x, y) => {
+      const a = sampleArr(ET.xx, x, y), b = sampleArr(ET.xy, x, y), c = sampleArr(ET.yy, x, y);
+      let ang = 0.5 * Math.atan2(2 * b, a - c) + Math.PI / 2;
+      if (f) {
+        const w = clamp(f.k * (0.15 + 0.9 * fall(f, x, y)), 0, 1), t = Math.atan2(f.y - y, f.x - x) + (f.s > 0 ? 0 : Math.PI / 2);
+        ang = 0.5 * Math.atan2(Math.sin(2 * ang) * (1 - w) + Math.sin(2 * t) * w, Math.cos(2 * ang) * (1 - w) + Math.cos(2 * t) * w);
+      }
+      return ang;
+    };
+    // vignette: the drawing thins out and stops towards the edges (centred on the focal point if there is one)
+    const vc = f ? [f.x, f.y] : [d.mx + d.dw / 2, d.my + d.dh * 0.45], vr = Math.hypot(d.dw, d.dh) * 0.5;
+    const T = (x, y) => {
+      let t = D(x, y);
+      if (S.etchVig) {
+        const r = Math.hypot((x - vc[0]) / d.dw * 1.6, (y - vc[1]) / d.dh * 1.25) * 1.15 + 0.12 * (Math.sin(x * 0.21 + y * 0.13) + Math.sin(y * 0.17 - x * 0.07));
+        t *= 1 - clamp((r - 0.55) / 0.4, 0, 1);
+        void vr;
+      }
+      return t;
+    };
+    // pen 1: broken, restated outlines
+    if (S.etchOutline) {
+      let n = 0;
+      isoLines(blobField(), gw, gh, 0.5).forEach((pl) => {
+        let k = 0;
+        while (k < pl.length - 2) {
+          const seg = [], want = sp * (4 + 10 * hash(n, 3));
+          let len = 0;
+          for (; k < pl.length - 2 && len < want; k += 2) { seg.push(pl[k], pl[k + 1]); len += Math.hypot(pl[k + 2] - pl[k], pl[k + 3] - pl[k + 1]); }
+          if (seg.length >= 4 && T(seg[0], seg[1]) > 0.03) {
+            out.push({ layer: 0, pts: seg });
+            if (hash(n, 9) < 0.45) { // restate it beside itself, a little shorter
+              const o = sp * (0.25 + 0.35 * hash(n, 11)) * (hash(n, 13) < 0.5 ? -1 : 1), re = [];
+              for (let q = 2; q < seg.length - 2; q += 2) { let tx = seg[q + 2] - seg[q - 2], ty = seg[q + 3] - seg[q - 1]; const l = Math.hypot(tx, ty) || 1; re.push(seg[q] - ty / l * o, seg[q + 1] + tx / l * o); }
+              if (re.length >= 4) out.push({ layer: 0, pts: re });
+            }
+          }
+          n++;
+          let gap = sp * (0.6 + 2.2 * hash(n, 5)); // a break before the next bit
+          for (; k < pl.length - 2 && gap > 0; k += 2) gap -= Math.hypot(pl[k + 2] - pl[k], pl[k + 3] - pl[k + 1]);
+        }
+      });
+    }
+    // stroke groups, layer by layer: threshold, angle offset from the form, jitter, pen
+    const G = sp * 5.5;
+    const layers = [[0.12, 0, 20, 1], [0.38, 75, 30, 1], [0.62, 125, 40, 2], [0.82, 35, 80, 2]];
+    layers.forEach(([thr0, off, jit, pen], li) => {
+      const thr = thr0 / sh;
+      if (thr >= 0.98) return;
+      cellGrid(d, G * (li < 2 ? 1 : 1.1), (cx0, cy0, i, j) => {
+        const gx = cx0 + (hash(i + li * 31, j) - 0.5) * G, gy = cy0 + (hash(i, j + li * 17) - 0.5) * G;
+        const t = T(gx, gy);
+        if (t < thr || hash(i + 7, j + li * 13) > 0.25 + 0.5 * clamp((t - thr) / 0.25, 0, 1)) return;
+        const ang = formAng(gx, gy) + (off + (hash(i + 2, j + li * 5) - 0.5) * 2 * jit) * D2R;
+        const c = Math.cos(ang), s = Math.sin(ang);
+        const nStroke = 3 + Math.floor(hash(i + 11, j + li) * 6), gapS = Math.max(S.pen * 2.2, sp * (1.15 - 0.45 * t));
+        const L = G * (0.9 + 1.0 * hash(j + li, i + 3)) * (li < 2 ? 1.2 : 0.8), bend = (hash(i + 5, j + 9 + li) - 0.5) * L * 0.12;
+        const step = Math.max(0.3, sp * 0.25), minT = thr * 0.8;
+        for (let q = 0; q < nStroke; q++) {
+          const o = (q - (nStroke - 1) / 2) * gapS, ox = gx - s * o, oy = gy + c * o;
+          const l2 = L * (0.75 + 0.5 * hash(q + i * 3, j + li)) / 2, sh0 = (hash(q, i + j + li) - 0.5) * L * 0.25;
+          const at = (u) => { const b = bend * (1 - (u / l2) * (u / l2)); return [ox + c * (u + sh0) - s * b, oy + s * (u + sh0) + c * b]; };
+          const segs = traceRuns(at, -l2, l2, step, (x, y) => inside(d, x, y) && T(x, y) > minT);
+          segs.forEach((pts) => { if (pts.length >= 4) out.push({ layer: pen, h: 1, pts: q % 2 ? rev(pts) : pts }); });
+        }
+      });
+    });
+    // curls where the picture is busy (hair, foliage) and short flicks in the half-tones
+    if (S.etchCurls) {
+      let tr = 0; for (let k = 0; k < ET.xx.length; k += 7) tr += ET.xx[k] + ET.yy[k]; tr /= ET.xx.length / 7;
+      cellGrid(d, sp * 2.6, (x0, y0, i, j) => {
+        const x = x0 + (hash(i, j + 41) - 0.5) * sp * 2, y = y0 + (hash(i + 41, j) - 0.5) * sp * 2, t = T(x, y);
+        if (t < 0.25 / sh) return;
+        const busy = (sampleArr(ET.xx, x, y) + sampleArr(ET.yy, x, y)) / (tr + 1e-9);
+        if (busy > 1.4 && hash(i + 13, j + 29) < 0.3 * clamp(busy / 4, 0, 1)) {
+          const r0 = sp * (1.0 + 1.0 * hash(i, j + 3)), a0 = hash(i + 9, j) * Math.PI * 2, dir = hash(j, i) < 0.5 ? 1 : -1, pts = [];
+          for (let k = 0; k <= 22; k++) { const a = a0 + dir * k / 22 * Math.PI * 3.2, r = r0 * (0.35 + 0.65 * k / 22); pts.push(x + Math.cos(a) * r + k / 22 * sp * 0.8 * Math.cos(a0), y + Math.sin(a) * r + k / 22 * sp * 0.8 * Math.sin(a0)); }
+          out.push({ layer: 1, pts });
+        } else if (t < 0.7 && hash(i + 3, j + 77) < 0.08) {
+          const a = formAng(x, y) + (hash(i, j + 5) - 0.5) * 1.2, l = sp * (0.5 + 0.6 * hash(j, i + 8));
+          out.push({ layer: 1, pts: [x, y, x + Math.cos(a) * l, y + Math.sin(a) * l, x + Math.cos(a) * l * 1.15 + Math.cos(a + 2.2) * l * 0.25, y + Math.sin(a) * l * 1.15 + Math.sin(a + 2.2) * l * 0.25] });
+        }
       });
     }
     return out;
@@ -2226,7 +2331,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     return out;
   }
 
-  const GEN = { voronoi: genVoronoi, subdiv: genSubdiv, ridges: genRidges, technical: genTechnical, duotone: genDuotone, wave: genWave, hatch: genHatch, spiral: genSpiral, dots: genDots, contour: genContour, flow: genFlow, engrave: genEngrave, blobs: genBlobs, hairs: genHairs, arrows: genArrows, suns: genSuns, swirls: genSwirls, ascii: genAscii, growth: genGrowth };
+  const GEN = { voronoi: genVoronoi, subdiv: genSubdiv, ridges: genRidges, technical: genTechnical, duotone: genDuotone, wave: genWave, hatch: genHatch, spiral: genSpiral, dots: genDots, contour: genContour, flow: genFlow, engrave: genEngrave, etch: genEtch, blobs: genBlobs, hairs: genHairs, arrows: genArrows, suns: genSuns, swirls: genSwirls, ascii: genAscii, growth: genGrowth };
 
   // ---------------- viewport: fit, zoom, pan ----------------
   const stage = $("stage"), paperEl = $("paper"), view = $("view"), vctx = view.getContext("2d");

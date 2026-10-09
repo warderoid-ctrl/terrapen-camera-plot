@@ -61,6 +61,7 @@ Long-press the picture to drop a point that the current style reacts to. A targe
 | Blobs   | Hatch radiates, cross adds rings, spiral fill centres on the point | same |
 | Hatch   | Lines converge on the point (vanishing point); extra layers add rings | same |
 | Engrave | Hatch converges on the point | Hatch rings round the point |
+| Etch    | Strokes converge, vignette centres on the point | Strokes ring round the point |
 | Dots    | Dots sit on rings around the point        | same                        |
 | Hairs   | Combed towards the point, like iron filings | Combed into circles around it |
 | Arrows  | Aim at the point                          | Aim away                    |
@@ -93,6 +94,7 @@ Long-press the picture to drop a point that the current style reacts to. A targe
 | Technical | Technical drawing: heavy outlines (pen 1), tone lines (pen 2) and section hatching in tonal bands (pen 3), with an optional border frame |
 | Duotone | Two-ink print: angled line screens, dark ink (pen 1) for shadows and light ink (pen 2) for highlights and midtones |
 | Engrave | Etching hybrid: blob outlines (or form contours), evenly spaced hatch lines that end and split as the tone lightens, cross-hatch building up in the shadows, dots in the light tones. Hatch: Flow (wraps round forms), Rigid (straight diagonal) or Facets (shards). Pen 1 outlines, pen 2 hatch and dots, pen 3 cross-hatch |
+| Etch    | Loose needle etching (after Rembrandt): tone from small groups of parallel strokes at shifting angles round the form, stacking in the shadows; broken, restated outlines; curls where the picture is busy; fades to the edges. Pen 1 outlines, pen 2 light hatching, pen 3 shadows |
 | Dots    | Hexagonal grid of circles sized by darkness                                   |
 | Hairs   | Short strokes along the edges                                                 |
 | Arrows  | Arrows pointing towards darker areas                                          |
