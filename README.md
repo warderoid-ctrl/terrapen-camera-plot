@@ -56,7 +56,6 @@ Long-press the picture to drop a point that the current style reacts to. A targe
 | ------- | ----------------------------------------- | --------------------------- |
 | Waves   | Lines pinch in towards the point          | Lines bulge away (lens)     |
 | Spiral  | Spiral starts at the point                | same                        |
-| Rings   | Rings centre on the point                 | same                        |
 | Contour | A hill rises at the point                 | A pit sinks                 |
 | Flow    | Whirlpool draining into the point         | Whirl spiralling outward    |
 | Blobs   | Hatch radiates, cross adds rings, spiral fill centres on the point | same |
@@ -87,7 +86,6 @@ Long-press the picture to drop a point that the current style reacts to. A targe
 | ------- | ----------------------------------------------------------------------------- |
 | Waves   | Horizontal lines whose wave height and frequency follow darkness              |
 | Spiral  | One continuous spiral from the centre, wobbling with darkness                 |
-| Rings   | Concentric circles, wobbling with darkness                                    |
 | Contour | Lines of equal tone, like a map's height lines                                |
 | Flow    | Streamlines that follow the edges in the picture                              |
 | Blobs   | Smooth shapes from the dark areas, filled with hatch, cross-hatch, contours or a spiral |

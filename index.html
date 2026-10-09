@@ -316,7 +316,6 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     <div class="modes" role="radiogroup" aria-label="Plot style">
       <input class="sr" type="radio" name="mode" id="m-wave" value="wave"><label for="m-wave"><canvas class="th" width="272" height="272" data-mode="wave" aria-hidden="true"></canvas>Waves</label>
       <input class="sr" type="radio" name="mode" id="m-spiral" value="spiral"><label for="m-spiral"><canvas class="th" width="272" height="272" data-mode="spiral" aria-hidden="true"></canvas>Spiral</label>
-      <input class="sr" type="radio" name="mode" id="m-rings" value="rings"><label for="m-rings"><canvas class="th" width="272" height="272" data-mode="rings" aria-hidden="true"></canvas>Rings</label>
       <input class="sr" type="radio" name="mode" id="m-contour" value="contour"><label for="m-contour"><canvas class="th" width="272" height="272" data-mode="contour" aria-hidden="true"></canvas>Contour</label>
       <input class="sr" type="radio" name="mode" id="m-ridges" value="ridges"><label for="m-ridges"><canvas class="th" width="272" height="272" data-mode="ridges" aria-hidden="true"></canvas>Ridges</label>
       <input class="sr" type="radio" name="mode" id="m-flow" value="flow"><label for="m-flow"><canvas class="th" width="272" height="272" data-mode="flow" aria-hidden="true"></canvas>Flow</label>
@@ -510,7 +509,8 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     delete S.paper;
   }
   if (!SIZES[S.size]) S.size = DEFAULTS.size;
-  if (!["wave","spiral","rings","contour","flow","blobs","hatch","technical","duotone","stipple","dots","hairs","arrows","suns","swirls","ascii","growth","voronoi","subdiv","ridges"].includes(S.mode)) S.mode = "wave";
+  if (S.mode === "rings") S.mode = "spiral"; // Rings was folded into Spiral
+  if (!["wave","spiral","contour","flow","blobs","hatch","technical","duotone","stipple","dots","hairs","arrows","suns","swirls","ascii","growth","voronoi","subdiv","ridges"].includes(S.mode)) S.mode = "wave";
   if (!SHAPES[S.shape]) S.shape = DEFAULTS.shape;
   if (!["none", "hatch", "cross", "grid", "iso", "stipple"].includes(S.cellFill)) S.cellFill = "none";
   if (!["off", "light", "dark", "flat", "radial"].includes(S.cull)) S.cull = "off";
@@ -521,8 +521,8 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   const scaleOf = (size) => { const [a, b] = SIZES[size]; return Math.sqrt(a * b / (210 * 297)); };
   const store = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
 
-  const SPACE_NAMES = { wave: "Line spacing", spiral: "Ring spacing", rings: "Ring spacing", flow: "Line spacing", blobs: "Fill spacing", hatch: "Hatch spacing", technical: "Hatch spacing", duotone: "Screen spacing", stipple: "Dot spacing", dots: "Dot spacing", hairs: "Grid spacing", arrows: "Grid spacing", suns: "Grid spacing", swirls: "Grid spacing", ascii: "Character size", growth: "Cell size", voronoi: "Cell size", subdiv: "Mesh spacing", ridges: "Row spacing" };
-  const AMP_NAMES = { wave: "Wave height", spiral: "Wave height", rings: "Wave height", flow: "Line length", blobs: "Blob amount", technical: "Shading", duotone: "Wave height", stipple: "Dot size", dots: "Dot size", hairs: "Hair length", arrows: "Arrow length", suns: "Sun size", swirls: "Swirl size", ascii: "Glyph size", growth: "Growth", voronoi: "Cell gap", subdiv: "Warp", ridges: "Relief height" };
+  const SPACE_NAMES = { wave: "Line spacing", spiral: "Ring spacing", flow: "Line spacing", blobs: "Fill spacing", hatch: "Hatch spacing", technical: "Hatch spacing", duotone: "Screen spacing", stipple: "Dot spacing", dots: "Dot spacing", hairs: "Grid spacing", arrows: "Grid spacing", suns: "Grid spacing", swirls: "Grid spacing", ascii: "Character size", growth: "Cell size", voronoi: "Cell size", subdiv: "Mesh spacing", ridges: "Row spacing" };
+  const AMP_NAMES = { wave: "Wave height", spiral: "Wave height", flow: "Line length", blobs: "Blob amount", technical: "Shading", duotone: "Wave height", stipple: "Dot size", dots: "Dot size", hairs: "Hair length", arrows: "Arrow length", suns: "Sun size", swirls: "Swirl size", ascii: "Glyph size", growth: "Growth", voronoi: "Cell gap", subdiv: "Warp", ridges: "Relief height" };
   const SLIDERS = [
     { id: "spacing", min: 0.5, max: 10, step: 0.1, dp: 1, unit: " mm", name: () => SPACE_NAMES[S.mode], modes: Object.keys(SPACE_NAMES) },
     { id: "amp", min: 0, max: 200, step: 5, dp: 0, unit: "%", name: () => AMP_NAMES[S.mode], modes: Object.keys(AMP_NAMES) },
@@ -633,7 +633,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
 
   // ---------------- focal point controls ----------------
   const FOCUS_NAMES = {
-    wave: ["Pinch", "Bulge"], spiral: ["Spiral centre", "Spiral centre"], rings: ["Ring centre", "Ring centre"],
+    wave: ["Pinch", "Bulge"], spiral: ["Spiral centre", "Spiral centre"],
     contour: ["Hill", "Pit"], flow: ["Whirlpool", "Outward whirl"], blobs: ["Fill centre", "Fill centre"],
     hatch: ["Vanishing point", "Vanishing point"], technical: ["Vanishing point", "Vanishing point"], duotone: ["Pinch", "Bulge"], stipple: ["Gravity", "Anti-gravity"], dots: ["Ring grid", "Ring grid"],
     hairs: ["Magnet", "Circle comb"], arrows: ["Aim here", "Aim away"], suns: ["Rays reach", "Rays recoil"],
@@ -641,7 +641,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     voronoi: ["Cells shrink", "Cells grow"], subdiv: ["Pinch", "Bulge"], ridges: ["Hill", "Pit"]
   };
   const FOCUS_DESC = {
-    wave: ["Lines pinch in towards the point", "Lines bulge away from the point"], spiral: ["The spiral starts at the point"], rings: ["The rings centre on the point"],
+    wave: ["Lines pinch in towards the point", "Lines bulge away from the point"], spiral: ["The spiral starts at the point"],
     contour: ["A hill rises at the point", "A pit sinks at the point"], flow: ["Lines whirl into the point", "Lines whirl out from the point"],
     blobs: ["Fills radiate from the point (contour fill is unchanged)"], hatch: ["Lines converge on the point, like a vanishing point"],
     technical: ["Section hatching converges on the point"], duotone: ["Both screens pinch in towards the point", "Both screens bulge away from the point"],
@@ -1266,28 +1266,6 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     }
     const levels = []; for (let k = 1; k <= L; k++) levels.push(k / (L + 1));
     isoMulti(B, gw, gh, levels).forEach((lines) => lines.forEach((pts) => out.push({ layer: 0, pts })));
-    return out;
-  }
-
-  // ---------------- rings: concentric circles, wobbling with darkness ----------------
-  function genRings(d) {
-    const [cx, cy] = centreOf(d), p = S.spacing, amp = S.amp / 100, fq = 3.5 / p;
-    const maxR = maxRFrom(d, cx, cy), ds = Math.max(0.3, p * 0.14), out = [];
-    for (let k = 1, r = p; r < maxR; k++, r += p) {
-      const N = Math.max(12, Math.ceil(2 * Math.PI * r / ds));
-      let ph = 0, cur = [];
-      for (let q = 0; q <= N; q++) {
-        const th = (k % 2 ? q : N - q) / N * Math.PI * 2;
-        const x = cx + r * Math.cos(th), y = cy + r * Math.sin(th);
-        if (inside(d, x, y)) {
-          const dk = D(x, y);
-          ph += ds * fq * (0.9 + dk * 3.2);
-          const rr = r + Math.sin(ph) * p * 0.5 * amp * dk * 1.15;
-          cur.push(clamp(cx + rr * Math.cos(th), d.mx, d.mx + d.dw), clamp(cy + rr * Math.sin(th), d.my, d.my + d.dh));
-        } else if (cur.length) { if (cur.length >= 4) out.push({ layer: 0, pts: cur }); cur = []; }
-      }
-      if (cur.length >= 4) out.push({ layer: 0, pts: cur });
-    }
     return out;
   }
 
@@ -1976,7 +1954,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     return out;
   }
 
-  const GEN = { voronoi: genVoronoi, subdiv: genSubdiv, ridges: genRidges, technical: genTechnical, duotone: genDuotone, wave: genWave, hatch: genHatch, spiral: genSpiral, dots: genDots, contour: genContour, rings: genRings, flow: genFlow, stipple: genStipple, blobs: genBlobs, hairs: genHairs, arrows: genArrows, suns: genSuns, swirls: genSwirls, ascii: genAscii, growth: genGrowth };
+  const GEN = { voronoi: genVoronoi, subdiv: genSubdiv, ridges: genRidges, technical: genTechnical, duotone: genDuotone, wave: genWave, hatch: genHatch, spiral: genSpiral, dots: genDots, contour: genContour, flow: genFlow, stipple: genStipple, blobs: genBlobs, hairs: genHairs, arrows: genArrows, suns: genSuns, swirls: genSwirls, ascii: genAscii, growth: genGrowth };
 
   // ---------------- viewport: fit, zoom, pan ----------------
   const stage = $("stage"), paperEl = $("paper"), view = $("view"), vctx = view.getContext("2d");
