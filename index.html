@@ -2330,7 +2330,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     cx.drawImage(src, 0, 0, w, h);
     still = c; needExtract = true;
   }
-  async function startLive() {
+  async function startLive(keepFrozen) {
     try {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error("no camera API");
       if (stream) stream.getTracks().forEach((tr) => tr.stop());
@@ -2338,8 +2338,9 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
       if (!video) { video = document.createElement("video"); video.playsInline = true; video.muted = true; video.setAttribute("playsinline", ""); }
       video.srcObject = stream;
       await video.play();
-      live = true; frozen = false; lastLive = 0;
-      setShutter("live"); wake(true); snapAt = performance.now() + 900;
+      live = true; frozen = !!keepFrozen; lastLive = 0; lastVT = -1;
+      setShutter(frozen ? "frozen" : "live"); if (!frozen) { wake(true); snapAt = performance.now() + 900; }
+      stream.getVideoTracks()[0].addEventListener("ended", () => { if (live && !frozen && document.visibilityState === "visible") recoverCamera(); });
     } catch (e) {
       stopStream();
       toast("Camera blocked. Allow camera access for this site in your browser settings, or use the photo button.", 5000);
@@ -2351,16 +2352,40 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     frozen = true; setShutter("frozen"); wake(false);
     if (navigator.vibrate) navigator.vibrate(12);
   }
+  // After the phone locks or the app is backgrounded, the browser may end or pause the camera while the
+  // page still thinks it is live. Check the stream is really delivering frames, and restart it if not.
+  const cameraHealthy = () => {
+    const tr = stream && stream.getVideoTracks()[0];
+    return !!(tr && tr.readyState === "live" && !tr.muted && video && !video.paused && video.readyState >= 2);
+  };
+  let lastRestart = 0;
+  async function recoverCamera() {
+    if (!live || recovering) return;
+    recovering = true;
+    try {
+      if (video && video.paused && stream) { try { await video.play(); } catch (e) {} }
+      await new Promise((r) => setTimeout(r, 500));
+      if (!cameraHealthy() && performance.now() - lastRestart > 1500) { lastRestart = performance.now(); await startLive(frozen); }
+    } finally { recovering = false; }
+  }
+  let recovering = false, lastVT = -1, lastVTAt = 0;
   shutter.addEventListener("click", () => {
     if (!live) startLive();
     else if (!frozen) freeze();
+    else if (!cameraHealthy()) startLive(); // resuming after a lock: the old stream is dead, so open a fresh one
     else { frozen = false; setShutter("live"); wake(true); }
   });
+  // watchdog: live but the video clock has stopped for a few seconds
+  setInterval(() => {
+    if (!live || frozen || document.visibilityState !== "visible" || !video) { lastVT = -1; return; }
+    const t = video.currentTime, now = performance.now();
+    if (t !== lastVT) { lastVT = t; lastVTAt = now; } else if (now - lastVTAt > 3000) { lastVTAt = now; recoverCamera(); }
+  }, 1000);
   $("btnFlip").addEventListener("click", () => { facing = facing === "environment" ? "user" : "environment"; frozen = false; startLive(); });
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState !== "visible" || !live) return;
-    const tr = stream && stream.getVideoTracks()[0];
-    if (!tr || tr.readyState === "ended") startLive(); else if (!frozen) wake(true);
+    if (frozen) return; // the still image is fine; Resume will open a fresh camera if needed
+    wake(true); recoverCamera();
   });
 
   async function loadFile(file) {
