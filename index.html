@@ -445,6 +445,8 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
           <input class="sr" type="radio" name="repel" id="fp-attract" value="0"><label for="fp-attract">Attract</label>
           <input class="sr" type="radio" name="repel" id="fp-repel" value="1"><label for="fp-repel">Repel</label>
         </div>
+        <div class="sec" id="focusSliders"></div>
+        <p class="tips" id="clipTip">Lines that pile up at the point can saturate the paper. Thin zone sets how far from the point strokes are staggered to a stop, so the line count there stays even; Lines reaching point is the share that still run all the way in.</p>
         <div class="ctl" id="ctl-pull"><label class="name" for="pull">Pull</label><output id="o-pull" for="pull"></output><input type="range" id="pull" min="0" max="200" step="5"></div>
         <div class="checks"><label><input type="checkbox" id="showTarget"> Show target</label></div>
         <div class="btnrow"><button class="btn" id="btnFocusOff" type="button">Remove point</button></div>
@@ -501,7 +503,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   // Default pen inks come from the terraPen palette: shell green, coral, teal and black.
   const BRAND_PENS = ["#17321b", "#e83b68", "#66cccc", "#000000"];
   const OLD_PENS = ["#1f2a5c", "#e4572e", "#2364aa", "#4f8a3b"];
-  const DEFAULTS = { jitLine: 0, jitHatch: 0, paperCol: "#ffffff", paperSvg: false, cullX: 50, cullY: 50, bandX: 50, bandY: 50, cellFill: "none", fillDens: 100, vorSmooth: 0, cull: "off", cullAt: 70, cullSoft: 30, bands: "off", bandN: 3, bandAngle: 0, bandBlend: 40, bandRev: false, showTarget: false, splitPens: false, pens: BRAND_PENS, showColours: false, techBold: true, techFrame: true, focus: null, repel: false, pull: 100, levels: 8, blobFill: "hatch", mode: "wave", size: "a4", shape: "p", margin: 10, spacing: 3.5, amp: 100, layers: 3, contrast: 1.3, bright: 0, pen: 0.3, invert: false, auto: true, pip: true };
+  const DEFAULTS = { clipZone: 35, clipKeep: 10, jitLine: 0, jitHatch: 0, paperCol: "#ffffff", paperSvg: false, cullX: 50, cullY: 50, bandX: 50, bandY: 50, cellFill: "none", fillDens: 100, vorSmooth: 0, cull: "off", cullAt: 70, cullSoft: 30, bands: "off", bandN: 3, bandAngle: 0, bandBlend: 40, bandRev: false, showTarget: false, splitPens: false, pens: BRAND_PENS, showColours: false, techBold: true, techFrame: true, focus: null, repel: false, pull: 100, levels: 8, blobFill: "hatch", mode: "wave", size: "a4", shape: "p", margin: 10, spacing: 3.5, amp: 100, layers: 3, contrast: 1.3, bright: 0, pen: 0.3, invert: false, auto: true, pip: true };
   const S = Object.assign({}, DEFAULTS);
   const KEY = "terrapen-camera-plot";
   try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
@@ -532,6 +534,8 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     { id: "amp", min: 0, max: 200, step: 5, dp: 0, unit: "%", name: () => AMP_NAMES[S.mode], modes: Object.keys(AMP_NAMES) },
     { id: "vorSmooth", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => "Curve smoothing", modes: ["voronoi"] },
     { id: "fillDens", min: 20, max: 250, step: 5, dp: 0, unit: "%", name: () => "Fill density", modes: ["voronoi", "subdiv"], when: () => S.cellFill !== "none" },
+    { id: "clipZone", parent: "focusSliders", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => "Thin zone", when: () => !!S.focus },
+    { id: "clipKeep", parent: "focusSliders", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => "Lines reaching point", when: () => !!S.focus },
     { id: "levels", min: 2, max: 200, step: 1, dp: 0, unit: "", name: () => "Contour levels", modes: ["contour"] },
     { id: "layers", min: 1, max: 4, step: 1, dp: 0, unit: "", name: () => "Hatch layers", modes: ["hatch"] },
     { id: "contrast", min: 0.4, max: 3, step: 0.05, dp: 2, unit: "×", name: () => "Contrast" },
@@ -1708,6 +1712,38 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     }
     return out;
   }
+  // Near the focal point strokes can pile up until the paper saturates. Each stroke stops at its own random radius
+  // from the point (between 0 and the thin zone), so about `keep` of them run right in and the rest drop out one by
+  // one on the way. The line density then stays roughly level instead of climbing as 1/distance.
+  function applyClip(list, d) {
+    const f = focus(d);
+    if (!f || !(S.clipZone > 0) || ["ridges", "contour", "growth"].includes(S.mode)) return list;
+    const Rz = S.clipZone / 100 * f.R * 0.8, keep = clamp(S.clipKeep / 100, 0, 0.98), out = [];
+    list.forEach((p, i) => {
+      const q = p.pts, n = q.length;
+      let dmin = 1e9; for (let k = 0; k < n; k += 2) { const dd = Math.hypot(q[k] - f.x, q[k + 1] - f.y); if (dd < dmin) dmin = dd; }
+      if (dmin >= Rz) { out.push(p); return; }
+      const u = hash(i * 3 + 1, 91), ri = u < keep ? 0 : Rz * (u - keep) / (1 - keep);
+      if (ri <= 0) { out.push(p); return; }
+      let cur = [];
+      const flush = () => { if (cur.length >= 4) out.push(Object.assign({}, p, { pts: cur })); cur = []; };
+      for (let k = 0; k < n; k += 2) {
+        const x = q[k], y = q[k + 1], inn = Math.hypot(x - f.x, y - f.y) >= ri;
+        if (k > 0) {
+          const px = q[k - 2], py = q[k - 1], pin = Math.hypot(px - f.x, py - f.y) >= ri;
+          if (pin !== inn) { // the stroke crosses the stop circle: find where
+            const dx = x - px, dy = y - py, ex = px - f.x, ey = py - f.y, a = dx * dx + dy * dy, b = 2 * (ex * dx + ey * dy), c = ex * ex + ey * ey - ri * ri;
+            const disc = Math.max(0, b * b - 4 * a * c), t0 = (-b - Math.sqrt(disc)) / (2 * a), t1 = (-b + Math.sqrt(disc)) / (2 * a);
+            const t = clamp(pin ? t0 : t1, 0, 1), cx = px + dx * t, cy = py + dy * t;
+            if (pin) { cur.push(cx, cy); flush(); } else cur.push(cx, cy);
+          }
+        }
+        if (inn) cur.push(x, y);
+      }
+      flush();
+    });
+    return out;
+  }
   function applyJitter(list) {
     if (!(S.jitLine > 0 || S.jitHatch > 0)) return list;
     const base = Math.min(3, S.spacing * 0.45), cell = clamp(S.spacing * 1.8, 3, 9);
@@ -2136,7 +2172,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     DM = dims();
     computeDark();
     fieldCache = null;
-    paths = applyBands(applyJitter((GEN[S.mode] || genWave)(DM)), DM);
+    paths = applyBands(applyJitter(applyClip((GEN[S.mode] || genWave)(DM), DM)), DM);
     draw();
     liveGap = Math.max(120, (performance.now() - t0) * 1.5); // slow devices or huge sheets: refresh less often
     let len = 0;
@@ -2173,7 +2209,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     try {
       gray = thumbSnap.gray; dark = thumbSnap.dark; gw = thumbSnap.gw; gh = thumbSnap.gh; fieldCache = thumbSnap.fc;
       S.mode = pick.mode; S.spacing = keep.spacing * 2.2; S.levels = Math.min(keep.levels, 6);
-      out = applyBands(applyJitter(GEN[pick.mode](DM)), DM);
+      out = applyBands(applyJitter(applyClip(GEN[pick.mode](DM), DM)), DM);
     } catch (e) { out = []; }
     finally {
       thumbSnap.fc = fieldCache;

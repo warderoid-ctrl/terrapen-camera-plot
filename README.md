@@ -119,6 +119,7 @@ Blobs puts the outlines on pen 1 and the fill on pen 2, so they can be plotted i
 - **Cell fill** also offers **Zigzag**, one continuous back-and-forth line; Blobs has a Zigzag fill too
 - **Line wobble** and **Hatch wobble**: hand-drawn wobble, set separately for the main lines and for hatching or fills (Hatch wobble shows for Hatch, Blobs, Technical and filled Voronoi or Subdiv cells). Each stroke wobbles differently and the wobble is saved in the SVG
 - The menu is an accordion: Settings, Background, Colour bands, Layer colours, Focal point, Paper and Export. Opening one folds the others
+- **Thin zone** and **Lines reaching point** (Focal point): stops lines piling up and saturating the paper where they converge. Each stroke stops at its own random distance from the point, so only the chosen share (10% by default) run right in and the line density stays level. Set Thin zone to 0 to turn it off
 - **Layer colours**: pick an ink for each pen layer; choosing one turns the colour preview on. Reset colours returns the pens, preview and paper to the defaults
 
 - **Spacing**: distance between lines, rings, dots or grid cells (mm); the label changes with the style
