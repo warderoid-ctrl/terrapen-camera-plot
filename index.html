@@ -574,7 +574,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   // While a finger is on a slider, fade the sheet so the full-size plot shows through.
   function bindScrub(input, wrap) {
     const on = () => { if (body.classList.contains("side")) return; body.classList.add("scrub"); wrap.classList.add("active"); };
-    const off = () => { body.classList.remove("scrub"); wrap.classList.remove("active"); };
+    const off = () => { if (!wrap.classList.contains("active")) return; /* a slider used earlier loses focus when this one starts; ignore that */ body.classList.remove("scrub"); wrap.classList.remove("active"); };
     input.addEventListener("pointerdown", on);
     input.addEventListener("pointerup", off);
     input.addEventListener("pointercancel", off);
