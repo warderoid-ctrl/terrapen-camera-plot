@@ -14,7 +14,18 @@ Point your phone camera at something and turn it into pen-plotter line art in re
 1. Open the live page on your phone and tap the shutter button to start the camera. Allow camera access when asked.
 2. Swipe the style carousel above the shutter. Each thumbnail previews that style on your picture, and the one in the centre is active (or just tap one). The plot updates as you move the phone.
 3. Tap the shutter to freeze the frame, and again to resume.
-4. Tap the download button to save the SVG. It's sized in millimetres for the paper you chose.
+4. Tap the save button to keep the plot in the gallery. Open the gallery with the thumbnail beside it, then download the SVG from there. It's sized in millimetres for the paper you chose.
+
+## Gallery
+
+Saved plots stay on your device, in the app's own storage, so nothing is downloaded until you ask. Each one keeps its SVG, the photo it came from and all its settings.
+
+- **Tap** a plot to view it full size. Swipe sideways for the next one, and double-tap to zoom in.
+- **Download**, **Send** (share sheet) or **Copy** the SVG. *Save each pen as its own file* applies here too.
+- **Edit** reopens the photo with the same settings, so you can change the style or the sliders. Saving again adds a new plot and leaves the original as it was.
+- **Long-press** (or tap **Select**) to pick several plots, then download, send or delete them together.
+
+The gallery lives on this one device and browser. Clearing site data removes it. On iPhone, Safari may clear it if the site isn't opened for a while, unless terraLens is added to the Home Screen. Download anything you want to keep.
 
 No camera permission? The camera button beside the shutter opens your camera app instead, and the picture button loads an image from your gallery.
 
@@ -138,15 +149,15 @@ Blobs puts the outlines on pen 1 and the fill on pen 2, so they can be plotted i
 - **Pen width**: stroke width for the preview and the SVG
 - **Paper**: A6 up to A0, each as portrait, landscape or square (square uses the short side, e.g. A4 square is 210 × 210 mm). Changing size scales the line spacing and margin with it, so the drawing keeps its look and the live preview stays fast
 - **Margin**: blank border around the drawing (mm)
-- **Send SVG**: opens the phone's share sheet (AirDrop, Nearby Share, email) where supported
-- **Copy SVG**: copies the SVG markup to the clipboard
+- **Send SVG**: shares the current plot through the phone's share sheet (AirDrop, Nearby Share, email) where supported
+- **Copy SVG**: copies the current plot's SVG markup to the clipboard
 
 ## SVG output
 
 - Units are millimetres (`width="210mm"` etc.), so it imports at true size.
 - Every stroke is a plain path with no fill, ordered back-and-forth to cut pen-up travel.
 - Each pen is its own Inkscape layer with its colour as the stroke, labelled with a leading number (`1 pen 1 #17321b`, `2 pen 2 #e83b68` …) so AxiDraw-style software can plot one layer at a time.
-- **Save each pen as its own file** (Export section) saves one SVG per colour instead, for software that ignores layers. Send SVG shares them all together.
+- **Save each pen as its own file** (Export section) makes downloads one SVG per colour instead, for software that ignores layers. Send shares them all together.
 
 ## Run locally
 

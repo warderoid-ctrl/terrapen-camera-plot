@@ -232,7 +232,7 @@
     for (const c of ["#cdb18a", "#17321b", "#111111"]) { const b = document.querySelector(`#paperSwatches button[data-c="${c}"]`); reveal(b); await tap(b, 1500); }
     await tap(document.querySelector('#paperSwatches button[data-c="#cdb18a"]'), 800);
 
-    cap("Save one SVG with a coloured layer for every pen", "Export");
+    cap("Save it to the gallery: one SVG with a coloured layer for every pen", "Export");
     await group("exportSec");
     await closeMenu(); await wait(300);
     await pointAt($("btnSave")); ripple(); await wait(2600);

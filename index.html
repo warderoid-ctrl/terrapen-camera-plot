@@ -196,10 +196,10 @@ body.side .modes {
 body.side .modes label { width: auto; min-width: 0; font-size: 12px; gap: 6px; }
 body.side .modes .th { width: 100%; height: auto; aspect-ratio: 1; border-radius: 12px; }
 .shutterrow { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; padding-bottom: 4px; }
-.side { display: flex; gap: 12px; }
+.side { display: flex; gap: 8px; --rb: clamp(40px, 13vw, 50px); }
 .side.right { justify-content: flex-end; }
 .roundbtn {
-  width: 50px; height: 50px; border-radius: 50%; padding: 0; display: grid; place-items: center;
+  width: var(--rb); height: var(--rb); border-radius: 50%; padding: 0; display: grid; place-items: center;
   background: var(--chrome-solid); border: 1px solid var(--line); color: var(--ink); cursor: pointer;
 }
 .roundbtn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
@@ -277,6 +277,47 @@ body.side .pip { right: 352px; }
 body.side.clean .sheet { transform: translateX(110%); }
 body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
 
+/* ---------- gallery ---------- */
+body.side .shutterrow { gap: 8px; }
+.roundbtn.galbtn { position: relative; width: calc(var(--rb) - 4px); height: calc(var(--rb) - 4px); border-radius: 10px; overflow: hidden; }
+.galbtn img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.gal, .viewer { position: fixed; inset: 0; z-index: 30; background: var(--desk); display: flex; flex-direction: column; }
+.viewer { z-index: 31; }
+body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 92px); }
+.galtop { flex: 0 0 auto; display: flex; align-items: center; gap: 10px; padding: calc(env(safe-area-inset-top, 0px) + 8px) 12px 8px; background: var(--chrome); border-bottom: 1px solid var(--line); }
+.galtitle { flex: 1 1 auto; min-width: 0; display: grid; }
+.galtitle b { font-size: 17px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.galtitle span { font-family: var(--font-mono); font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.galscroll { flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; padding: 16px 16px calc(env(safe-area-inset-bottom, 0px) + 96px); }
+.galtip { margin-bottom: 14px; }
+.galgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 18px 14px; }
+.tile { position: relative; display: grid; gap: 6px; padding: 0; border: 0; background: none; text-align: left; min-width: 0; -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
+.tile .tim { aspect-ratio: 1; display: grid; place-items: center; border-radius: 12px; background: var(--chrome-solid); border: 1px solid var(--line); overflow: hidden; transition: box-shadow .15s ease; }
+.tile img { max-width: 86%; max-height: 86%; display: block; box-shadow: 0 2px 8px rgba(0,0,0,.45); pointer-events: none; }
+.tile b { display: block; font-size: 14px; font-weight: 600; }
+.tile small { display: block; font-family: var(--font-mono); font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tile .tick { position: absolute; top: 8px; right: 8px; width: 26px; height: 26px; border-radius: 50%; border: 2px solid #fff; background: rgba(0,0,0,.35); display: none; }
+.gal.selecting .tile .tick { display: block; }
+.tile[aria-pressed="true"] .tim { box-shadow: 0 0 0 3px var(--accent); }
+.tile[aria-pressed="true"] .tick { background: var(--accent); border-color: var(--accent); }
+.tile[aria-pressed="true"] .tick::after { content: ""; position: absolute; left: 7px; top: 3px; width: 6px; height: 11px; border: solid var(--accent-ink); border-width: 0 2px 2px 0; transform: rotate(45deg); }
+.galempty { display: grid; justify-items: center; gap: 8px; max-width: 300px; margin: 18vh auto 0; text-align: center; color: var(--muted); }
+.galempty svg.i { width: 44px; height: 44px; stroke-width: 1.2; }
+.galempty b { color: var(--ink); font-size: 17px; font-weight: 600; }
+.galbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 32; display: flex; gap: 8px; padding: 12px 16px calc(env(safe-area-inset-bottom, 0px) + 12px); background: var(--chrome); border-top: 1px solid var(--line); }
+.btn.danger { color: #ffb3c1; border-color: #8a3a4c; }
+.btn:disabled { opacity: .45; cursor: default; }
+.vstage { position: relative; flex: 1 1 auto; min-height: 0; overflow: hidden; display: grid; place-items: center; padding: 16px; touch-action: none; user-select: none; -webkit-user-select: none; }
+.vstage img { max-width: 100%; max-height: 100%; display: block; box-shadow: 0 2px 4px rgba(0,0,0,.4), 0 12px 32px rgba(0,0,0,.45); }
+.vstage.zoom { display: block; overflow: auto; touch-action: pan-x pan-y; }
+.vstage.zoom img { max-width: none; max-height: none; margin: 0 auto; }
+.vbar { flex: 0 0 auto; display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 16px calc(env(safe-area-inset-bottom, 0px) + 12px); background: var(--chrome); border-top: 1px solid var(--line); }
+.vbar .btn { flex: 1 1 0; min-width: 0; padding-inline: 6px; }
+.vbar .btn.primary-btn { flex: 1.5 1 0; }
+.vnav { display: none; position: fixed; top: 50%; z-index: 32; width: 44px; height: 44px; margin-top: -22px; border-radius: 50%; padding: 0; place-items: center; background: var(--chrome); border: 1px solid var(--line); }
+.vnav.prev { left: 12px; } .vnav.next { right: 12px; }
+@media (hover: hover) and (pointer: fine) { .vnav:not(:disabled) { display: grid; } }
+
 @media (prefers-reduced-motion: reduce) { *, *::before { transition: none !important; } }
 </style>
 </head>
@@ -311,6 +352,51 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   <div><b>Tap</b> to hide the menu and leave just the style carousel</div>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<section class="gal" id="gal" aria-label="Gallery" hidden>
+  <header class="galtop">
+    <button class="iconbtn" id="galBack" type="button" aria-label="Close gallery">
+      <svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <div class="galtitle"><b id="galTitle">Gallery</b><span id="galInfo"></span></div>
+    <button class="btn small" id="galSelect" type="button">Select</button>
+  </header>
+  <div class="galscroll">
+    <p class="tips galtip" id="galIos" hidden>Safari can clear this gallery if terraLens isn't opened for a week or so. Add it to your Home Screen (Share → Add to Home Screen) to keep it safe, and download anything you want to keep.</p>
+    <div class="galgrid" id="galGrid"></div>
+    <div class="galempty" id="galEmpty" hidden>
+      <svg class="i" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg>
+      <b>No plots yet</b>
+      <span>Tap the save button under the shutter. Each plot is kept here with its photo, so you can download it or reopen it to keep editing.</span>
+    </div>
+  </div>
+  <div class="galbar" id="galBar" hidden>
+    <button class="btn" id="galDl" type="button">Download</button>
+    <button class="btn" id="galShare" type="button" hidden>Send</button>
+    <button class="btn danger" id="galDel" type="button">Delete</button>
+  </div>
+</section>
+
+<section class="viewer" id="viewer" aria-label="Saved plot" hidden>
+  <header class="galtop">
+    <button class="iconbtn" id="vBack" type="button" aria-label="Back to gallery">
+      <svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <div class="galtitle"><b id="vTitle"></b><span id="vInfo"></span></div>
+    <button class="iconbtn" id="vDel" type="button" aria-label="Delete this plot">
+      <svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>
+    </button>
+  </header>
+  <div class="vstage" id="vStage"><img id="vImg" alt="" draggable="false"></div>
+  <button class="vnav prev" id="vPrev" type="button" aria-label="Previous plot"><svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+  <button class="vnav next" id="vNext" type="button" aria-label="Next plot"><svg class="i" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+  <div class="vbar">
+    <button class="btn primary-btn" id="vDl" type="button">Download</button>
+    <button class="btn" id="vShare" type="button" hidden>Send</button>
+    <button class="btn" id="vCopy" type="button">Copy</button>
+    <button class="btn" id="vEdit" type="button">Edit</button>
+  </div>
+</section>
 
 <section class="sheet" id="sheet" aria-label="Controls">
   <div class="head" id="head">
@@ -354,8 +440,12 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
         <div class="cap" id="cap">Start camera</div>
       </div>
       <div class="side right">
-        <button class="roundbtn primary" id="btnSave" type="button" aria-label="Save SVG">
+        <button class="roundbtn primary" id="btnSave" type="button" aria-label="Save to gallery">
           <svg class="i" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
+        </button>
+        <button class="roundbtn galbtn" id="btnGallery" type="button" aria-label="Open gallery">
+          <svg class="i" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg>
+          <img id="galLatest" alt="" hidden>
         </button>
       </div>
     </div>
@@ -501,7 +591,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
         <button class="btn" id="btnCopy" type="button">Copy SVG</button>
       </div>
       <div class="checks"><label><input type="checkbox" id="splitPens"> Save each pen as its own file</label></div>
-      <p class="tips">Every SVG keeps each pen on its own coloured layer. Turn on the option above for plotter software that ignores layers: you get one file per colour. Send SVG opens your phone's share sheet, so you can AirDrop, Nearby Share or email the files straight to the plotter computer.</p>
+      <p class="tips">The save button keeps each plot in the gallery on this device; download it from there. Every SVG keeps each pen on its own coloured layer. Turn on the option above for plotter software that ignores layers: downloads become one file per colour. Send SVG opens your phone's share sheet, so you can AirDrop, Nearby Share or email the current plot straight to the plotter computer.</p>
     </div></details>
     <div class="sec" id="appSec" hidden>
       <p class="label">Get the app</p>
@@ -2379,25 +2469,31 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     k = clamp(k, 1, Math.sqrt(9e6 / (d.W * d.H)));
     const cw = Math.round(d.W * k), ch = Math.round(d.H * k);
     if (view.width !== cw || view.height !== ch) { view.width = cw; view.height = ch; }
-    vctx.fillStyle = S.paperCol; vctx.fillRect(0, 0, cw, ch);
-    vctx.strokeStyle = darkPaper() ? "rgba(255,255,255,.18)" : "#e4e4e4"; vctx.lineWidth = 1; vctx.setLineDash([5, 5]);
-    vctx.strokeRect(d.mx * k, d.my * k, d.dw * k, d.dh * k); vctx.setLineDash([]);
-    vctx.lineWidth = Math.max(S.pen * k, 1); vctx.lineCap = "round"; vctx.lineJoin = "round";
+    paint(vctx, d, k, true);
+  }
+  // Draw the current plot at k pixels per mm. guides adds the dashed margin line (preview only).
+  function paint(ctx, d, k, guides) {
+    ctx.fillStyle = S.paperCol; ctx.fillRect(0, 0, Math.round(d.W * k), Math.round(d.H * k));
+    if (guides) {
+      ctx.strokeStyle = darkPaper() ? "rgba(255,255,255,.18)" : "#e4e4e4"; ctx.lineWidth = 1; ctx.setLineDash([5, 5]);
+      ctx.strokeRect(d.mx * k, d.my * k, d.dw * k, d.dh * k); ctx.setLineDash([]);
+    }
+    ctx.lineWidth = Math.max(S.pen * k, guides ? 1 : 0.6); ctx.lineCap = "round"; ctx.lineJoin = "round";
     const byLayer = [], duo = S.mode === "duotone";
     paths.forEach((p) => (byLayer[p.layer] || (byLayer[p.layer] = [])).push(p));
-    vctx.globalCompositeOperation = duo ? (darkPaper() ? "screen" : "multiply") : "source-over"; // overlapping inks mix like print
+    ctx.globalCompositeOperation = duo ? (darkPaper() ? "screen" : "multiply") : "source-over"; // overlapping inks mix like print
     byLayer.forEach((arr, li) => {
       if (!arr) return;
-      vctx.strokeStyle = penColour(li);
-      vctx.beginPath();
+      ctx.strokeStyle = penColour(li);
+      ctx.beginPath();
       for (const p of arr) {
         const q = p.pts;
-        vctx.moveTo(q[0] * k, q[1] * k);
-        for (let i = 2; i < q.length; i += 2) vctx.lineTo(q[i] * k, q[i + 1] * k);
+        ctx.moveTo(q[0] * k, q[1] * k);
+        for (let i = 2; i < q.length; i += 2) ctx.lineTo(q[i] * k, q[i + 1] * k);
       }
-      vctx.stroke();
+      ctx.stroke();
     });
-    vctx.globalCompositeOperation = "source-over";
+    ctx.globalCompositeOperation = "source-over";
   }
   // Colour bands: split every stroke by where it sits along a linear or radial gradient and give each
   // band its own pen (layer). Edge blend jitters each short run of a stroke by a little noise, so
@@ -2852,19 +2948,20 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
 
   $("splitPens").checked = !!S.splitPens;
   $("splitPens").addEventListener("change", () => { S.splitPens = $("splitPens").checked; store(); });
-  // The files to export: one combined SVG, or one per pen when "Save each pen" is on.
-  function exportFiles() {
-    const all = prepExport();
-    if (!all) return [];
-    const L = usedLayers();
-    if (!S.splitPens || L.length < 2) return [{ name: fname(), svg: all }];
-    const base = fname().replace(/\.svg$/, "");
-    return L.map((li) => ({ name: `${base}-pen${li + 1}-${penColour(li, true).slice(1)}.svg`, svg: buildSVG(li) }));
+  // The files for one plot: the combined SVG, or one per pen when "Save each pen" is on. It works on
+  // SVG text, so saved plots split the same way later: each pen is a single <g id="penN"> line.
+  function splitSVG(name, svg) {
+    const lines = svg.split("\n"), pens = lines.filter((l) => l.startsWith('<g id="pen'));
+    if (!S.splitPens || pens.length < 2) return [{ name, svg }];
+    const head = lines.slice(0, 2).join("\n") + "\n", base = name.replace(/\.svg$/, "");
+    return pens.map((l) => {
+      const m = /^<g id="pen(\d+)".*? stroke="#([0-9a-f]{6})"/i.exec(l) || [];
+      return { name: `${base}-pen${m[1]}-${m[2]}.svg`, svg: head + l + "\n</svg>\n" };
+    });
   }
+  function exportFiles() { const all = prepExport(); return all ? splitSVG(fname(), all) : []; }
   const pause = (ms) => new Promise((r) => setTimeout(r, ms));
-  $("btnSave").addEventListener("click", async () => {
-    const files = exportFiles();
-    if (!files.length) { toast("Nothing to save yet."); return; }
+  async function downloadFiles(files) {
     try {
       const dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null;
       if (dl) { for (const fl of files) await dl.save({ filename: fl.name, data: fl.svg }); toast("Saved."); return; }
@@ -2877,25 +2974,338 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
       if (i < files.length - 1) await pause(450); // browsers block bursts of downloads
     }
     if (navigator.vibrate) navigator.vibrate(12);
-    toast(files.length > 1 ? `${files.length} SVGs saved, one per pen.` : "SVG saved to your downloads.");
-  });
-
+    toast(files.length > 1 ? `${files.length} SVGs saved to your downloads.` : "SVG saved to your downloads.");
+  }
   const canShareFiles = (() => {
     try { return !!(navigator.canShare && navigator.canShare({ files: [new File(["x"], "t.svg", { type: "image/svg+xml" })] })); } catch (e) { return false; }
   })();
+  async function shareFiles(files) {
+    if (!files.length) return;
+    try { await navigator.share({ files: files.map((fl) => new File([fl.svg], fl.name, { type: "image/svg+xml" })), title: "terraLens plot" }); }
+    catch (e) { if (e && e.name !== "AbortError") toast("Sharing failed. Use Download instead."); }
+  }
   if (canShareFiles) {
-    $("btnShare").hidden = false;
-    $("btnShare").addEventListener("click", async () => {
-      const files = exportFiles(); if (!files.length) return;
-      try { await navigator.share({ files: files.map((fl) => new File([fl.svg], fl.name, { type: "image/svg+xml" })), title: "terraLens plot" }); }
-      catch (e) { if (e && e.name !== "AbortError") toast("Sharing failed. Use the save button instead."); }
-    });
+    $("btnShare").hidden = false; $("galShare").hidden = false; $("vShare").hidden = false;
+    $("btnShare").addEventListener("click", () => shareFiles(exportFiles()));
   }
   $("btnCopy").addEventListener("click", async () => {
     const svg = prepExport(); if (!svg) return;
     try { await navigator.clipboard.writeText(svg); toast("SVG copied to the clipboard."); }
-    catch (e) { toast("Copy was refused. Use the save button instead."); }
+    catch (e) { toast("Copy was refused. Save it to the gallery and download it from there."); }
   });
+
+  // ---------------- gallery ----------------
+  // Saving keeps the plot on this device in IndexedDB rather than downloading it. "plots" holds
+  // what the grid needs (details and a small thumbnail); "files" holds the SVG, the source photo
+  // and the settings, read only when a plot is opened, so the grid stays quick with big SVGs.
+  let galDB = null, galItems = null, galSel = null, galCur = -1;
+  const thumbURLs = new Map();
+  function openDB() {
+    if (!galDB) {
+      galDB = new Promise((res, rej) => {
+        const r = indexedDB.open("terralens", 1);
+        r.onupgradeneeded = () => { r.result.createObjectStore("plots", { keyPath: "id" }); r.result.createObjectStore("files", { keyPath: "id" }); };
+        r.onsuccess = () => res(r.result);
+        r.onerror = () => rej(r.error);
+      });
+      galDB.catch(() => { galDB = null; });
+    }
+    return galDB;
+  }
+  // Run fn(plots, files, out) in one transaction; resolves with out once it has committed.
+  async function idb(mode, fn) {
+    const db = await openDB();
+    return new Promise((res, rej) => {
+      const t = db.transaction(["plots", "files"], mode), out = {};
+      t.oncomplete = () => res(out);
+      t.onerror = () => rej(t.error);
+      t.onabort = () => rej(t.error || new Error("Transaction aborted"));
+      fn(t.objectStore("plots"), t.objectStore("files"), out);
+    });
+  }
+  async function galLoad() {
+    if (!galItems) {
+      const o = await idb("readonly", (p, f, out) => { p.getAll().onsuccess = (e) => { out.all = e.target.result; }; });
+      galItems = (o.all || []).sort((a, b) => b.id - a.id);
+    }
+    return galItems;
+  }
+  const galFiles = (id) => idb("readonly", (p, f, out) => { f.get(id).onsuccess = (e) => { out.rec = e.target.result; }; }).then((o) => o.rec);
+  const thumbURL = (it) => { let u = thumbURLs.get(it.id); if (!u) { u = URL.createObjectURL(it.thumb); thumbURLs.set(it.id, u); } return u; };
+  const toBlob = (c, type, q) => new Promise((res) => c.toBlob(res, type, q));
+  const blobImage = (b) => window.createImageBitmap ? createImageBitmap(b)
+    : new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = URL.createObjectURL(b); });
+  const styleName = (m) => { const l = document.querySelector(`label[for="m-${m}"]`); return l ? l.textContent : m; };
+  const when = (id) => new Date(id).toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  const kb = (n) => (n >= 1e6 ? (n / 1e6).toFixed(1) + " MB" : Math.max(1, Math.round(n / 1e3)) + " KB");
+
+  function setLatest() {
+    const it = galItems && galItems[0], im = $("galLatest");
+    im.hidden = !it;
+    if (it) im.src = thumbURL(it);
+    $("btnGallery").querySelector("svg").style.visibility = it ? "hidden" : "";
+  }
+  // The saved plot shrinks from the paper into the gallery button, like a camera app's last shot.
+  function flyToGallery() {
+    if (body.classList.contains("clean") || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const a = paperEl.getBoundingClientRect(), b = $("btnGallery").getBoundingClientRect(), im = new Image();
+    if (!im.animate || !b.width) return;
+    im.src = $("galLatest").src;
+    Object.assign(im.style, { position: "fixed", left: a.left + "px", top: a.top + "px", width: a.width + "px", height: a.height + "px", zIndex: 25, pointerEvents: "none", boxShadow: "0 8px 24px rgba(0,0,0,.5)" });
+    document.body.appendChild(im);
+    const dx = b.left + b.width / 2 - (a.left + a.width / 2), dy = b.top + b.height / 2 - (a.top + a.height / 2), s = Math.max(b.width / a.width, b.height / a.height);
+    im.animate([{ transform: "none" }, { transform: `translate(${dx}px, ${dy}px) scale(${s})`, opacity: 0.5 }], { duration: 420, easing: "cubic-bezier(.5,0,.7,1)" }).onfinish = () => im.remove();
+  }
+
+  let saving = false;
+  async function galSave(svg) {
+    if (saving) return;
+    saving = true;
+    try {
+      const d = DM || dims(), k = 400 / Math.max(d.W, d.H), tc = document.createElement("canvas");
+      tc.width = Math.round(d.W * k); tc.height = Math.round(d.H * k);
+      paint(tc.getContext("2d"), d, k, false);
+      const thumb = await toBlob(tc, "image/jpeg", 0.85);
+      const frame = still ? await toBlob(still, "image/jpeg", 0.88) : null; // the photo, so the plot can be edited again
+      if (!thumb) throw new Error("No thumbnail");
+      const id = Date.now();
+      const item = { id, name: fname(), mode: S.mode, paper: paperName(), paperCol: S.paperCol, W: d.W, H: d.H, pens: usedLayers().length, size: svg.length + thumb.size + (frame ? frame.size : 0), thumb };
+      const rec = { id, svg, frame, settings: JSON.parse(JSON.stringify(S)) };
+      await idb("readwrite", (p, f) => { p.put(item); f.put(rec); });
+      if (galItems) galItems.unshift(item); else await galLoad();
+      setLatest(); flyToGallery();
+      if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+      if (navigator.vibrate) navigator.vibrate(12);
+      toast("Saved to the gallery.");
+    } finally { saving = false; }
+  }
+  $("btnSave").addEventListener("click", async () => {
+    const svg = prepExport();
+    if (!svg) { toast("Nothing to save yet."); return; }
+    try { await galSave(svg); }
+    catch (e) {
+      await downloadFiles(splitSVG(fname(), svg));
+      toast(e && e.name === "QuotaExceededError" ? "The gallery is full, so this SVG was downloaded instead. Delete some plots to make room."
+        : "The gallery isn't available in this browser, so the SVG was downloaded instead.", 5000);
+    }
+  });
+
+  // The gallery and the viewer sit on the history stack, so the phone's back gesture closes them.
+  function showLayers() {
+    const st = history.state || {}, g = $("gal"), opening = !!st.gal && g.hidden;
+    g.hidden = !st.gal; body.classList.toggle("galopen", !!st.gal);
+    if (!st.gal && galSel) setSelecting(false);
+    if (opening) {
+      $("galIos").hidden = !(isIOS && !standalone());
+      galLoad().then(renderGrid).catch(() => { renderGrid(); toast("The gallery could not be opened in this browser."); });
+    }
+    const i = st.view && galItems ? galItems.findIndex((it) => it.id === st.view) : -1;
+    if (i >= 0) showPlot(i); else closeViewer();
+  }
+  addEventListener("popstate", showLayers);
+  if (history.state && history.state.gal) history.replaceState(null, ""); // reloaded with the gallery open
+  $("btnGallery").addEventListener("click", () => { history.pushState({ gal: 1 }, ""); showLayers(); });
+  $("galBack").addEventListener("click", () => history.back());
+
+  function renderGrid() {
+    const grid = $("galGrid"), items = galItems || [];
+    grid.textContent = "";
+    $("galEmpty").hidden = items.length > 0;
+    $("galSelect").hidden = !items.length;
+    const total = items.reduce((a, it) => a + (it.size || 0), 0);
+    $("galInfo").textContent = items.length ? `${items.length} plot${items.length > 1 ? "s" : ""} · ${kb(total)}` : "";
+    for (const it of items) {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "tile"; b.dataset.id = it.id;
+      b.innerHTML = '<span class="tim"><img alt=""></span><span><b></b><small></small></span><i class="tick"></i>';
+      b.querySelector("img").src = thumbURL(it);
+      b.querySelector("b").textContent = styleName(it.mode);
+      b.querySelector("small").textContent = `${when(it.id)} · ${it.paper}`;
+      b.setAttribute("aria-label", `${styleName(it.mode)}, ${it.paper}, saved ${when(it.id)}`);
+      if (galSel) b.setAttribute("aria-pressed", String(galSel.has(it.id)));
+      grid.appendChild(b);
+    }
+    if (galSel && !items.length) setSelecting(false); else syncSelBar();
+  }
+  function setSelecting(on, id) {
+    galSel = on ? new Set(id ? [id] : []) : null;
+    $("gal").classList.toggle("selecting", on);
+    $("galSelect").textContent = on ? "Done" : "Select";
+    $("galBar").hidden = !on;
+    document.querySelectorAll("#galGrid .tile").forEach((t) => { if (on) t.setAttribute("aria-pressed", String(galSel.has(+t.dataset.id))); else t.removeAttribute("aria-pressed"); });
+    syncSelBar();
+  }
+  function syncSelBar() {
+    if (!galSel) { $("galTitle").textContent = "Gallery"; return; }
+    const n = galSel.size;
+    $("galTitle").textContent = n ? `${n} selected` : "Select plots";
+    for (const k of ["galDl", "galShare", "galDel"]) $(k).disabled = !n;
+  }
+  $("galSelect").addEventListener("click", () => setSelecting(!galSel));
+  // Tap opens a plot (or ticks it while selecting); long-press starts selecting with that plot.
+  (() => {
+    const grid = $("galGrid");
+    let lp = 0, p0 = null, swallow = false;
+    grid.addEventListener("pointerdown", (e) => {
+      const t = e.target.closest(".tile"); if (!t) return;
+      p0 = { x: e.clientX, y: e.clientY }; swallow = false; clearTimeout(lp);
+      lp = setTimeout(() => {
+        swallow = true;
+        if (!galSel) setSelecting(true, +t.dataset.id);
+        else if (!galSel.has(+t.dataset.id)) { galSel.add(+t.dataset.id); t.setAttribute("aria-pressed", "true"); syncSelBar(); }
+        if (navigator.vibrate) navigator.vibrate(12);
+      }, 480);
+    });
+    grid.addEventListener("pointermove", (e) => { if (p0 && Math.hypot(e.clientX - p0.x, e.clientY - p0.y) > 10) clearTimeout(lp); });
+    for (const ev of ["pointerup", "pointercancel"]) grid.addEventListener(ev, () => { clearTimeout(lp); p0 = null; });
+    grid.addEventListener("contextmenu", (e) => { if (e.target.closest(".tile")) e.preventDefault(); });
+    grid.addEventListener("click", (e) => {
+      const t = e.target.closest(".tile"); if (!t) return;
+      if (swallow) { swallow = false; return; }
+      const id = +t.dataset.id;
+      if (galSel) { if (galSel.has(id)) galSel.delete(id); else galSel.add(id); t.setAttribute("aria-pressed", String(galSel.has(id))); syncSelBar(); return; }
+      history.pushState({ gal: 1, view: id }, ""); showLayers();
+    });
+  })();
+  async function filesFor(ids) {
+    const out = [];
+    for (const it of galItems.filter((x) => ids.includes(x.id))) { const rec = await galFiles(it.id); if (rec) out.push(...splitSVG(it.name, rec.svg)); }
+    return out;
+  }
+  async function galDelete(ids) {
+    await idb("readwrite", (p, f) => { for (const id of ids) { p.delete(id); f.delete(id); } });
+    galItems = galItems.filter((it) => !ids.includes(it.id));
+    setLatest();
+    for (const id of ids) { const u = thumbURLs.get(id); if (u) { URL.revokeObjectURL(u); thumbURLs.delete(id); } }
+  }
+  $("galDl").addEventListener("click", async () => { const f = await filesFor([...galSel]); setSelecting(false); if (f.length) downloadFiles(f); });
+  $("galShare").addEventListener("click", async () => { const f = await filesFor([...galSel]); await shareFiles(f); });
+  $("galDel").addEventListener("click", async () => {
+    const n = galSel.size;
+    if (!n || !confirm(`Delete ${n} plot${n > 1 ? "s" : ""}? This can't be undone.`)) return;
+    try { await galDelete([...galSel]); } catch (e) { toast("Those plots could not be deleted."); }
+    setSelecting(false); renderGrid();
+  });
+
+  // ---------------- viewer ----------------
+  let vURL = null, vRec = null, vTok = 0;
+  function fitViewer() {
+    const it = galItems && galItems[galCur], st = $("vStage"), im = $("vImg");
+    if (!it || $("viewer").hidden) return;
+    const zm = st.classList.contains("zoom") ? 3 : 1, s = Math.max(0.01, Math.min((st.clientWidth - 32) / it.W, (st.clientHeight - 32) / it.H)) * zm;
+    im.style.width = it.W * s + "px"; im.style.height = it.H * s + "px";
+  }
+  addEventListener("resize", fitViewer);
+  function vZoom(on, cx, cy) {
+    const st = $("vStage"), im = $("vImg"), r = im.getBoundingClientRect();
+    const fx = cx === undefined ? 0.5 : clamp((cx - r.left) / r.width, 0, 1), fy = cy === undefined ? 0.5 : clamp((cy - r.top) / r.height, 0, 1);
+    st.classList.toggle("zoom", on); fitViewer();
+    if (on) { st.scrollLeft = im.offsetLeft + fx * im.offsetWidth - st.clientWidth / 2; st.scrollTop = im.offsetTop + fy * im.offsetHeight - st.clientHeight / 2; }
+  }
+  async function showPlot(i) {
+    const it = galItems[i], im = $("vImg"), tok = ++vTok;
+    galCur = i; vRec = null;
+    $("viewer").hidden = false;
+    $("vTitle").textContent = styleName(it.mode);
+    $("vInfo").textContent = `${when(it.id)} · ${it.paper} · ${it.pens} pen${it.pens === 1 ? "" : "s"} · ${kb(it.size)}`;
+    $("vPrev").disabled = i <= 0; $("vNext").disabled = i >= galItems.length - 1;
+    $("vEdit").disabled = true;
+    vZoom(false);
+    im.style.background = it.paperCol;
+    im.src = thumbURL(it); // the thumbnail straight away, then the sharp SVG once it is read
+    let rec;
+    try { rec = await galFiles(it.id); } catch (e) {}
+    if (tok !== vTok) return;
+    if (!rec) { toast("This plot could not be read."); return; }
+    vRec = rec; $("vEdit").disabled = !rec.frame;
+    // Black ink would vanish on dark paper; show it light, as the main view does. The file is unchanged.
+    const svg = lumOf(it.paperCol) < 0.4 ? rec.svg.replace(/stroke="#000000"/g, 'stroke="#f2f2f2"') : rec.svg;
+    if (vURL) URL.revokeObjectURL(vURL);
+    vURL = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
+    im.src = vURL;
+  }
+  function closeViewer() {
+    if ($("viewer").hidden) return;
+    $("viewer").hidden = true; vTok++; vRec = null;
+    $("vImg").removeAttribute("src");
+    if (vURL) { URL.revokeObjectURL(vURL); vURL = null; }
+  }
+  function vStep(dir) {
+    const i = galCur + dir;
+    if (!galItems || i < 0 || i >= galItems.length) return;
+    history.replaceState({ gal: 1, view: galItems[i].id }, ""); showPlot(i);
+  }
+  $("vBack").addEventListener("click", () => history.back());
+  $("vPrev").addEventListener("click", () => vStep(-1));
+  $("vNext").addEventListener("click", () => vStep(1));
+  // Swipe sideways for the next or previous plot; double-tap to zoom in and pan around.
+  (() => {
+    const st = $("vStage");
+    let p0 = null, lastTap = 0;
+    st.addEventListener("pointerdown", (e) => { p0 = { x: e.clientX, y: e.clientY, t: performance.now() }; });
+    st.addEventListener("pointercancel", () => { p0 = null; });
+    st.addEventListener("pointerup", (e) => {
+      if (!p0) return;
+      const dx = e.clientX - p0.x, dy = e.clientY - p0.y, dt = performance.now() - p0.t, zoomed = st.classList.contains("zoom");
+      p0 = null;
+      if (!zoomed && Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) { vStep(dx < 0 ? 1 : -1); return; }
+      if (Math.hypot(dx, dy) > 10 || dt > 350) return;
+      const now = performance.now();
+      if (now - lastTap < 300) { lastTap = 0; vZoom(!zoomed, e.clientX, e.clientY); } else lastTap = now;
+    });
+  })();
+  document.addEventListener("keydown", (e) => {
+    if ($("gal").hidden) return;
+    if (!$("viewer").hidden && (e.key === "ArrowLeft" || e.key === "ArrowRight")) { vStep(e.key === "ArrowLeft" ? -1 : 1); e.preventDefault(); }
+    else if (e.key === "Escape") { if ($("viewer").hidden && galSel) setSelecting(false); else history.back(); }
+  });
+  const curItem = () => galItems && galItems[galCur];
+  $("vDl").addEventListener("click", () => { const it = curItem(); if (it && vRec) downloadFiles(splitSVG(it.name, vRec.svg)); });
+  $("vShare").addEventListener("click", () => { const it = curItem(); if (it && vRec) shareFiles(splitSVG(it.name, vRec.svg)); });
+  $("vCopy").addEventListener("click", async () => {
+    if (!vRec) return;
+    try { await navigator.clipboard.writeText(vRec.svg); toast("SVG copied to the clipboard."); }
+    catch (e) { toast("Copy was refused. Use Download instead."); }
+  });
+  $("vDel").addEventListener("click", async () => {
+    const it = curItem();
+    if (!it || !confirm("Delete this plot? This can't be undone.")) return;
+    try { await galDelete([it.id]); } catch (e) { toast("The plot could not be deleted."); return; }
+    renderGrid();
+    if (!galItems.length) { history.back(); return; }
+    const i = Math.min(galCur, galItems.length - 1);
+    history.replaceState({ gal: 1, view: galItems[i].id }, ""); showPlot(i);
+  });
+
+  // Edit: put the plot's photo and settings back in the main view, frozen, ready to change.
+  // Saving again adds a new plot, so the original stays in the gallery.
+  const UI_ONLY = ["pip", "showTarget", "splitPens"];
+  function syncControls() {
+    for (const k of Object.keys(S)) {
+      const el = document.getElementById(k);
+      if (el && el.type === "checkbox") el.checked = !!S[k];
+      document.querySelectorAll(`input[type="radio"][name="${k}"]`).forEach((r) => { r.checked = r.value === String(S[k]); });
+    }
+    for (let i = 0; i < 4; i++) $("pen" + i).value = S.pens[i];
+    paperSel.value = S.size; setRanges(); $("margin").value = S.margin;
+    applyPaper();
+    document.querySelectorAll("#paperSwatches button").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.c.toLowerCase() === S.paperCol.toLowerCase())));
+    dirtyDraw = true;
+  }
+  $("vEdit").addEventListener("click", async () => {
+    const rec = vRec;
+    if (!rec || !rec.frame) return;
+    let img;
+    try { img = await blobImage(rec.frame); } catch (e) { toast("The photo for this plot could not be read."); return; }
+    stopStream();
+    setStill(img, img.width || img.naturalWidth, img.height || img.naturalHeight);
+    for (const k of Object.keys(DEFAULTS)) if (!UI_ONLY.includes(k) && rec.settings && rec.settings[k] !== undefined) S[k] = JSON.parse(JSON.stringify(rec.settings[k]));
+    syncControls(); changed(true); layout();
+    history.go(history.state && history.state.view ? -2 : -1);
+    setTimeout(() => showMode(false), 80);
+    toast("Editing a copy. Save again to keep it as a new plot.", 4000);
+  });
+  galLoad().then(setLatest).catch(() => {});
 
   // ---------------- start ----------------
   setRanges();
