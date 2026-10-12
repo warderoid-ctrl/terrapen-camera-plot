@@ -61,6 +61,7 @@ button:focus-visible, label:focus-visible, select:focus-visible, input:focus-vis
 @keyframes fpop { from { transform: scale(1.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 .pens { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
 .pen { display: grid; justify-items: center; gap: 4px; font-size: 12px; color: var(--muted); cursor: pointer; }
+.pen small { font-size: 11px; line-height: 1.2; text-align: center; color: var(--ink); }
 .pen input { width: 100%; max-width: 64px; height: 40px; padding: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--chrome-solid); cursor: pointer; }
 .pen input::-webkit-color-swatch-wrapper { padding: 3px; } .pen input::-webkit-color-swatch { border: 0; border-radius: 5px; }
 .seg4.seg2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -544,10 +545,10 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
     </div></details>
     <details class="grp" id="penSec"><summary><span>Layer colours</span><span class="sum" id="penSum"></span></summary><div class="sec inner">
       <div class="pens">
-        <label class="pen"><input type="color" id="pen0" aria-label="Pen 1 colour"><span>Pen 1</span></label>
-        <label class="pen"><input type="color" id="pen1" aria-label="Pen 2 colour"><span>Pen 2</span></label>
-        <label class="pen"><input type="color" id="pen2" aria-label="Pen 3 colour"><span>Pen 3</span></label>
-        <label class="pen"><input type="color" id="pen3" aria-label="Pen 4 colour"><span>Pen 4</span></label>
+        <label class="pen"><input type="color" id="pen0" aria-label="Pen 1 colour"><span>Pen 1</span><small id="pname0"></small></label>
+        <label class="pen"><input type="color" id="pen1" aria-label="Pen 2 colour"><span>Pen 2</span><small id="pname1"></small></label>
+        <label class="pen"><input type="color" id="pen2" aria-label="Pen 3 colour"><span>Pen 3</span><small id="pname2"></small></label>
+        <label class="pen"><input type="color" id="pen3" aria-label="Pen 4 colour"><span>Pen 4</span><small id="pname3"></small></label>
       </div>
       <div class="btnrow"><button class="btn small" id="btnResetColours" type="button">Reset colours</button></div>
       <div class="checks"><label><input type="checkbox" id="showColours"> Show layer colours in every style</label></div>
@@ -745,13 +746,42 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
   if (!Array.isArray(S.pens) || S.pens.length < 4) S.pens = DEFAULTS.pens.slice();
   const lumOf = (hex) => { const m = /^#?([0-9a-f]{6})$/i.exec(hex || ""); if (!m) return 1; const n = parseInt(m[1], 16); return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255; };
   const darkPaper = () => lumOf(S.paperCol) < 0.4;
+  // Everyday names for pen colours, used in the SVG layer labels and file names and under the
+  // swatches: the nearest name by perceived colour (CIELAB distance). A name may appear more than once.
+  const COLOUR_NAMES = [
+    ["black", "#000000"], ["dark grey", "#404040"], ["grey", "#808080"], ["light grey", "#c0c0c0"], ["white", "#ffffff"],
+    ["dark red", "#8b0000"], ["red", "#e02020"], ["pink", "#e8457a"], ["light pink", "#ffb6c1"], ["magenta", "#d81b9a"],
+    ["coral", "#ff7f50"], ["orange", "#ff8c00"], ["dark brown", "#4a2c17"], ["brown", "#8b4513"], ["tan", "#d2b48c"],
+    ["cream", "#f6f0e1"], ["gold", "#d4a017"], ["yellow", "#f5e027"], ["lime green", "#d4ea4a"], ["olive", "#808000"],
+    ["light green", "#90ee90"], ["green", "#2e9e3e"], ["dark green", "#1e4d2b"], ["mint", "#98e8c1"], ["teal", "#008080"],
+    ["turquoise", "#40c8c8"], ["cyan", "#00d0ff"], ["sky blue", "#87ceeb"], ["blue", "#1f5fd0"], ["navy", "#14215a"],
+    ["purple", "#7b2d9e"], ["violet", "#9b6be0"], ["lavender", "#c9b6ea"],
+    // extra anchors so pure screen colours land on the obvious name
+    ["blue", "#0000ff"], ["blue", "#2a3fe0"], ["cyan", "#00ffff"], ["dark green", "#006400"], ["purple", "#800080"]
+  ];
+  const toLab = (hex) => {
+    const n = parseInt(hex.slice(1), 16), lin = (c) => (c /= 255) <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    const r = lin(n >> 16), g = lin((n >> 8) & 255), b = lin(n & 255);
+    const f = (t) => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116);
+    const x = f((0.4124 * r + 0.3576 * g + 0.1805 * b) / 0.95047), y = f(0.2126 * r + 0.7152 * g + 0.0722 * b), z = f((0.0193 * r + 0.1192 * g + 0.9505 * b) / 1.08883);
+    return [116 * y - 16, 500 * (x - y), 200 * (y - z)];
+  };
+  const NAMED_LAB = COLOUR_NAMES.map(([name, hex]) => [name, toLab(hex)]);
+  function colourName(hex) {
+    if (!/^#[0-9a-f]{6}$/i.test(hex || "")) return "colour";
+    const c = toLab(hex);
+    let best = "colour", bd = Infinity;
+    for (const [name, l] of NAMED_LAB) { const d = (c[0] - l[0]) ** 2 + (c[1] - l[1]) ** 2 + (c[2] - l[2]) ** 2; if (d < bd) { bd = d; best = name; } }
+    return best;
+  }
+  const syncPenNames = () => { for (let i = 0; i < 4; i++) $("pname" + i).textContent = colourName(S.pens[i]); };
   const penColour = (layer, forSvg) => (S.mode === "duotone" || S.showColours || S.bands !== "off" ? S.pens[layer % 4] : forSvg ? "#000000" : darkPaper() ? "#f2f2f2" : "#111111");
   const PAPERS = [["#ffffff", "White"], ["#f6f0e1", "Cream"], ["#cdb18a", "Kraft"], ["#c9c9c4", "Grey"], ["#17321b", "Shell green"], ["#111111", "Black"]];
   const applyPaper = () => { document.documentElement.style.setProperty("--sheet", S.paperCol); };
   for (let i = 0; i < 4; i++) {
     const inp = $("pen" + i);
     inp.value = S.pens[i];
-    inp.addEventListener("input", () => { S.pens[i] = inp.value; if (!S.showColours) { S.showColours = true; $("showColours").checked = true; } dirtyDraw = true; thumbStamp++; store(); });
+    inp.addEventListener("input", () => { S.pens[i] = inp.value; syncPenNames(); if (!S.showColours) { S.showColours = true; $("showColours").checked = true; } dirtyDraw = true; thumbStamp++; store(); });
   }
   $("showColours").checked = !!S.showColours;
   $("showColours").addEventListener("change", () => { S.showColours = $("showColours").checked; dirtyDraw = true; thumbStamp++; store(); });
@@ -908,6 +938,7 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
       const inp = $(sp.id); if (+inp.value !== S[sp.id]) inp.value = S[sp.id];
     });
     $("o-margin").textContent = S.margin + " mm";
+    syncPenNames();
     const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
     $("cullSum").textContent = S.cull === "off" ? "Off" : cap(S.cull);
     $("bandSum").textContent = S.bands === "off" ? "Off" : cap(S.bands) + " · " + S.bandN;
@@ -2934,7 +2965,7 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
         for (let i = 2; i < q.length; i += 2) dd += "L" + f(q[i]) + " " + f(q[i + 1]);
       }
       const col = penColour(li, true);
-      s += `<g id="pen${li + 1}" inkscape:groupmode="layer" inkscape:label="${li + 1} pen ${li + 1} ${col}" fill="none" stroke="${col}" stroke-width="${S.pen}" stroke-linecap="round" stroke-linejoin="round"><path d="${dd}"/></g>\n`;
+      s += `<g id="pen${li + 1}" inkscape:groupmode="layer" inkscape:label="${li + 1} pen ${li + 1} ${colourName(col)} (${col})" fill="none" stroke="${col}" stroke-width="${S.pen}" stroke-linecap="round" stroke-linejoin="round"><path d="${dd}"/></g>\n`;
     });
     return s + "</svg>\n";
   }
@@ -2955,8 +2986,8 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
     if (!S.splitPens || pens.length < 2) return [{ name, svg }];
     const head = lines.slice(0, 2).join("\n") + "\n", base = name.replace(/\.svg$/, "");
     return pens.map((l) => {
-      const m = /^<g id="pen(\d+)".*? stroke="#([0-9a-f]{6})"/i.exec(l) || [];
-      return { name: `${base}-pen${m[1]}-${m[2]}.svg`, svg: head + l + "\n</svg>\n" };
+      const m = /^<g id="pen(\d+)".*? stroke="(#[0-9a-f]{6})"/i.exec(l) || [];
+      return { name: `${base}-pen${m[1]}-${colourName(m[2]).replace(/ /g, "-")}.svg`, svg: head + l + "\n</svg>\n" };
     });
   }
   function exportFiles() { const all = prepExport(); return all ? splitSVG(fname(), all) : []; }
