@@ -139,9 +139,9 @@
     cap("Point the camera at anything. Here a short clip stands in for the live camera", "Live camera");
     await wait(3500);
 
-    cap("Twenty styles. Swipe the carousel and the picture redraws as you go", "Styles");
+    cap("Fourteen styles. Swipe the carousel and the picture redraws as you go", "Styles");
     await swipeStrip(520); await swipeStrip(520);
-    for (const [m, nm] of [["contour", "Contour"], ["ridges", "Ridges"], ["flow", "Flow"], ["blobs", "Blobs"], ["voronoi", "Voronoi"], ["subdiv", "Subdivision"], ["hatch", "Hatch"], ["technical", "Technical"], ["duotone", "Duotone"], ["engrave", "Engrave"], ["etch", "Etch"]]) {
+    for (const [m, nm] of [["contour", "Contour"], ["flow", "Flow"], ["voronoi", "Voronoi"], ["hatch", "Hatch"], ["duotone", "Duotone"], ["engrave", "Engrave"], ["etch", "Etch"], ["loop", "Loop"]]) {
       cap(`${nm}`, "Tap any tile"); await mode(m, 1700);
     }
     await mode("wave", 1200);
@@ -181,10 +181,6 @@
     for (const [id, nm] of [["cf-hatch", "Hatch"], ["cf-cross", "Cross-hatch"], ["cf-grid", "Grid"], ["cf-iso", "Isometric"], ["cf-zig", "Zigzag"], ["cf-stipple", "Stipple"]]) { cap(`${nm} fill`, "Cell fills"); await radio(id, 1700); }
     await slide("jitHatch", 70, 1500, 900);
     await radio("cf-none", 400); await slide("vorSmooth", 0, 900, 200);
-
-    cap("Blobs with a zigzag fill", "Fills");
-    await mode("blobs", 800); await openMenu(); await wait(500);
-    reveal($("blobFillRow")); await radio("bf-zig", 1800); await radio("bf-cross", 1500); await radio("bf-hatch", 800);
 
     cap("Hatch lines clip cleanly to every outline", "Hatch");
     await mode("hatch", 1500);
@@ -232,7 +228,7 @@
     for (const c of ["#cdb18a", "#17321b", "#111111"]) { const b = document.querySelector(`#paperSwatches button[data-c="${c}"]`); reveal(b); await tap(b, 1500); }
     await tap(document.querySelector('#paperSwatches button[data-c="#cdb18a"]'), 800);
 
-    cap("Save it to the gallery: one SVG with a coloured layer for every pen", "Export");
+    cap("Save one SVG with a coloured layer for every pen", "Export");
     await group("exportSec");
     await closeMenu(); await wait(300);
     await pointAt($("btnSave")); ripple(); await wait(2600);
