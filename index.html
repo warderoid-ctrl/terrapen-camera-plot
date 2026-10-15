@@ -1774,10 +1774,8 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     const rot = st.rot * 0.5 + Math.PI / 2, sp = Math.max(S.pen * 1.5, S.spacing * 0.35 * clamp(Rm / 60, 0.35, 1));
     const seg = []; // one half-arm along +x: [x0, y0, x1, y1, halfWidth]
     const branch = (x, y, a, len, ww, depth) => {
-      const x1 = x + Math.cos(a) * len, y1 = y + Math.sin(a) * len;
-      seg.push([x, y, x1, y1, ww]);
-      if (depth <= 0 || len < sp * 3) return;
-      const k = depth === 2 ? nBr : Math.max(1, Math.round(nBr * sub * 0.8));
+      const kids = [];
+      const k = depth > 0 && len >= sp * 3 ? (depth === 2 ? nBr : Math.max(1, Math.round(nBr * sub * 0.8))) : 0;
       for (let q = 1; q <= k; q++) {
         const t = q / (k + 1), bx = x + Math.cos(a) * len * t, by = y + Math.sin(a) * len * t;
         // a dark centre grows ferns (long branches near the core); a bright centre grows fans (long near the tips)
@@ -1788,8 +1786,13 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
         let bl = len * prof * (depth === 2 ? 0.75 : 0.6);
         if (depth === 2) bl = Math.min(bl, len * t * 0.92); // stop short of the neighbouring arm
         if (bl < sp * 1.2) continue;
-        for (const sgn of depth === 2 ? [1] : [1, -1]) branch(bx, by, a + sgn * Math.PI / 3, bl, ww * 0.62, depth - 1);
+        kids.push([t, bx, by, bl]);
       }
+      // the stroke itself, split where branches leave it (so single-line drawings join up)
+      let px = x, py = y;
+      for (const [, bx, by] of kids) { seg.push([px, py, bx, by, ww]); px = bx; py = by; }
+      seg.push([px, py, x + Math.cos(a) * len, y + Math.sin(a) * len, ww]);
+      for (const [, bx, by, bl] of kids) for (const sgn of depth === 2 ? [1] : [1, -1]) branch(bx, by, a + sgn * Math.PI / 3, bl, ww * 0.62, depth - 1);
     };
     const armLen = Rm * (0.75 + 0.25 * fern);
     branch(0, 0, 0, armLen, w, 2);
@@ -1816,16 +1819,62 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
       SK.fills.push(hexAt(Math.cos(A) * L, Math.sin(A) * L, Rm * fit * 0.06 * plate * (t > 0.9 ? 0.7 : 1)));
     }
   }
+  // Lines: single strokes made plotter-friendly. Duplicates (the mirrored spines) are dropped, the pieces
+  // are joined into long continuous strokes through each junction, and the strokes are ordered nearest-first.
+  function snowLines(SK, out) {
+    const key = (x, y) => Math.round(x * 50) + "," + Math.round(y * 50);
+    const nodes = new Map(), edges = [], seen = new Set();
+    const node = (x, y) => { const k = key(x, y); let n = nodes.get(k); if (!n) { n = { x, y, e: [] }; nodes.set(k, n); } return n; };
+    for (const L of SK.lines) {
+      const [x0, y0, x1, y1] = L.pts, a = node(x0, y0), b = node(x1, y1);
+      if (a === b) continue;
+      const ek = key(x0, y0) < key(x1, y1) ? key(x0, y0) + "|" + key(x1, y1) : key(x1, y1) + "|" + key(x0, y0);
+      if (seen.has(ek)) continue;
+      seen.add(ek);
+      const e = { a, b, used: false }; edges.push(e); a.e.push(e); b.e.push(e);
+    }
+    const strokes = [];
+    const walk = (start) => { // follow unused edges, going as straight as possible through each junction
+      const pts = [start.x, start.y]; let cur = start, dx = 0, dy = 0;
+      for (;;) {
+        let best = null, bs = -Infinity;
+        for (const e of cur.e) {
+          if (e.used) continue;
+          const o = e.a === cur ? e.b : e.a, ux = o.x - cur.x, uy = o.y - cur.y, l = Math.hypot(ux, uy) || 1, sc = (ux * dx + uy * dy) / l;
+          if (sc > bs) { bs = sc; best = e; }
+        }
+        if (!best) break;
+        best.used = true;
+        const o = best.a === cur ? best.b : best.a, l = Math.hypot(o.x - cur.x, o.y - cur.y) || 1;
+        dx = (o.x - cur.x) / l; dy = (o.y - cur.y) / l; cur = o; pts.push(o.x, o.y);
+      }
+      return pts;
+    };
+    // start at loose ends (odd junctions) first, so each stroke runs tip to tip
+    for (const n of nodes.values()) if (n.e.length % 2 === 1) while (n.e.some((e) => !e.used)) { const p = walk(n); if (p.length >= 4) strokes.push({ layer: 0, pts: p }); }
+    for (const n of nodes.values()) while (n.e.some((e) => !e.used)) { const p = walk(n); if (p.length >= 4) strokes.push({ layer: 0, pts: p }); }
+    for (const H of SK.fills) strokes.push({ layer: 0, pts: H, closed: true });
+    for (const H of SK.rings) strokes.push({ layer: 1, pts: H, closed: true });
+    // nearest-first order per pen, flipping strokes when the other end is closer
+    for (const layer of [0, 1]) {
+      const todo = strokes.filter((p) => p.layer === layer); let cx = 0, cy = 0;
+      while (todo.length) {
+        let bi = 0, bd = Infinity, flip = false;
+        for (let i = 0; i < todo.length; i++) {
+          const q = todo[i].pts, d0 = Math.hypot(q[0] - cx, q[1] - cy), d1 = todo[i].closed ? Infinity : Math.hypot(q[q.length - 2] - cx, q[q.length - 1] - cy);
+          if (d0 < bd) { bd = d0; bi = i; flip = false; } if (d1 < bd) { bd = d1; bi = i; flip = true; }
+        }
+        const p = todo.splice(bi, 1)[0], pts = flip ? rev(p.pts) : p.pts;
+        out.push({ layer, pts }); cx = pts[pts.length - 2]; cy = pts[pts.length - 1];
+      }
+    }
+    return out;
+  }
   // Profile: paint every stroke and plate into a hidden image and trace round the merged shape, like a
   // boolean union, so overlapping ice becomes one clean outline (touching flakes in a flurry merge too).
   let snowCv = null;
   function snowOut(d, SK, out) {
-    if (S.snowLook === "lines") {
-      for (const L of SK.lines) out.push({ layer: 0, pts: L.pts });
-      for (const H of SK.fills) out.push({ layer: 0, pts: H });
-      for (const H of SK.rings) out.push({ layer: 1, pts: H });
-      return out;
-    }
+    if (S.snowLook === "lines") return snowLines(SK, out);
     const maxPx = thumbRun ? 300 : live && !frozen ? 900 : 1500, sc = maxPx / Math.max(d.dw, d.dh), w = Math.max(8, Math.ceil(d.dw * sc)), h = Math.max(8, Math.ceil(d.dh * sc));
     if (!snowCv) snowCv = document.createElement("canvas");
     if (snowCv.width !== w || snowCv.height !== h) { snowCv.width = w; snowCv.height = h; }
