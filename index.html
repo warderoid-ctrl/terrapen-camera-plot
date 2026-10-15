@@ -376,6 +376,13 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
       <div class="sec" id="duoRow" hidden>
         <p class="tips">Pen 1 is the dark ink for the shadows, pen 2 the light ink for highlights and midtones. Where they overlap you get the mix. Pick the inks under Pen colours.</p>
       </div>
+      <div class="sec" id="snowRow" hidden>
+        <div class="seg4 seg5b" role="radiogroup" aria-label="Snowflakes">
+          <input class="sr" type="radio" name="snowMany" id="sm-one" value="one"><label for="sm-one">One flake</label>
+          <input class="sr" type="radio" name="snowMany" id="sm-many" value="many"><label for="sm-many">Flurry</label>
+        </div>
+        <p class="tips">Nothing is traced: the picture tunes how each crystal grows. Flurry drops flakes on the strongest edges first, so they follow the outline of what the camera sees; each flake is grown from its own patch of the picture. Bigger flakes sit on strong edges in dark areas.</p>
+      </div>
       <div class="sec" id="etchRow" hidden>
         <div class="checks">
           <label><input type="checkbox" id="etchOutline"> Broken outlines</label>
@@ -530,7 +537,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   // Default pen inks come from the terraPen palette: shell green, coral, teal and black.
   const BRAND_PENS = ["#17321b", "#e83b68", "#66cccc", "#000000"];
   const OLD_PENS = ["#1f2a5c", "#e4572e", "#2364aa", "#4f8a3b"];
-  const DEFAULTS = { etchVig: true, etchCurls: true, etchOutline: true, engHatch: "flow", engLines: "outline", engDots: true, clipZone: 35, clipKeep: 10, jitLine: 0, jitHatch: 0, paperCol: "#ffffff", paperSvg: false, cullX: 50, cullY: 50, bandX: 50, bandY: 50, cellFill: "none", fillDens: 100, vorSmooth: 0, cull: "off", cullAt: 70, cullSoft: 30, bands: "off", bandN: 3, bandAngle: 0, bandBlend: 40, bandRev: false, showTarget: false, splitPens: false, pens: BRAND_PENS, showColours: false, techBold: true, techFrame: true, focus: null, repel: false, pull: 100, levels: 8, blobFill: "hatch", mode: "wave", size: "a4", shape: "p", margin: 10, spacing: 3.5, amp: 100, layers: 3, contrast: 1.3, bright: 0, pen: 0.3, invert: false, auto: true, pip: true };
+  const DEFAULTS = { snowMany: false, snowN: 18, etchVig: true, etchCurls: true, etchOutline: true, engHatch: "flow", engLines: "outline", engDots: true, clipZone: 35, clipKeep: 10, jitLine: 0, jitHatch: 0, paperCol: "#ffffff", paperSvg: false, cullX: 50, cullY: 50, bandX: 50, bandY: 50, cellFill: "none", fillDens: 100, vorSmooth: 0, cull: "off", cullAt: 70, cullSoft: 30, bands: "off", bandN: 3, bandAngle: 0, bandBlend: 40, bandRev: false, showTarget: false, splitPens: false, pens: BRAND_PENS, showColours: false, techBold: true, techFrame: true, focus: null, repel: false, pull: 100, levels: 8, blobFill: "hatch", mode: "wave", size: "a4", shape: "p", margin: 10, spacing: 3.5, amp: 100, layers: 3, contrast: 1.3, bright: 0, pen: 0.3, invert: false, auto: true, pip: true };
   const S = Object.assign({}, DEFAULTS);
   const KEY = "terrapen-camera-plot";
   try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
@@ -570,6 +577,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     { id: "fillDens", min: 20, max: 250, step: 5, dp: 0, unit: "%", name: () => "Fill density", modes: ["voronoi", "subdiv"], when: () => S.cellFill !== "none" },
     { id: "clipZone", parent: "focusSliders", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => "Thin zone", when: () => !!S.focus },
     { id: "clipKeep", parent: "focusSliders", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => "Lines reaching point", when: () => !!S.focus },
+    { id: "snowN", min: 2, max: 60, step: 1, dp: 0, unit: "", name: () => "Most flakes", modes: ["snow"], when: () => S.snowMany },
     { id: "levels", min: 2, max: 200, step: 1, dp: 0, unit: "", name: () => "Contour levels", modes: ["contour"] },
     { id: "layers", min: 1, max: 4, step: 1, dp: 0, unit: "", name: () => "Hatch layers", modes: ["hatch"] },
     { id: "contrast", min: 0.4, max: 3, step: 0.05, dp: 2, unit: "×", name: () => "Contrast" },
@@ -726,6 +734,10 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     r.addEventListener("change", () => { if (r.checked) { S[k] = r.value; changed(false); } });
   });
   for (const k of ["etchVig", "etchCurls", "etchOutline"]) { $(k).checked = !!S[k]; $(k).addEventListener("change", () => { S[k] = $(k).checked; changed(false); }); }
+  document.querySelectorAll('input[name="snowMany"]').forEach((r) => {
+    r.checked = (r.value === "many") === !!S.snowMany;
+    r.addEventListener("change", () => { if (r.checked) { S.snowMany = r.value === "many"; changed(false); } });
+  });
   $("engDots").checked = !!S.engDots;
   $("engDots").addEventListener("change", () => { S.engDots = $("engDots").checked; changed(false); });
   document.querySelectorAll('input[name="blobFill"]').forEach((r) => {
@@ -815,6 +827,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
       $("techRow").hidden = S.mode !== "technical";
       $("engRow").hidden = S.mode !== "engrave";
       $("etchRow").hidden = S.mode !== "etch";
+      $("snowRow").hidden = S.mode !== "snow";
       $("duoRow").hidden = S.mode !== "duotone";
       $("cullCtl").hidden = S.cull === "off"; $("bandCtl").hidden = S.bands === "off";
       $("cullTip").textContent = CULL_TIPS[S.cull] || "";
@@ -1724,35 +1737,31 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     const sm = smoothPoly(X, Y, 0), SX = sm.x, SY = sm.y, p = []; for (let i = 0; i < SX.length; i++) p.push(SX[i], SY[i]); p.push(SX[0], SY[0]); return p;
   };
 
-  // ---------------- snowflake: a crystal grown from rules, tuned by the picture ----------------
-  // Nothing is traced from the image. Its overall tone, contrast, edge detail and dominant direction set
-  // the crystal's rules: dark scenes grow broad plates, bright ones feathery dendrites, contrast adds side
-  // branches, edges add sub-branches, and the main direction turns the flake. Six arms, each mirrored, so
-  // pointing the camera somewhere new grows a new flake; small changes morph it gently.
+  // ---------------- snowflake: crystals grown from rules, tuned by the picture ----------------
+  // Nothing is traced from the image. Tone, contrast, edge detail, centre vs surround and the main
+  // direction set each crystal's rules: dark grows broad plates, bright grows feathery dendrites,
+  // contrast adds side branches, edges add sub-branches. One flake reads the whole picture (eased over
+  // time so the live camera morphs it); a flurry drops flakes on the strongest edges, each grown from
+  // its own patch, so together they trace the outline of the subject.
   let SNOWSTAT = null;
-  function genSnow(d) {
-    // picture statistics, eased over time so the live camera morphs the flake rather than flicking it
-    let sum = 0, sq = 0, ed = 0, cxx = 0, cxy = 0, cyy = 0; const n = gw * gh, B = fields().B;
-    for (let j = 1; j < gh - 1; j++) for (let i = 1; i < gw - 1; i++) {
-      const c = j * gw + i, v = B[c]; sum += v; sq += v * v;
-      const gx = B[c + 1] - B[c - 1], gy = B[c + gw] - B[c - gw]; ed += Math.hypot(gx, gy); cxx += gx * gx; cxy += gx * gy; cyy += gy * gy;
+  function snowStats(x0, y0, x1, y1) { // statistics of the picture inside a box (mm)
+    const B = fields().B, n = 14;
+    let sum = 0, sq = 0, ed = 0, cxx = 0, cxy = 0, cyy = 0, cen = 0, cn = 0, top = 0, tn = 0, c = 0;
+    const h = DM.dw / gw;
+    for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
+      const x = x0 + (i + 0.5) / n * (x1 - x0), y = y0 + (j + 0.5) / n * (y1 - y0), v = sampleArr(B, x, y);
+      const gx = (sampleArr(B, x + h, y) - sampleArr(B, x - h, y)) / 2, gy = (sampleArr(B, x, y + h) - sampleArr(B, x, y - h)) / 2;
+      sum += v; sq += v * v; ed += Math.hypot(gx, gy); cxx += gx * gx; cxy += gx * gy; cyy += gy * gy; c++;
+      if (Math.hypot(i / n - 0.5, j / n - 0.5) < 0.25) { cen += v; cn++; } if (j < n / 2) { top += v; tn++; }
     }
-    const cnt = (gw - 2) * (gh - 2), mean = sum / cnt, sd = Math.sqrt(Math.max(0, sq / cnt - mean * mean));
-    let cen = 0, cn = 0, top = 0, tn = 0; // centre against surround, top against bottom
-    for (let j = 0; j < gh; j++) for (let i = 0; i < gw; i++) {
-      const v = B[j * gw + i], u = Math.hypot(i / gw - 0.5, j / gh - 0.5);
-      if (u < 0.25) { cen += v; cn++; } if (j < gh / 2) { top += v; tn++; }
-    }
-    const st = { mean, sd: clamp(sd * 3, 0, 1), edge: clamp(ed / cnt * 12, 0, 1), rot: 0.5 * Math.atan2(2 * cxy, cxx - cyy),
+    const mean = sum / c, sd = Math.sqrt(Math.max(0, sq / c - mean * mean));
+    return { mean, sd: clamp(sd * 3, 0, 1), edge: clamp(ed / c * 12, 0, 1), rot: 0.5 * Math.atan2(2 * cxy, cxx - cyy),
       cs: clamp((cen / Math.max(1, cn) - mean) * 4, -1, 1), tb: clamp((top / Math.max(1, tn) - mean) * 6, -1, 1) };
-    if (SNOWSTAT && !thumbRun) for (const k in st) st[k] = SNOWSTAT[k] + (st[k] - SNOWSTAT[k]) * 0.25;
-    if (!thumbRun) SNOWSTAT = st;
-    void n;
-    const f = focus(d), cx = f ? f.x : d.mx + d.dw / 2, cy = f ? f.y : d.my + d.dh / 2;
-    const Rm = Math.min(cx - d.mx, d.mx + d.dw - cx, cy - d.my, d.my + d.dh - cy) * 0.95;
+  }
+  function snowflake(cx, cy, Rm, st, out) {
     const br = S.amp / 100, plate = clamp((st.mean - 0.35) * 2.2, 0, 1), fern = 1 - plate;
     const nBr = Math.round(2 + (3 + 5 * st.sd) * br), sub = st.edge * br, w = Math.max(S.pen * 0.6, Rm * (0.006 + 0.02 * plate));
-    const rot = st.rot * 0.5 + Math.PI / 2, sp = Math.max(S.pen * 1.5, S.spacing * 0.35);
+    const rot = st.rot * 0.5 + Math.PI / 2, sp = Math.max(S.pen * 1.5, S.spacing * 0.35 * clamp(Rm / 60, 0.35, 1));
     const seg = []; // one half-arm along +x, as polylines
     const ribbon = (x0, y0, x1, y1, ww) => { // a stroke with width: an outline of the ice, closed at the tip
       const dx = x1 - x0, dy = y1 - y0, l = Math.hypot(dx, dy) || 1, nx = -dy / l * ww, ny = dx / l * ww;
@@ -1765,7 +1774,6 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
       const k = depth === 2 ? nBr : Math.max(1, Math.round(nBr * sub * 0.8));
       for (let q = 1; q <= k; q++) {
         const t = q / (k + 1), bx = x + Math.cos(a) * len * t, by = y + Math.sin(a) * len * t;
-        // ferns: long branches near the base tapering out; plates: short, even branches
         // a dark centre grows ferns (long branches near the core); a bright centre grows fans (long near the tips)
         const shape = st.cs < 0 ? Math.pow(1 - t, 0.8) : Math.pow(t, 0.7) * 0.8 + 0.15;
         const wave = 0.6 + 0.4 * Math.sin(t * Math.PI * (1.5 + 3 * st.sd) + st.tb * 3);
@@ -1777,16 +1785,15 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
         for (const sgn of depth === 2 ? [1] : [1, -1]) branch(bx, by, a + sgn * Math.PI / 3, bl, ww * 0.6, depth - 1);
       }
     };
-    branch(0, 0, 0, Rm * (0.75 + 0.25 * fern), w, 2);
-    // plates: hexagons nested round the core, and sector plates along the arm
+    const armLen = Rm * (0.75 + 0.25 * fern);
+    branch(0, 0, 0, armLen, w, 2);
     const hexes = [], core = Rm * (0.08 + 0.3 * plate), rings = Math.max(1, Math.min(14, Math.round(core / (sp * 1.6))));
     for (let k = 1; k <= rings; k++) hexes.push(core * k / rings);
-    // fit: scale the whole crystal so its furthest point sits inside the sheet
+    // fit: scale the whole crystal so its furthest point stays inside its radius
     let far = 1e-6; for (const p of seg) for (let i = 0; i < p.length; i += 2) far = Math.max(far, Math.hypot(p[i], p[i + 1]));
     const fit = Math.min(1, Rm / far);
     if (fit < 1) { for (const p of seg) for (let i = 0; i < p.length; i++) p[i] *= fit; for (let k = 0; k < hexes.length; k++) hexes[k] *= fit; }
-    // build the flake: mirror the half-arm, turn it six ways
-    const out = [], ca = Math.cos(rot), sa = Math.sin(rot);
+    const ca = Math.cos(rot), sa = Math.sin(rot);
     const put = (pts, layer) => { const o = []; for (let i = 0; i < pts.length; i += 2) { const X = pts[i] * ca - pts[i + 1] * sa, Y = pts[i] * sa + pts[i + 1] * ca; o.push(cx + X, cy + Y); } out.push({ layer, pts: o }); };
     for (let arm = 0; arm < 6; arm++) {
       const A = arm * Math.PI / 3, c = Math.cos(A), s = Math.sin(A);
@@ -1795,15 +1802,43 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
         put(o, 0);
       }
     }
-    for (const r of hexes) { const o = []; for (let k = 0; k <= 6; k++) { const a = k * Math.PI / 3 + Math.PI / 6; o.push(Math.cos(a) * r, Math.sin(a) * r); } put(o, 1); }
-    if (plate > 0.3) { // sector plates: a small hexagon at each arm's midpoint and tip
-      for (let arm = 0; arm < 6; arm++) for (const t of [0.55, 0.95]) {
-        const A = arm * Math.PI / 3, hx = Math.cos(A) * Rm * fit * t * (0.75 + 0.25 * fern), hy = Math.sin(A) * Rm * fit * t * (0.75 + 0.25 * fern), hr = Rm * fit * 0.06 * plate * (t > 0.9 ? 0.7 : 1), o = [];
-        for (let k = 0; k <= 6; k++) { const a = k * Math.PI / 3 + Math.PI / 6; o.push(hx + Math.cos(a) * hr, hy + Math.sin(a) * hr); }
-        put(o, 1);
-      }
+    const hexAt = (hx, hy, r) => { const o = []; for (let k = 0; k <= 6; k++) { const a = k * Math.PI / 3 + Math.PI / 6; o.push(hx + Math.cos(a) * r, hy + Math.sin(a) * r); } return o; };
+    for (const r of hexes) put(hexAt(0, 0, r), 1);
+    if (plate > 0.3) for (let arm = 0; arm < 6; arm++) for (const t of [0.55, 0.95]) { // sector plates at mid-arm and tip
+      const A = arm * Math.PI / 3, L = armLen * fit * t;
+      put(hexAt(Math.cos(A) * L, Math.sin(A) * L, Rm * fit * 0.06 * plate * (t > 0.9 ? 0.7 : 1)), 1);
     }
-    return out.filter((p) => p.pts.every((v, i) => (i % 2 ? v >= d.my - 0.01 && v <= d.my + d.dh + 0.01 : v >= d.mx - 0.01 && v <= d.mx + d.dw + 0.01)));
+  }
+  function genSnow(d) {
+    const out = [], f = focus(d);
+    if (!S.snowMany) {
+      const st = snowStats(d.mx, d.my, d.mx + d.dw, d.my + d.dh);
+      if (SNOWSTAT && !thumbRun) for (const k in st) st[k] = SNOWSTAT[k] + (st[k] - SNOWSTAT[k]) * 0.25; // ease while live
+      if (!thumbRun) SNOWSTAT = st;
+      const cx = f ? f.x : d.mx + d.dw / 2, cy = f ? f.y : d.my + d.dh / 2;
+      snowflake(cx, cy, Math.min(cx - d.mx, d.mx + d.dw - cx, cy - d.my, d.my + d.dh - cy) * 0.95, st, out);
+      return out;
+    }
+    // flurry: score the sheet by edge strength (the focal point counts as a strong edge), strongest first
+    const BB = blobField(), small = Math.min(d.dw, d.dh), rMin = small * 0.035, rMax = small * 0.2, cell = rMin * 1.2, cand = [];
+    for (let y = d.my + cell / 2; y < d.my + d.dh; y += cell) for (let x = d.mx + cell / 2; x < d.mx + d.dw; x += cell) {
+      const h = d.dw / gw * 2, gx = sampleArr(BB, x + h, y) - sampleArr(BB, x - h, y), gy = sampleArr(BB, x, y + h) - sampleArr(BB, x, y - h);
+      let e = Math.hypot(gx, gy) * 6;
+      if (f) e += f.k * fall(f, x, y);
+      const jx = (hash(Math.round(x * 3), Math.round(y * 7)) - 0.5) * cell, jy = (hash(Math.round(y * 5), Math.round(x * 3)) - 0.5) * cell;
+      cand.push([e + hash(Math.round(x), Math.round(y)) * 0.02, x + jx, y + jy]);
+    }
+    cand.sort((a, b) => b[0] - a[0]);
+    const top = cand.length ? cand[0][0] || 1 : 1, placed = [];
+    for (const [e, x, y] of cand) {
+      if (placed.length >= S.snowN || e < top * 0.12 * Math.min(1, 12 / S.snowN)) break;
+      const t = sampleArr(BB, x, y), r = rMin + (rMax - rMin) * clamp(0.65 * e / top + 0.35 * t, 0, 1) * (0.6 + 0.4 * (S.snowN <= 6 ? 1 : 6 / S.snowN));
+      if (x - r < d.mx || x + r > d.mx + d.dw || y - r < d.my || y + r > d.my + d.dh) continue;
+      if (placed.some((p) => Math.hypot(p[0] - x, p[1] - y) < (p[2] + r) * 1.02)) continue;
+      placed.push([x, y, r]);
+    }
+    for (const [x, y, r] of placed) snowflake(x, y, r, snowStats(x - r * 1.5, y - r * 1.5, x + r * 1.5, y + r * 1.5), out);
+    return out;
   }
 
   // ---------------- hairs: short strokes along the edges ----------------
