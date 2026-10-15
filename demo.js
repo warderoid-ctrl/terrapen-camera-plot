@@ -139,9 +139,9 @@
     cap("Point the camera at anything. Here a short clip stands in for the live camera", "Live camera");
     await wait(3500);
 
-    cap("Fourteen styles. Swipe the carousel and the picture redraws as you go", "Styles");
+    cap("Fifteen styles. Swipe the carousel and the picture redraws as you go", "Styles");
     await swipeStrip(520); await swipeStrip(520);
-    for (const [m, nm] of [["contour", "Contour"], ["flow", "Flow"], ["voronoi", "Voronoi"], ["hatch", "Hatch"], ["duotone", "Duotone"], ["engrave", "Engrave"], ["etch", "Etch"], ["loop", "Loop"]]) {
+    for (const [m, nm] of [["contour", "Contour"], ["flow", "Flow"], ["voronoi", "Voronoi"], ["hatch", "Hatch"], ["duotone", "Duotone"], ["engrave", "Engrave"], ["etch", "Etch"], ["loop", "Loop"], ["snow", "Snowflake"]]) {
       cap(`${nm}`, "Tap any tile"); await mode(m, 1700);
     }
     await mode("wave", 1200);

@@ -330,6 +330,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
       <input class="sr" type="radio" name="mode" id="m-engrave" value="engrave"><label for="m-engrave"><canvas class="th" width="272" height="272" data-mode="engrave" aria-hidden="true"></canvas>Engrave</label>
       <input class="sr" type="radio" name="mode" id="m-etch" value="etch"><label for="m-etch"><canvas class="th" width="272" height="272" data-mode="etch" aria-hidden="true"></canvas>Etch</label>
       <input class="sr" type="radio" name="mode" id="m-loop" value="loop"><label for="m-loop"><canvas class="th" width="272" height="272" data-mode="loop" aria-hidden="true"></canvas>Loop</label>
+      <input class="sr" type="radio" name="mode" id="m-snow" value="snow"><label for="m-snow"><canvas class="th" width="272" height="272" data-mode="snow" aria-hidden="true"></canvas>Snowflake</label>
       <input class="sr" type="radio" name="mode" id="m-dots" value="dots"><label for="m-dots"><canvas class="th" width="272" height="272" data-mode="dots" aria-hidden="true"></canvas>Dots</label>
       <input class="sr" type="radio" name="mode" id="m-hairs" value="hairs"><label for="m-hairs"><canvas class="th" width="272" height="272" data-mode="hairs" aria-hidden="true"></canvas>Hairs</label>
       <input class="sr" type="radio" name="mode" id="m-arrows" value="arrows"><label for="m-arrows"><canvas class="th" width="272" height="272" data-mode="arrows" aria-hidden="true"></canvas>Arrows</label>
@@ -549,7 +550,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   if (HIDDEN_MODES.includes(S.mode)) S.mode = "wave";
   if (!["flow", "rigid", "facets"].includes(S.engHatch)) S.engHatch = "flow";
   if (!["none", "outline", "contours"].includes(S.engLines)) S.engLines = "outline";
-  if (!["wave","spiral","contour","flow","blobs","hatch","technical","duotone","engrave","etch","loop","dots","hairs","arrows","suns","swirls","ascii","growth","voronoi","subdiv","ridges"].includes(S.mode)) S.mode = "wave";
+  if (!["wave","spiral","contour","flow","blobs","hatch","technical","duotone","engrave","etch","loop","snow","dots","hairs","arrows","suns","swirls","ascii","growth","voronoi","subdiv","ridges"].includes(S.mode)) S.mode = "wave";
   if (!SHAPES[S.shape]) S.shape = DEFAULTS.shape;
   if (!["none", "hatch", "cross", "grid", "iso", "zig", "stipple"].includes(S.cellFill)) S.cellFill = "none";
   if (!["off", "light", "dark", "flat", "radial"].includes(S.cull)) S.cull = "off";
@@ -560,8 +561,8 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   const scaleOf = (size) => { const [a, b] = SIZES[size]; return Math.sqrt(a * b / (210 * 297)); };
   const store = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
 
-  const SPACE_NAMES = { wave: "Line spacing", spiral: "Ring spacing", flow: "Line spacing", blobs: "Fill spacing", hatch: "Hatch spacing", technical: "Hatch spacing", duotone: "Screen spacing", engrave: "Line spacing", etch: "Stroke spacing", loop: "Line spacing", dots: "Dot spacing", hairs: "Grid spacing", arrows: "Grid spacing", suns: "Grid spacing", swirls: "Grid spacing", ascii: "Character size", growth: "Cell size", voronoi: "Cell size", subdiv: "Mesh spacing", ridges: "Row spacing" };
-  const AMP_NAMES = { wave: "Wave height", spiral: "Wave height", flow: "Line length", blobs: "Blob amount", technical: "Shading", duotone: "Wave height", engrave: "Shading", etch: "Shading", loop: "Tone range", dots: "Dot size", hairs: "Hair length", arrows: "Arrow length", suns: "Sun size", swirls: "Swirl size", ascii: "Glyph size", growth: "Growth", voronoi: "Cell gap", subdiv: "Warp", ridges: "Relief height" };
+  const SPACE_NAMES = { wave: "Line spacing", spiral: "Ring spacing", flow: "Line spacing", blobs: "Fill spacing", hatch: "Hatch spacing", technical: "Hatch spacing", duotone: "Screen spacing", engrave: "Line spacing", etch: "Stroke spacing", loop: "Line spacing", snow: "Ice line spacing", dots: "Dot spacing", hairs: "Grid spacing", arrows: "Grid spacing", suns: "Grid spacing", swirls: "Grid spacing", ascii: "Character size", growth: "Cell size", voronoi: "Cell size", subdiv: "Mesh spacing", ridges: "Row spacing" };
+  const AMP_NAMES = { wave: "Wave height", spiral: "Wave height", flow: "Line length", blobs: "Blob amount", technical: "Shading", duotone: "Wave height", engrave: "Shading", etch: "Shading", loop: "Tone range", snow: "Branching", dots: "Dot size", hairs: "Hair length", arrows: "Arrow length", suns: "Sun size", swirls: "Swirl size", ascii: "Glyph size", growth: "Growth", voronoi: "Cell gap", subdiv: "Warp", ridges: "Relief height" };
   const SLIDERS = [
     { id: "spacing", min: 0.5, max: 10, step: 0.1, dp: 1, unit: " mm", name: () => SPACE_NAMES[S.mode], modes: Object.keys(SPACE_NAMES) },
     { id: "amp", min: 0, max: 200, step: 5, dp: 0, unit: "%", name: () => AMP_NAMES[S.mode], modes: Object.keys(AMP_NAMES) },
@@ -678,7 +679,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   const FOCUS_NAMES = {
     wave: ["Pinch", "Bulge"], spiral: ["Spiral centre", "Spiral centre"],
     contour: ["Hill", "Pit"], flow: ["Whirlpool", "Outward whirl"], blobs: ["Fill centre", "Fill centre"],
-    hatch: ["Vanishing point", "Vanishing point"], technical: ["Vanishing point", "Vanishing point"], duotone: ["Pinch", "Bulge"], engrave: ["Converge", "Radiate"], etch: ["Converge", "Radiate"], loop: ["Tighter here", "Looser here"], dots: ["Ring grid", "Ring grid"],
+    hatch: ["Vanishing point", "Vanishing point"], technical: ["Vanishing point", "Vanishing point"], duotone: ["Pinch", "Bulge"], engrave: ["Converge", "Radiate"], etch: ["Converge", "Radiate"], loop: ["Tighter here", "Looser here"], snow: ["Flake centre", "Flake centre"], dots: ["Ring grid", "Ring grid"],
     hairs: ["Magnet", "Circle comb"], arrows: ["Aim here", "Aim away"], suns: ["Rays reach", "Rays recoil"],
     swirls: ["Orbit", "Counter-orbit"], ascii: ["Ring grid", "Ring grid"], growth: ["Growth seed", "Growth seed"],
     voronoi: ["Cells shrink", "Cells grow"], subdiv: ["Pinch", "Bulge"], ridges: ["Hill", "Pit"]
@@ -688,7 +689,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     contour: ["A hill rises at the point", "A pit sinks at the point"], flow: ["Lines whirl into the point", "Lines whirl out from the point"],
     blobs: ["Fills radiate from the point (contour fill is unchanged)"], hatch: ["Lines converge on the point, like a vanishing point"],
     technical: ["Section hatching converges on the point"], duotone: ["Both screens pinch in towards the point", "Both screens bulge away from the point"],
-    loop: ["The line packs tighter round the point", "The line opens out round the point"], etch: ["Strokes turn towards the point and the vignette centres on it", "Strokes turn across the point and the vignette centres on it"], engrave: ["Hatch patches turn to face the point, dots fall towards it", "Dots are pushed away from the point"], dots: ["Dots sit on rings around the point"],
+    snow: ["The snowflake grows from the point"], loop: ["The line packs tighter round the point", "The line opens out round the point"], etch: ["Strokes turn towards the point and the vignette centres on it", "Strokes turn across the point and the vignette centres on it"], engrave: ["Hatch patches turn to face the point, dots fall towards it", "Dots are pushed away from the point"], dots: ["Dots sit on rings around the point"],
     hairs: ["Hairs comb towards the point", "Hairs circle the point"], arrows: ["Arrows aim at the point", "Arrows aim away from the point"],
     suns: ["Rays stretch towards the point", "Rays stretch away from the point"], swirls: ["Swirls orbit the point", "Swirls orbit the other way"],
     ascii: ["Characters sit on rings around the point"], growth: ["The pattern grows out from the point; Pull sets how far"],
@@ -1611,7 +1612,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   // where it is light). Edges that stretch split, cramped points are dropped, and the line buckles
   // into a maze that packs into the shadows. The loop keeps growing across frames, so it settles on
   // a still and morphs with the live camera.
-  let LOOP = null, loopAnim = false, thumbRun = false;
+  let LOOP = null, loopAnim = false, thumbRun = false; const PROF = { step: 0, steps: 0, render: 0, renders: 0 };
   function loopParams(d) {
     const rng = S.amp / 100, base = Math.max(0.5, S.spacing), f = focus(d);
     const light = 1 + 1.2 * rng, dark = Math.max(0.25, 1 - 0.65 * rng);
@@ -1624,7 +1625,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     return { R, Rmin };
   }
   function loopInit(d, cap) {
-    const P = loopParams(d), s0 = Math.max(P.Rmin * 3, S.spacing * 4), X = [], Y = [];
+    const P = loopParams(d), s0 = Math.max(P.Rmin * 3, S.spacing * LP.s0), X = [], Y = [];
     let rows = Math.max(2, Math.floor((d.dh - s0) / s0)); if (rows % 2) rows--;
     const x0 = d.mx + s0, x1 = d.mx + d.dw - s0 * 0.5, xl = d.mx + s0 * 0.5, step = Math.max(0.5, S.spacing * 0.5);
     const yAt = (k) => d.my + s0 * 0.5 + k * (d.dh - s0) / (rows - 1);
@@ -1638,6 +1639,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     for (let i = 0; i < X.length; i++) { X[i] += (Math.random() - 0.5) * step * 0.4; Y[i] += (Math.random() - 0.5) * step * 0.4; }
     return { X, Y, cap, calm: 0, iters: 0 };
   }
+  const LP = { mergeCrowd: 0.24, s0: 3.6, k: 1.15, rep: 0.32, smFree: 0.15, smCrowd: 0.3, spring: 0.3, l0Free: 0.3, l0Crowd: 0.18, split: 0.5, splitCrowd: 0.7, nudge: 0.05, mvFree: 0.12, mvCrowd: 0.07, freeN: 2 };
   function loopStep(L, d, P) {
     const X = L.X, Y = L.Y, n = X.length, cs = P.Rmin * 2.2, cols = Math.ceil(d.dw / cs) + 1, rows = Math.ceil(d.dh / cs) + 1;
     const head = new Int32Array(cols * rows).fill(-1), nxt = new Int32Array(n), R = new Float32Array(n), near = new Uint16Array(n), crowd = new Uint8Array(n);
@@ -1648,45 +1650,49 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     }
     let moved = 0;
     for (let i = 0; i < n; i++) {
-      const x = X[i], y = Y[i], r = R[i], k = Math.ceil(r / cs), ci = Math.floor((x - d.mx) / cs), cj = Math.floor((y - d.my) / cs);
+      const x = X[i], y = Y[i], r = R[i], k = Math.ceil(r * LP.k / cs), ci = Math.floor((x - d.mx) / cs), cj = Math.floor((y - d.my) / cs);
       let fx = 0, fy = 0, nn = 0, cr = 0;
       for (let j = Math.max(0, cj - k); j <= Math.min(rows - 1, cj + k); j++) for (let ii = Math.max(0, ci - k); ii <= Math.min(cols - 1, ci + k); ii++)
         for (let q = head[j * cols + ii]; q >= 0; q = nxt[q]) {
           let dd = q > i ? q - i : i - q; if (n - dd < dd) dd = n - dd;
           if (dd <= 3) continue;
-          const dx = x - X[q], dy = y - Y[q], d2 = dx * dx + dy * dy;
-          if (d2 >= r * r || d2 < 1e-12) continue;
-          const dist = Math.sqrt(d2), w = 1 - dist / r;
-          fx += dx / dist * w; fy += dy / dist * w; nn++; if (dist < r * 0.45) cr++;
+          const dx = x - X[q], dy = y - Y[q], d2 = dx * dx + dy * dy, rq = (r + R[q]) * 0.5;
+          if (d2 >= rq * rq || d2 < 1e-12) continue;
+          const dist = Math.sqrt(d2), w = 1 - dist / rq, g = w * (0.4 + 1.6 * w) / dist;
+          fx += dx * g; fy += dy * g;
+          if (dd > 7) { nn++; if (dist < rq * 0.45) cr++; } // only other parts of the line count as crowding
         }
       const ip = i ? i - 1 : n - 1, inx = i + 1 < n ? i + 1 : 0;
-      // smoothing, plus springs whose rest length is longer than the edges: the growth pressure
-      let ax = ((X[ip] + X[inx]) / 2 - x) * 0.17, ay = ((Y[ip] + Y[inx]) / 2 - y) * 0.17;
-      for (const q of [ip, inx]) {
-        const ex = x - X[q], ey = y - Y[q], e = Math.hypot(ex, ey) || 1e-9, l0 = (r + R[q]) * 0.25;
-        ax += ex / e * (l0 - e) * 0.22; ay += ey / e * (l0 - e) * 0.22;
+      // free points: springs longer than their edges push the line to grow; crowded points relax and round off
+      const free = nn <= LP.freeN, sm = free ? LP.smFree : LP.smCrowd, l0k = free ? LP.l0Free : LP.l0Crowd;
+      let ax = ((X[ip] + X[inx]) / 2 - x) * sm, ay = ((Y[ip] + Y[inx]) / 2 - y) * sm;
+      for (let s2 = 0; s2 < 2; s2++) {
+        const q = s2 ? inx : ip, ex = x - X[q], ey = y - Y[q], e = Math.hypot(ex, ey) || 1e-9, l0 = (r + R[q]) * l0k;
+        ax += ex / e * (l0 - e) * LP.spring; ay += ey / e * (l0 - e) * LP.spring;
       }
-      fx = fx * r * 0.32 + ax + (Math.random() - 0.5) * r * 0.04; fy = fy * r * 0.32 + ay + (Math.random() - 0.5) * r * 0.04;
+      // a smooth sideways nudge along free stretches starts them buckling into meanders
+      const tx = X[inx] - X[ip], ty = Y[inx] - Y[ip], tl = Math.hypot(tx, ty) || 1;
+      const jn = free ? r * LP.nudge * Math.sin(i * 0.31 + L.iters * 0.013) : 0;
+      fx = fx * r * LP.rep + ax - ty / tl * jn; fy = fy * r * LP.rep + ay + tx / tl * jn;
       const m = r * 0.5; // keep off the margins
       if (x < d.mx + m) fx += (d.mx + m - x) * 0.3; if (x > d.mx + d.dw - m) fx -= (x - d.mx - d.dw + m) * 0.3;
       if (y < d.my + m) fy += (d.my + m - y) * 0.3; if (y > d.my + d.dh - m) fy -= (y - d.my - d.dh + m) * 0.3;
-      const fl = Math.hypot(fx, fy), mx = r * 0.1;
+      const fl = Math.hypot(fx, fy), mx = r * (free ? LP.mvFree : LP.mvCrowd);
       if (fl > mx) { fx *= mx / fl; fy *= mx / fl; }
       NX[i] = clamp(x + fx, d.mx, d.mx + d.dw); NY[i] = clamp(y + fy, d.my, d.my + d.dh);
       moved += Math.min(fl, mx) / r; near[i] = nn; crowd[i] = cr;
     }
-    // split stretched edges, grow into free space, drop cramped points
+    // split stretched edges, merge shrunk ones (never leaving a long jump)
     const OX = [], OY = []; let changes = 0;
     for (let i = 0; i < n; i++) {
       const j = i + 1 < n ? i + 1 : 0, rr = (R[i] + R[j]) / 2;
-      if (crowd[i] >= 3 && n > 16 && Math.random() < 0.15) { changes++; continue; }
-      if (OX.length) { const lx = OX[OX.length - 1], ly = OY[OY.length - 1]; if (Math.hypot(NX[i] - lx, NY[i] - ly) < rr * 0.15) { changes++; continue; } }
+      if (OX.length && n > 16) {
+        const lx = OX[OX.length - 1], ly = OY[OY.length - 1], lim = crowd[i] >= 2 ? LP.mergeCrowd : 0.15;
+        if (Math.hypot(NX[i] - lx, NY[i] - ly) < rr * lim && Math.hypot(NX[j] - lx, NY[j] - ly) < rr * 0.7) { changes++; continue; }
+      }
       OX.push(NX[i]); OY.push(NY[i]);
       const ex = NX[j] - NX[i], ey = NY[j] - NY[i], e = Math.hypot(ex, ey);
-      if (n + changes < L.cap && e > rr * 0.4) {
-        const o = (Math.random() - 0.5) * rr * 0.1 / (e || 1);
-        OX.push(NX[i] + ex / 2 - ey * o); OY.push(NY[i] + ey / 2 + ex * o); changes++;
-      }
+      if (n + changes < L.cap && e > rr * (near[i] <= LP.freeN ? LP.split : LP.splitCrowd)) { OX.push(NX[i] + ex / 2); OY.push(NY[i] + ey / 2); changes++; }
     }
     L.X = OX; L.Y = OY; L.iters++;
     L.calm = changes < n * 0.003 && moved / n < 0.012 ? L.calm + 1 : 0;
@@ -1700,14 +1706,105 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     }
     const key = [d.W, d.H, d.mx, d.my].join();
     if (!LOOP || LOOP.key !== key) { LOOP = loopInit(d, 26000); LOOP.key = key; }
-    const t0 = performance.now(), budget = live && !frozen ? 28 : 45;
+    const t0 = performance.now(), budget = 8;
     const running = live && !frozen;
     if (running) LOOP.still = 0;
-    do { loopStep(LOOP, d, P); if (!running) LOOP.still = (LOOP.still || 0) + 1; } while (performance.now() - t0 < budget && LOOP.calm < 6);
+    do { const ts = performance.now(); loopStep(LOOP, d, P); PROF.step += performance.now() - ts; PROF.steps++; if (!running) LOOP.still = (LOOP.still || 0) + 1; } while (performance.now() - t0 < budget && LOOP.calm < 6);
     loopAnim = running || (LOOP.calm < 6 && (LOOP.still || 0) < 1200); // a still settles, then stops
     return [{ layer: 0, pts: loopPts(LOOP) }];
   }
-  const loopPts = (L) => { if (L.X.length < 3) return []; const sm = smoothPoly(L.X, L.Y, 0), X = sm.x, Y = sm.y, p = []; for (let i = 0; i < X.length; i++) p.push(X[i], Y[i]); p.push(X[0], Y[0]); return p; };
+  const loopPts = (L) => { // average out small barbs, then round the corners
+    const n = L.X.length; if (n < 3) return [];
+    let X = L.X, Y = L.Y;
+    for (let pass = 0; pass < 2; pass++) {
+      const AX = new Array(n), AY = new Array(n);
+      for (let i = 0; i < n; i++) { const a = i ? i - 1 : n - 1, b = i + 1 < n ? i + 1 : 0; AX[i] = (X[a] + 2 * X[i] + X[b]) / 4; AY[i] = (Y[a] + 2 * Y[i] + Y[b]) / 4; }
+      X = AX; Y = AY;
+    }
+    const sm = smoothPoly(X, Y, 0), SX = sm.x, SY = sm.y, p = []; for (let i = 0; i < SX.length; i++) p.push(SX[i], SY[i]); p.push(SX[0], SY[0]); return p;
+  };
+
+  // ---------------- snowflake: a crystal grown from rules, tuned by the picture ----------------
+  // Nothing is traced from the image. Its overall tone, contrast, edge detail and dominant direction set
+  // the crystal's rules: dark scenes grow broad plates, bright ones feathery dendrites, contrast adds side
+  // branches, edges add sub-branches, and the main direction turns the flake. Six arms, each mirrored, so
+  // pointing the camera somewhere new grows a new flake; small changes morph it gently.
+  let SNOWSTAT = null;
+  function genSnow(d) {
+    // picture statistics, eased over time so the live camera morphs the flake rather than flicking it
+    let sum = 0, sq = 0, ed = 0, cxx = 0, cxy = 0, cyy = 0; const n = gw * gh, B = fields().B;
+    for (let j = 1; j < gh - 1; j++) for (let i = 1; i < gw - 1; i++) {
+      const c = j * gw + i, v = B[c]; sum += v; sq += v * v;
+      const gx = B[c + 1] - B[c - 1], gy = B[c + gw] - B[c - gw]; ed += Math.hypot(gx, gy); cxx += gx * gx; cxy += gx * gy; cyy += gy * gy;
+    }
+    const cnt = (gw - 2) * (gh - 2), mean = sum / cnt, sd = Math.sqrt(Math.max(0, sq / cnt - mean * mean));
+    let cen = 0, cn = 0, top = 0, tn = 0; // centre against surround, top against bottom
+    for (let j = 0; j < gh; j++) for (let i = 0; i < gw; i++) {
+      const v = B[j * gw + i], u = Math.hypot(i / gw - 0.5, j / gh - 0.5);
+      if (u < 0.25) { cen += v; cn++; } if (j < gh / 2) { top += v; tn++; }
+    }
+    const st = { mean, sd: clamp(sd * 3, 0, 1), edge: clamp(ed / cnt * 12, 0, 1), rot: 0.5 * Math.atan2(2 * cxy, cxx - cyy),
+      cs: clamp((cen / Math.max(1, cn) - mean) * 4, -1, 1), tb: clamp((top / Math.max(1, tn) - mean) * 6, -1, 1) };
+    if (SNOWSTAT && !thumbRun) for (const k in st) st[k] = SNOWSTAT[k] + (st[k] - SNOWSTAT[k]) * 0.25;
+    if (!thumbRun) SNOWSTAT = st;
+    void n;
+    const f = focus(d), cx = f ? f.x : d.mx + d.dw / 2, cy = f ? f.y : d.my + d.dh / 2;
+    const Rm = Math.min(cx - d.mx, d.mx + d.dw - cx, cy - d.my, d.my + d.dh - cy) * 0.95;
+    const br = S.amp / 100, plate = clamp((st.mean - 0.35) * 2.2, 0, 1), fern = 1 - plate;
+    const nBr = Math.round(2 + (3 + 5 * st.sd) * br), sub = st.edge * br, w = Math.max(S.pen * 0.6, Rm * (0.006 + 0.02 * plate));
+    const rot = st.rot * 0.5 + Math.PI / 2, sp = Math.max(S.pen * 1.5, S.spacing * 0.35);
+    const seg = []; // one half-arm along +x, as polylines
+    const ribbon = (x0, y0, x1, y1, ww) => { // a stroke with width: an outline of the ice, closed at the tip
+      const dx = x1 - x0, dy = y1 - y0, l = Math.hypot(dx, dy) || 1, nx = -dy / l * ww, ny = dx / l * ww;
+      seg.push([x0 + nx, y0 + ny, x1 + nx * 0.25, y1 + ny * 0.25, x1 + dx / l * ww * 0.6, y1 + dy / l * ww * 0.6, x1 - nx * 0.25, y1 - ny * 0.25, x0 - nx, y0 - ny]);
+    };
+    const branch = (x, y, a, len, ww, depth) => {
+      const x1 = x + Math.cos(a) * len, y1 = y + Math.sin(a) * len;
+      if (ww > S.pen * 0.7) ribbon(x, y, x1, y1, ww); else seg.push([x, y, x1, y1]);
+      if (depth <= 0 || len < sp * 3) return;
+      const k = depth === 2 ? nBr : Math.max(1, Math.round(nBr * sub * 0.8));
+      for (let q = 1; q <= k; q++) {
+        const t = q / (k + 1), bx = x + Math.cos(a) * len * t, by = y + Math.sin(a) * len * t;
+        // ferns: long branches near the base tapering out; plates: short, even branches
+        // a dark centre grows ferns (long branches near the core); a bright centre grows fans (long near the tips)
+        const shape = st.cs < 0 ? Math.pow(1 - t, 0.8) : Math.pow(t, 0.7) * 0.8 + 0.15;
+        const wave = 0.6 + 0.4 * Math.sin(t * Math.PI * (1.5 + 3 * st.sd) + st.tb * 3);
+        const prof = fern * shape * wave + plate * (0.22 + 0.12 * Math.cos(t * Math.PI * 2 * (1 + st.edge)));
+        if (depth === 2 && st.tb > 0.25 && q % 2 === 0) continue; // a bright top leaves gaps along the arm
+        let bl = len * prof * (depth === 2 ? 0.75 : 0.6);
+        if (depth === 2) bl = Math.min(bl, len * t * 0.92); // stop short of the neighbouring arm
+        if (bl < sp * 1.2) continue;
+        for (const sgn of depth === 2 ? [1] : [1, -1]) branch(bx, by, a + sgn * Math.PI / 3, bl, ww * 0.6, depth - 1);
+      }
+    };
+    branch(0, 0, 0, Rm * (0.75 + 0.25 * fern), w, 2);
+    // plates: hexagons nested round the core, and sector plates along the arm
+    const hexes = [], core = Rm * (0.08 + 0.3 * plate), rings = Math.max(1, Math.min(14, Math.round(core / (sp * 1.6))));
+    for (let k = 1; k <= rings; k++) hexes.push(core * k / rings);
+    // fit: scale the whole crystal so its furthest point sits inside the sheet
+    let far = 1e-6; for (const p of seg) for (let i = 0; i < p.length; i += 2) far = Math.max(far, Math.hypot(p[i], p[i + 1]));
+    const fit = Math.min(1, Rm / far);
+    if (fit < 1) { for (const p of seg) for (let i = 0; i < p.length; i++) p[i] *= fit; for (let k = 0; k < hexes.length; k++) hexes[k] *= fit; }
+    // build the flake: mirror the half-arm, turn it six ways
+    const out = [], ca = Math.cos(rot), sa = Math.sin(rot);
+    const put = (pts, layer) => { const o = []; for (let i = 0; i < pts.length; i += 2) { const X = pts[i] * ca - pts[i + 1] * sa, Y = pts[i] * sa + pts[i + 1] * ca; o.push(cx + X, cy + Y); } out.push({ layer, pts: o }); };
+    for (let arm = 0; arm < 6; arm++) {
+      const A = arm * Math.PI / 3, c = Math.cos(A), s = Math.sin(A);
+      for (const sg of [1, -1]) for (const p of seg) {
+        const o = []; for (let i = 0; i < p.length; i += 2) { const x = p[i], y = p[i + 1] * sg; o.push(x * c - y * s, x * s + y * c); }
+        put(o, 0);
+      }
+    }
+    for (const r of hexes) { const o = []; for (let k = 0; k <= 6; k++) { const a = k * Math.PI / 3 + Math.PI / 6; o.push(Math.cos(a) * r, Math.sin(a) * r); } put(o, 1); }
+    if (plate > 0.3) { // sector plates: a small hexagon at each arm's midpoint and tip
+      for (let arm = 0; arm < 6; arm++) for (const t of [0.55, 0.95]) {
+        const A = arm * Math.PI / 3, hx = Math.cos(A) * Rm * fit * t * (0.75 + 0.25 * fern), hy = Math.sin(A) * Rm * fit * t * (0.75 + 0.25 * fern), hr = Rm * fit * 0.06 * plate * (t > 0.9 ? 0.7 : 1), o = [];
+        for (let k = 0; k <= 6; k++) { const a = k * Math.PI / 3 + Math.PI / 6; o.push(hx + Math.cos(a) * hr, hy + Math.sin(a) * hr); }
+        put(o, 1);
+      }
+    }
+    return out.filter((p) => p.pts.every((v, i) => (i % 2 ? v >= d.my - 0.01 && v <= d.my + d.dh + 0.01 : v >= d.mx - 0.01 && v <= d.mx + d.dw + 0.01)));
+  }
 
   // ---------------- hairs: short strokes along the edges ----------------
   function genHairs(d) {
@@ -2440,7 +2537,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     return out;
   }
 
-  const GEN = { voronoi: genVoronoi, subdiv: genSubdiv, ridges: genRidges, technical: genTechnical, duotone: genDuotone, wave: genWave, hatch: genHatch, spiral: genSpiral, dots: genDots, contour: genContour, flow: genFlow, engrave: genEngrave, etch: genEtch, loop: genLoop, blobs: genBlobs, hairs: genHairs, arrows: genArrows, suns: genSuns, swirls: genSwirls, ascii: genAscii, growth: genGrowth };
+  const GEN = { voronoi: genVoronoi, subdiv: genSubdiv, ridges: genRidges, technical: genTechnical, duotone: genDuotone, wave: genWave, hatch: genHatch, spiral: genSpiral, dots: genDots, contour: genContour, flow: genFlow, engrave: genEngrave, etch: genEtch, loop: genLoop, snow: genSnow, blobs: genBlobs, hairs: genHairs, arrows: genArrows, suns: genSuns, swirls: genSwirls, ascii: genAscii, growth: genGrowth };
 
   // ---------------- viewport: fit, zoom, pan ----------------
   const stage = $("stage"), paperEl = $("paper"), view = $("view"), vctx = view.getContext("2d");
@@ -2557,6 +2654,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
     fieldCache = null;
     paths = applyBands(applyJitter(applyClip((GEN[S.mode] || genWave)(DM), DM)), DM);
     draw();
+    PROF.render += performance.now() - t0; PROF.renders++;
     liveGap = Math.max(120, (performance.now() - t0) * 1.5); // slow devices or huge sheets: refresh less often
     let len = 0;
     for (const p of paths) { const q = p.pts; for (let i = 2; i < q.length; i += 2) len += Math.hypot(q[i] - q[i - 2], q[i + 1] - q[i - 1]); }
@@ -3015,7 +3113,7 @@ body.side .toast { left: calc((100vw - 340px) / 2); bottom: 16px; }
   $("margin").value = S.margin;
   syncLabels();
   requestAnimationFrame(() => showMode(false));
-  if (/[?&]debug\b/.test(location.search)) window.__cp = { S, render: () => { const t = performance.now(); render(); return { ms: performance.now() - t, lines: paths.length, pts: paths.reduce((a, p) => a + p.pts.length / 2, 0) }; }, setMode: (m) => { S.mode = m; changed(false); }, loop: () => LOOP && ({ n: LOOP.X.length, it: LOOP.iters, calm: LOOP.calm }) };
+  if (/[?&]debug\b/.test(location.search)) window.__cp = { S, render: () => { const t = performance.now(); render(); return { ms: performance.now() - t, lines: paths.length, pts: paths.reduce((a, p) => a + p.pts.length / 2, 0) }; }, setMode: (m) => { S.mode = m; changed(false); }, LP, loopTest: (it) => { const d = DM, P = loopParams(d); LOOP = loopInit(d, 26000); LOOP.key = [d.W, d.H, d.mx, d.my].join(); const t0 = performance.now(); for (let k = 0; k < it; k++) loopStep(LOOP, d, P); const ms = (performance.now() - t0) / it; LOOP.still = 99999; LOOP.calm = 99; render(); return { n: LOOP.X.length, msPerStep: +ms.toFixed(2) }; }, prof: () => ({ stepMs: PROF.step / Math.max(1, PROF.steps), renderMs: PROF.render / Math.max(1, PROF.renders), stepsPerRender: PROF.steps / Math.max(1, PROF.renders) }), loop: () => LOOP && ({ n: LOOP.X.length, it: LOOP.iters, calm: LOOP.calm }) };
   setPip(S.pip !== false);
   const sample = makeSample();
   setStill(sample, sample.width, sample.height);

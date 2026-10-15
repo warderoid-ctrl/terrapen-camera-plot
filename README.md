@@ -63,6 +63,7 @@ Long-press the picture to drop a point that the current style reacts to. A targe
 | Engrave | Hatch converges on the point | Hatch rings round the point |
 | Etch    | Strokes converge, vignette centres on the point | Strokes ring round the point |
 | Loop    | The line packs tighter round the point | The line opens out round the point |
+| Snowflake | The flake grows from the point | |
 | Dots    | Dots sit on rings around the point        | same                        |
 | Hairs   | Combed towards the point, like iron filings | Combed into circles around it |
 | Arrows  | Aim at the point                          | Aim away                    |
@@ -97,6 +98,7 @@ Long-press the picture to drop a point that the current style reacts to. A targe
 | Engrave | Etching hybrid: blob outlines (or form contours), evenly spaced hatch lines that end and split as the tone lightens, cross-hatch building up in the shadows, dots in the light tones. Hatch: Flow (wraps round forms), Rigid (straight diagonal) or Facets (shards). Pen 1 outlines, pen 2 hatch and dots, pen 3 cross-hatch |
 | Etch    | Loose needle etching (after Rembrandt): tone from small groups of parallel strokes at shifting angles round the form, stacking in the shadows; broken, restated outlines; curls where the picture is busy; fades to the edges. Pen 1 outlines, pen 2 light hatching, pen 3 shadows |
 | Loop    | One continuous closed line grown by differential growth: it packs into a tight maze where the picture is dark and opens into wide meanders where it is light. Keeps growing across frames, so it settles on a still and morphs with the live camera. Tone range sets the contrast between the two |
+| Snowflake | A six-armed crystal grown from rules; nothing is traced. The picture tunes the rules: overall tone (plates vs feathery dendrites), contrast (how many branches), edge detail (sub-branches), centre vs surround (ferns vs fans), top vs bottom (gaps along the arms) and the main direction (rotation). Eased over time so the live camera morphs it. Branching scales everything; pen 1 arms, pen 2 hexagonal plates |
 | Dots    | Hexagonal grid of circles sized by darkness                                   |
 | Hairs   | Short strokes along the edges                                                 |
 | Arrows  | Arrows pointing towards darker areas                                          |
