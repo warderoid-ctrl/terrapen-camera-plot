@@ -567,11 +567,12 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
       </div>
     </div></details>
     <details class="grp" id="colourSec"><summary><span>Colours</span><span class="sum" id="colourSum"></span></summary><div class="sec inner">
-      <div class="seg4" role="radiogroup" aria-label="How the pens are coloured">
+      <div class="seg4 seg5" role="radiogroup" aria-label="How the pens are coloured">
         <input class="sr" type="radio" name="colourMode" id="cm-none" value="none"><label for="cm-none">None</label>
         <input class="sr" type="radio" name="colourMode" id="cm-layers" value="layers"><label for="cm-layers">Layers</label>
         <input class="sr" type="radio" name="colourMode" id="cm-linear" value="linear"><label for="cm-linear">Linear</label>
         <input class="sr" type="radio" name="colourMode" id="cm-radial" value="radial"><label for="cm-radial">Radial</label>
+        <input class="sr" type="radio" name="colourMode" id="cm-mix" value="mix"><label for="cm-mix">Multi</label>
       </div>
       <p class="tips" id="colourTip"></p>
       <div class="pens">
@@ -582,7 +583,8 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
       </div>
       <div class="sec" id="bandCtl" hidden>
         <div class="sec" id="bandSliders"></div>
-        <div class="checks"><label><input type="checkbox" id="bandRev"> Reverse order</label></div>
+        <div class="checks" id="bandRevRow"><label><input type="checkbox" id="bandRev"> Reverse order</label></div>
+        <div class="btnrow" id="mixRow"><button class="btn small" id="btnShuffle" type="button">Shuffle colours</button></div>
       </div>
       <div class="btnrow"><button class="btn small" id="btnResetColours" type="button">Reset colours</button></div>
     </div></details>
@@ -651,7 +653,7 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
   // Default pen inks come from the terraPen palette: shell green, coral, teal and black.
   const BRAND_PENS = ["#17321b", "#e83b68", "#66cccc", "#000000"];
   const OLD_PENS = ["#1f2a5c", "#e4572e", "#2364aa", "#4f8a3b"];
-  const DEFAULTS = { autoFull: true, camUnder: false, camAlpha: 20, snowLook: "profile", snowMany: false, snowN: 18, etchVig: true, etchCurls: true, etchOutline: true, engHatch: "flow", engLines: "outline", engDots: true, clipZone: 35, clipKeep: 10, jitLine: 0, jitHatch: 0, paperCol: "#ffffff", paperSvg: false, cullX: 50, cullY: 50, bandX: 50, bandY: 50, cellFill: "none", fillDens: 100, vorSmooth: 0, cull: "off", cullAt: 70, cullSoft: 30, bands: "off", bandN: 3, bandAngle: 0, bandBlend: 40, bandRev: false, showTarget: false, splitPens: false, pens: BRAND_PENS, showColours: false, techBold: true, techFrame: true, focus: null, repel: false, pull: 100, levels: 8, blobFill: "hatch", mode: "wave", size: "a4", shape: "p", margin: 10, spacing: 3.5, amp: 100, layers: 3, contrast: 1.3, bright: 0, pen: 0.3, invert: false, auto: true, pip: true };
+  const DEFAULTS = { mixSize: 25, mixSeed: 1, autoFull: true, camUnder: false, camAlpha: 20, snowLook: "profile", snowMany: false, snowN: 18, etchVig: true, etchCurls: true, etchOutline: true, engHatch: "flow", engLines: "outline", engDots: true, clipZone: 35, clipKeep: 10, jitLine: 0, jitHatch: 0, paperCol: "#ffffff", paperSvg: false, cullX: 50, cullY: 50, bandX: 50, bandY: 50, cellFill: "none", fillDens: 100, vorSmooth: 0, cull: "off", cullAt: 70, cullSoft: 30, bands: "off", bandN: 3, bandAngle: 0, bandBlend: 40, bandRev: false, showTarget: false, splitPens: false, pens: BRAND_PENS, showColours: false, techBold: true, techFrame: true, focus: null, repel: false, pull: 100, levels: 8, blobFill: "hatch", mode: "wave", size: "a4", shape: "p", margin: 10, spacing: 3.5, amp: 100, layers: 3, contrast: 1.3, bright: 0, pen: 0.3, invert: false, auto: true, pip: true };
   const S = Object.assign({}, DEFAULTS);
   const KEY = "terrapen-camera-plot";
   try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
@@ -676,7 +678,7 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
   if (!SHAPES[S.shape]) S.shape = DEFAULTS.shape;
   if (!["none", "hatch", "cross", "grid", "iso", "zig", "stipple"].includes(S.cellFill)) S.cellFill = "none";
   if (!["off", "light", "dark", "flat", "radial"].includes(S.cull)) S.cull = "off";
-  if (!["off", "linear", "radial"].includes(S.bands)) S.bands = "off";
+  if (!["off", "linear", "radial", "mix"].includes(S.bands)) S.bands = "off";
   const paperWH = () => { const [a, b] = SIZES[S.size]; return S.shape === "l" ? [b, a] : S.shape === "sq" ? [a, a] : [a, b]; };
   const paperName = () => S.size.toUpperCase() + (S.shape === "p" ? "" : " " + SHAPES[S.shape]);
   // How much bigger than A4 the sheet is (by side length). Spacing ranges and sampling scale with it.
@@ -705,11 +707,12 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
     { id: "cullX", parent: "cullSliders", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => "Centre across", when: () => S.cull === "radial" },
     { id: "cullY", parent: "cullSliders", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => "Centre down", when: () => S.cull === "radial" },
     { id: "cullSoft", parent: "cullSliders", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => "Falloff", when: () => S.cull !== "off" },
-    { id: "bandX", parent: "bandSliders", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => S.bands === "linear" ? "Line position across" : "Centre across", when: () => S.bands !== "off" },
-    { id: "bandY", parent: "bandSliders", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => S.bands === "linear" ? "Line position down" : "Centre down", when: () => S.bands !== "off" },
-    { id: "bandN", parent: "bandSliders", min: 2, max: 4, step: 1, dp: 0, unit: "", name: () => "Bands", when: () => S.bands !== "off" },
+    { id: "bandX", parent: "bandSliders", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => S.bands === "linear" ? "Line position across" : "Centre across", when: () => S.bands === "linear" || S.bands === "radial" },
+    { id: "bandY", parent: "bandSliders", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => S.bands === "linear" ? "Line position down" : "Centre down", when: () => S.bands === "linear" || S.bands === "radial" },
+    { id: "bandN", parent: "bandSliders", min: 2, max: 4, step: 1, dp: 0, unit: "", name: () => (S.bands === "mix" ? "Pens" : "Bands"), when: () => S.bands !== "off" },
+    { id: "mixSize", parent: "bandSliders", min: 5, max: 80, step: 1, dp: 0, unit: " mm", name: () => "Patch size", when: () => S.bands === "mix" },
     { id: "bandAngle", parent: "bandSliders", min: 0, max: 355, step: 5, dp: 0, unit: "°", name: () => "Angle", when: () => S.bands === "linear" },
-    { id: "bandBlend", parent: "bandSliders", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => "Edge blend", when: () => S.bands !== "off" }
+    { id: "bandBlend", parent: "bandSliders", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => "Edge blend", when: () => S.bands === "linear" || S.bands === "radial" }
   ];
   const CULL_NAMES = { light: "Cull lighter than", dark: "Cull darker than", flat: "Keep detail above", radial: "Keep radius" };
   const CULL_DEF = { light: 80, dark: 20, flat: 30, radial: 60 };
@@ -835,15 +838,17 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
   // (each pen takes a band of a gradient instead). Stored as showColours and bands.
   const colourMode = () => (S.bands !== "off" ? S.bands : S.showColours ? "layers" : "none");
   const COLOUR_TIPS = {
-    none: "Every line is drawn and saved in black. The style's layers still stay separate in the SVG. Duotone always uses pens 1 and 2.",
-    layers: "Each of the style's layers is drawn in its pen's ink, for example Hatch directions, Blobs outline and fill, or Technical lineweights. Each pen is its own layer in the SVG.",
+    none: "Every line is drawn and saved in black. The style's layers still stay separate in the SVG. Duotone always keeps its two inks (pens 1 and 2).",
+    layers: "Each of the style's layers is drawn in its pen's ink, for example Hatch directions, Blobs outline and fill, Duotone's two screens or Technical lineweights. Styles with a single layer use pen 1; try Multi for those.",
+    mix: "The sheet is split into random patches and each patch gets a pen. Small shapes keep one colour each, so blobs, cells and dots change colour in clusters, and long lines change pen as they cross a patch. Shuffle for a new pattern.",
     linear: "One pen per band, pens 1 to N from the start of the gradient. Edge blend scatters strokes across each boundary so some marks take the neighbouring pen. Move the line with the position sliders. This replaces the style's own pen layers.",
     radial: "One pen per ring, pens 1 to N from the centre. It centres on the focal point, or move the centre with the position sliders. Edge blend scatters strokes across each boundary. This replaces the style's own pen layers."
   };
+  $("btnShuffle").addEventListener("click", () => { S.mixSeed = 1 + Math.floor(Math.random() * 1e6); thumbStamp++; changed(false); });
   document.querySelectorAll('input[name="colourMode"]').forEach((r) => r.addEventListener("change", () => {
     if (!r.checked) return;
     S.showColours = r.value === "layers";
-    S.bands = r.value === "linear" || r.value === "radial" ? r.value : "off";
+    S.bands = r.value === "linear" || r.value === "radial" || r.value === "mix" ? r.value : "off";
     thumbStamp++; changed(false);
   }));
   $("techBold").checked = !!S.techBold; $("techFrame").checked = !!S.techFrame;
@@ -1028,7 +1033,8 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
     $("cullSum").textContent = S.cull === "off" ? "Off" : cap(S.cull);
     const cm = colourMode();
     document.querySelectorAll('input[name="colourMode"]').forEach((r) => { r.checked = r.value === cm; });
-    $("colourSum").textContent = cm === "none" ? "None" : cm === "layers" ? "Layers" : cap(cm) + " bands · " + S.bandN;
+    $("colourSum").textContent = cm === "none" ? "None" : cm === "layers" ? "Layers" : cm === "mix" ? "Multicolour · " + S.bandN : cap(cm) + " bands · " + S.bandN;
+    $("bandRevRow").hidden = cm === "mix"; $("mixRow").hidden = cm !== "mix";
     $("colourTip").textContent = COLOUR_TIPS[cm];
     $("focusSum").textContent = S.focus ? (S.repel ? "Repel" : "Attract") : "None";
     $("paperSum").textContent = S.size.toUpperCase() + " " + SHAPES[S.shape] + (S.paperCol.toLowerCase() === "#ffffff" ? "" : " · coloured");
@@ -2930,6 +2936,7 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
   // near a boundary some marks take the neighbouring pen and the edge looks blurred rather than cut.
   function applyBands(list, d) {
     if (S.bands === "off") return list;
+    if (S.bands === "mix") return applyMix(list, d);
     const N = clamp(S.bandN, 2, 4), blend = S.bandBlend / 100, linear = S.bands === "linear";
     const own = S.bandX !== 50 || S.bandY !== 50;
     const cx = own ? d.mx + S.bandX / 100 * d.dw : S.focus && !linear ? S.focus.x * d.W : d.mx + d.dw / 2, cy = own ? d.my + S.bandY / 100 * d.dh : S.focus && !linear ? S.focus.y * d.H : d.my + d.dh / 2;
@@ -2963,6 +2970,47 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
       }
       if (cur && cur.length >= 4) out.push({ layer: curB, pts: cur });
     });
+    return out;
+  }
+  // Multicolour: the sheet is split into random patches (a Voronoi of jittered grid points, cell size
+  // from Patch size), each with a pen picked by a seeded hash so the pattern holds still between
+  // frames; Shuffle changes the seed. A stroke smaller than a patch keeps one pen (by its middle),
+  // so shapes change colour in clusters; longer strokes are cut where they cross into another patch.
+  function applyMix(list, d) {
+    const N = clamp(S.bandN, 2, 4), cs = Math.max(3, S.mixSize), sd = S.mixSeed | 0;
+    const sx = (i, j) => (i + 0.15 + 0.7 * hash(i * 31 + sd, j * 17 + 3)) * cs, sy = (i, j) => (j + 0.15 + 0.7 * hash(i * 13 + 7, j * 29 + sd)) * cs;
+    const penAt = (x, y) => {
+      const i0 = Math.floor(x / cs), j0 = Math.floor(y / cs);
+      let bi = i0, bj = j0, bd = Infinity;
+      for (let j = j0 - 1; j <= j0 + 1; j++) for (let i = i0 - 1; i <= i0 + 1; i++) {
+        const dd = (sx(i, j) - x) ** 2 + (sy(i, j) - y) ** 2;
+        if (dd < bd) { bd = dd; bi = i; bj = j; }
+      }
+      return Math.floor(hash(bi * 53 + sd * 7 + 11, bj * 71 + sd + 5) * N) % N;
+    };
+    const step = cs / 8, out = [];
+    for (const p of list) {
+      const q = p.pts, len = q.length;
+      if (len < 2) continue;
+      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+      for (let i = 0; i < len; i += 2) { if (q[i] < x0) x0 = q[i]; if (q[i] > x1) x1 = q[i]; if (q[i + 1] < y0) y0 = q[i + 1]; if (q[i + 1] > y1) y1 = q[i + 1]; }
+      if (Math.max(x1 - x0, y1 - y0) < cs * 0.75 || len < 4) { out.push({ layer: penAt((x0 + x1) / 2, (y0 + y1) / 2), pts: q }); continue; }
+      let cur = [q[0], q[1]], curP = penAt(q[0], q[1]);
+      for (let i = 2; i < len; i += 2) {
+        const ax = q[i - 2], ay = q[i - 1], bx = q[i], by = q[i + 1], n = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / step));
+        for (let k = 1; k <= n; k++) { // walk the segment in short steps so long straight lines still split at patch edges
+          const t = k / n, x = ax + (bx - ax) * t, y = ay + (by - ay) * t, pn = penAt(x, y);
+          if (pn !== curP) {
+            const px = ax + (bx - ax) * (k - 1) / n, py = ay + (by - ay) * (k - 1) / n;
+            if (k > 1) cur.push(px, py);
+            if (cur.length >= 4) out.push({ layer: curP, pts: cur });
+            cur = [px, py]; curP = pn;
+          }
+        }
+        cur.push(bx, by);
+      }
+      if (cur.length >= 4) out.push({ layer: curP, pts: cur });
+    }
     return out;
   }
   let liveGap = 120;
