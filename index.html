@@ -89,10 +89,16 @@ button:focus-visible, label:focus-visible, select:focus-visible, input:focus-vis
   background: var(--chrome); border: 1px solid var(--line); display: grid; place-items: center;
 }
 .iconbtn[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+@media (pointer: coarse) {
+  .top { flex-wrap: wrap; justify-content: flex-end; }
+  .top .chip { order: 2; flex: 1 1 100%; }
+  .top .iconbtn { width: 80px; height: 80px; }
+  .top .iconbtn svg.i { width: 40px; height: 40px; stroke-width: 1.6; }
+}
 svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
 .pip {
-  position: fixed; z-index: 9; right: 12px; top: calc(env(safe-area-inset-top, 0px) + 60px);
+  position: fixed; z-index: 9; right: 12px; top: calc(var(--toph, 56px) + 4px);
   width: 24vw; max-width: 130px; height: auto; border-radius: 6px; border: 1px solid var(--line);
   box-shadow: 0 4px 14px rgba(0,0,0,.5); filter: grayscale(1); pointer-events: none;
   transition: opacity .2s ease;
@@ -132,8 +138,8 @@ body.side .hint { left: calc((100vw - 340px) / 2); }
   transition: transform .25s ease, background .15s ease, border-color .15s ease;
 }
 .head { touch-action: none; }
-.grab { display: grid; place-items: center; gap: 2px; width: 100%; height: 30px; border: 0; background: none; padding: 0; color: var(--muted); }
-.grab::before { content: ""; width: 40px; height: 5px; border-radius: 3px; background: var(--line); }
+.grab { display: grid; place-items: center; gap: 2px; width: 100%; height: 34px; border: 0; background: none; padding: 0; color: var(--muted); }
+.grab::before { content: ""; width: 56px; height: 6px; border-radius: 3px; background: var(--muted); }
 /* Style carousel: thumbnails previewing each style; the one in the centre is active. */
 .modes {
   position: relative; display: flex; gap: 10px; margin-inline: -16px;
@@ -159,7 +165,9 @@ body:not(.side) .sheet.open .stylebar { display: flex; }
 body:not(.side) .sheet.open .modes { max-height: 0; opacity: 0; padding-block: 0; overflow: hidden; pointer-events: none; }
 /* Clean view: only the carousel stays, floating over the plot. */
 body.clean:not(.side) .sheet { transform: none; background: transparent; border-color: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 4px); }
-body.clean:not(.side) .sheet .head > :not(.modes) { display: none; }
+body.clean:not(.side) .sheet .head > :not(.modes):not(.grab) { display: none; }
+/* Minimised: the grab handle stays above the carousel as the way back to the menu. */
+body.clean:not(.side) .grab::before { background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.6); }
 body.clean:not(.side) .sheet .more { display: none; }
 body.clean:not(.side) .sheet .modes { max-height: 260px; opacity: 1; padding-block: 16px 14px; /* room for the selected tile's ring when it scales up */ pointer-events: auto; overflow-x: auto; }
 body.clean:not(.side) .sheet .modes label { color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.6); }
@@ -899,6 +907,19 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
     try { strip.scrollTo({ left, behavior: smooth ? "smooth" : "auto" }); } catch (e) { strip.scrollLeft = left; }
   };
   document.querySelectorAll('input[name="mode"]').forEach((r) => r.addEventListener("change", () => showMode(true)));
+  // Tapping a style picks it; tapping the style that's already picked opens the settings menu.
+  // The click is handled here rather than by the label: a label focuses its hidden radio, and the
+  // browser then scrolls the strip to that radio (at the strip's start), which read as a swipe to
+  // the first style.
+  document.querySelectorAll(".modes label").forEach((l) => l.addEventListener("click", (e) => {
+    const r = $(l.htmlFor); if (!r) return;
+    e.preventDefault();
+    r.focus({ preventScroll: true });
+    if (!r.checked) { r.checked = true; r.dispatchEvent(new Event("change", { bubbles: true })); return; }
+    if (body.classList.contains("side")) return; // the side panel already shows every setting
+    if (body.classList.contains("clean")) toggleClean();
+    setOpen(true);
+  }));
   // Swiping the carousel picks whichever style settles in the centre, but only when the
   // scroll came from the viewer's finger, trackpad or wheel. Scrolls the browser makes on its
   // own (layout changes, the page being restored, Safari re-snapping) just re-centre the
@@ -2822,6 +2843,7 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
     const availW = innerWidth - (side && !clean ? $("sheet").offsetWidth : 0);
     const peek = side ? 0 : peekHeight();
     document.documentElement.style.setProperty("--peek", peek + "px");
+    document.documentElement.style.setProperty("--toph", $("top").offsetHeight + "px");
     const pad = clean ? 6 : 10, d = dims();
     const aw = availW - 2 * pad, ah = innerHeight - topH - peek - 2 * pad;
     const sc = Math.max(0.1, Math.min(aw / d.W, ah / d.H));
@@ -3147,7 +3169,11 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
     grab.setAttribute("aria-label", open ? "Hide settings" : "Show all settings");
   }
   let swiped = false;
-  grab.addEventListener("click", () => { if (swiped) { swiped = false; return; } setOpen(!sheet.classList.contains("open")); });
+  grab.addEventListener("click", () => {
+    if (swiped) { swiped = false; return; }
+    if (body.classList.contains("clean")) { toggleClean(); setOpen(true); return; } // minimised: bring the controls back with the menu open
+    setOpen(!sheet.classList.contains("open"));
+  });
   (() => {
     let y0 = null, id = null;
     $("head").addEventListener("pointerdown", (e) => { if (e.target.closest("button, label, input")) return; y0 = e.clientY; id = e.pointerId; });

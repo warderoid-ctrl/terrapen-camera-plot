@@ -54,7 +54,7 @@ Once installed it opens full screen, has its own icon, works offline and keeps y
 
 On a phone, the first tap takes the app full screen (turn off **Go full screen on first tap** in Settings to stop this). The installed Android app opens full screen straight away. iPhone Safari doesn't allow web pages to go full screen, but adding terraLens to the Home Screen gives a similar edge-to-edge view.
 
-Swipe up on the bottom bar (or tap its handle) for every setting. While you drag a slider, the panel turns see-through and the slider drops below the paper, so you can watch the full-size plot change.
+Swipe up on the bottom bar, tap its handle, or tap the style that's already picked in the carousel for every setting. When the controls are hidden, the handle stays above the carousel; tap it to bring them back. While you drag a slider, the panel turns see-through and the slider drops below the paper, so you can watch the full-size plot change.
 
 ## Pen colours
 
