@@ -90,10 +90,15 @@ button:focus-visible, label:focus-visible, select:focus-visible, input:focus-vis
 }
 .iconbtn[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 @media (pointer: coarse) {
-  .top { flex-wrap: wrap; justify-content: flex-end; }
-  .top .chip { order: 2; flex: 1 1 100%; }
-  .top .iconbtn { width: 80px; height: 80px; }
-  .top .iconbtn svg.i { width: 40px; height: 40px; stroke-width: 1.6; }
+  .top .iconbtn { width: 60px; height: 60px; }
+  .top .iconbtn svg.i { width: 30px; height: 30px; stroke-width: 1.7; }
+  /* Full screen: compact buttons, leaving more room for the paper. */
+  html:fullscreen .top .iconbtn { width: 44px; height: 44px; }
+  html:fullscreen .top .iconbtn svg.i { width: 22px; height: 22px; stroke-width: 1.8; }
+}
+@media (pointer: coarse) and (display-mode: fullscreen) {
+  .top .iconbtn { width: 44px; height: 44px; }
+  .top .iconbtn svg.i { width: 22px; height: 22px; stroke-width: 1.8; }
 }
 svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
@@ -3750,6 +3755,7 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
   setStill(sample, sample.width, sample.height);
   layout();
   addEventListener("resize", layout);
+  document.addEventListener("fullscreenchange", layout); // the top bar changes size in full screen
   if (window.visualViewport) visualViewport.addEventListener("resize", layout);
   new ResizeObserver(() => layout()).observe($("head"));
   if (!hintShown) { $("hint").hidden = false; setTimeout(dismissHint, 7000); }
