@@ -109,7 +109,7 @@ svg.i { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-widt
   transition: opacity .2s ease;
 }
 .hud {
-  position: fixed; z-index: 11; left: 50%; top: 42%; transform: translate(-50%, -50%);
+  position: fixed; z-index: 11; left: 50%; top: calc((var(--toph, 56px) + 100vh - var(--peek, 180px)) / 2); transform: translate(-50%, -50%); /* middle of the space the paper has */
   background: rgba(10,26,13,.82); color: #fff; border-radius: 12px; padding: 10px 18px;
   font-family: var(--font-mono); font-size: 20px; font-variant-numeric: tabular-nums; text-align: center;
   opacity: 0; transition: opacity .35s ease; pointer-events: none; white-space: nowrap;
@@ -142,6 +142,9 @@ body.side .hint { left: calc((100vw - 340px) / 2); }
   display: flex; flex-direction: column; max-height: 88vh; max-height: 88dvh;
   transition: transform .25s ease, background .15s ease, border-color .15s ease;
 }
+/* Phone, menu open: an editor split. The sheet takes a fixed lower part of the screen and the paper
+   is laid out in the space above it, so every change (taps as well as sliders) stays in view. */
+body:not(.side):not(.clean) .sheet.open { height: 58vh; height: 58dvh; }
 .head { touch-action: none; }
 .grab { display: grid; place-items: center; gap: 2px; width: 100%; height: 34px; border: 0; background: none; padding: 0; color: var(--muted); }
 .grab::before { content: ""; width: 56px; height: 6px; border-radius: 3px; background: var(--muted); }
@@ -742,8 +745,8 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
   // the last change if no finger-up arrives. Arrow-key changes leave the sheet alone.
   function bindScrub(input, wrap) {
     let down = false, idle = 0, keyAt = 0;
-    const on = () => { if (body.classList.contains("side")) return; body.classList.add("scrub"); wrap.classList.add("active"); };
-    const off = () => { down = false; clearTimeout(idle); if (!wrap.classList.contains("active")) return; /* a slider used earlier loses focus when this one starts; ignore that */ body.classList.remove("scrub"); wrap.classList.remove("active"); };
+    const on = () => { if (body.classList.contains("side") || wrap.classList.contains("active")) return; body.classList.add("scrub"); wrap.classList.add("active"); layout(); };
+    const off = () => { down = false; clearTimeout(idle); if (!wrap.classList.contains("active")) return; /* a slider used earlier loses focus when this one starts; ignore that */ body.classList.remove("scrub"); wrap.classList.remove("active"); layout(); };
     const press = () => { down = true; on(); };
     input.addEventListener("pointerdown", press);
     input.addEventListener("touchstart", press, { passive: true });
@@ -2856,9 +2859,12 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
     const side = innerWidth > innerHeight && innerWidth >= 640;
     body.classList.toggle("side", side);
     const clean = body.classList.contains("clean");
-    const topH = clean ? 0 : $("top").offsetHeight;
+    const scrub = body.classList.contains("scrub") && !side, active = scrub && document.querySelector(".sheet .ctl.active");
+    const topH = clean || scrub ? 0 : $("top").offsetHeight; // the top bar fades out while a slider is dragged
     const availW = innerWidth - (side && !clean ? $("sheet").offsetWidth : 0);
-    const peek = side ? 0 : peekHeight();
+    // Dragging a slider: the paper grows into everything above the slider, which sits at the bottom.
+    const peek = side ? 0 : active ? innerHeight - active.getBoundingClientRect().top + 8
+      : !clean && $("sheet").classList.contains("open") ? $("sheet").offsetHeight : peekHeight();
     document.documentElement.style.setProperty("--peek", peek + "px");
     document.documentElement.style.setProperty("--toph", $("top").offsetHeight + "px");
     const pad = clean ? 6 : 10, d = dims();
@@ -3184,6 +3190,7 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
     sheet.classList.toggle("open", open);
     grab.setAttribute("aria-expanded", String(open));
     grab.setAttribute("aria-label", open ? "Hide settings" : "Show all settings");
+    layout(); // the paper moves into the space above the open menu, and back
   }
   let swiped = false;
   grab.addEventListener("click", () => {
