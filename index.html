@@ -481,7 +481,7 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
         <p class="tips">Pen 1 draws the outlines, pen 2 the tone lines, pen 3 the hatching. Heavy outlines go over each one three times; load a thicker pen 1 to push the lineweights further.</p>
       </div>
       <div class="sec" id="duoRow" hidden>
-        <p class="tips">Pen 1 is the dark ink for the shadows, pen 2 the light ink for highlights and midtones. Where they overlap you get the mix. Pick the inks under Pen colours.</p>
+        <p class="tips">Pen 1 is the dark ink for the shadows, pen 2 the light ink for highlights and midtones. Where they overlap you get the mix. Pick the inks under Colours.</p>
       </div>
       <div class="sec" id="snowRow" hidden>
         <div class="seg4 seg5b" role="radiogroup" aria-label="Snowflakes">
@@ -563,28 +563,25 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
         <p class="tips" id="cullTip"></p>
       </div>
     </div></details>
-    <details class="grp" id="bandSec"><summary><span>Colour bands</span><span class="sum" id="bandSum"></span></summary><div class="sec inner">
-      <div class="seg4 seg3" role="radiogroup" aria-label="Colour bands">
-        <input class="sr" type="radio" name="bands" id="bd-off" value="off"><label for="bd-off">Off</label>
-        <input class="sr" type="radio" name="bands" id="bd-linear" value="linear"><label for="bd-linear">Linear</label>
-        <input class="sr" type="radio" name="bands" id="bd-radial" value="radial"><label for="bd-radial">Radial</label>
+    <details class="grp" id="colourSec"><summary><span>Colours</span><span class="sum" id="colourSum"></span></summary><div class="sec inner">
+      <div class="seg4" role="radiogroup" aria-label="How the pens are coloured">
+        <input class="sr" type="radio" name="colourMode" id="cm-none" value="none"><label for="cm-none">None</label>
+        <input class="sr" type="radio" name="colourMode" id="cm-layers" value="layers"><label for="cm-layers">Layers</label>
+        <input class="sr" type="radio" name="colourMode" id="cm-linear" value="linear"><label for="cm-linear">Linear</label>
+        <input class="sr" type="radio" name="colourMode" id="cm-radial" value="radial"><label for="cm-radial">Radial</label>
       </div>
-      <div class="sec" id="bandCtl" hidden>
-        <div class="sec" id="bandSliders"></div>
-        <div class="checks"><label><input type="checkbox" id="bandRev"> Reverse order</label></div>
-        <p class="tips">One pen per band, pens 1 to N from the start of the gradient (set the inks under Pen colours). Edge blend scatters strokes across each boundary so some marks take the neighbouring pen. Radial bands centre on the focal point, or move the centre (or the line, for Linear) with the position sliders. This replaces the style's own pen layers.</p>
-      </div>
-    </div></details>
-    <details class="grp" id="penSec"><summary><span>Layer colours</span><span class="sum" id="penSum"></span></summary><div class="sec inner">
+      <p class="tips" id="colourTip"></p>
       <div class="pens">
         <label class="pen"><input type="color" id="pen0" aria-label="Pen 1 colour"><span>Pen 1</span><small id="pname0"></small></label>
         <label class="pen"><input type="color" id="pen1" aria-label="Pen 2 colour"><span>Pen 2</span><small id="pname1"></small></label>
         <label class="pen"><input type="color" id="pen2" aria-label="Pen 3 colour"><span>Pen 3</span><small id="pname2"></small></label>
         <label class="pen"><input type="color" id="pen3" aria-label="Pen 4 colour"><span>Pen 4</span><small id="pname3"></small></label>
       </div>
+      <div class="sec" id="bandCtl" hidden>
+        <div class="sec" id="bandSliders"></div>
+        <div class="checks"><label><input type="checkbox" id="bandRev"> Reverse order</label></div>
+      </div>
       <div class="btnrow"><button class="btn small" id="btnResetColours" type="button">Reset colours</button></div>
-      <div class="checks"><label><input type="checkbox" id="showColours"> Show layer colours in every style</label></div>
-      <p class="tips">Duotone always uses pens 1 and 2. Each pen is its own layer in the SVG, coloured to match, so you can swap pens between layers.</p>
     </div></details>
     <details class="grp" id="focusSec"><summary><span>Focal point</span><span class="sum" id="focusSum"></span></summary><div class="sec inner">
       <p class="tips" id="focusTip">Long-press the picture to place a point the style reacts to. Keep holding and drag to move it.</p>
@@ -829,10 +826,23 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
   for (let i = 0; i < 4; i++) {
     const inp = $("pen" + i);
     inp.value = S.pens[i];
-    inp.addEventListener("input", () => { S.pens[i] = inp.value; syncPenNames(); if (!S.showColours) { S.showColours = true; $("showColours").checked = true; } dirtyDraw = true; thumbStamp++; store(); });
+    inp.addEventListener("input", () => { S.pens[i] = inp.value; syncPenNames(); if (!S.showColours && S.bands === "off") { S.showColours = true; syncLabels(); } dirtyDraw = true; thumbStamp++; store(); }); // picking an ink with colours off switches to Layers
   }
-  $("showColours").checked = !!S.showColours;
-  $("showColours").addEventListener("change", () => { S.showColours = $("showColours").checked; dirtyDraw = true; thumbStamp++; store(); });
+  // Colours: None (black), Layers (the style's own pen layers in their inks) or Linear / Radial bands
+  // (each pen takes a band of a gradient instead). Stored as showColours and bands.
+  const colourMode = () => (S.bands !== "off" ? S.bands : S.showColours ? "layers" : "none");
+  const COLOUR_TIPS = {
+    none: "Every line is drawn and saved in black. The style's layers still stay separate in the SVG. Duotone always uses pens 1 and 2.",
+    layers: "Each of the style's layers is drawn in its pen's ink, for example Hatch directions, Blobs outline and fill, or Technical lineweights. Each pen is its own layer in the SVG.",
+    linear: "One pen per band, pens 1 to N from the start of the gradient. Edge blend scatters strokes across each boundary so some marks take the neighbouring pen. Move the line with the position sliders. This replaces the style's own pen layers.",
+    radial: "One pen per ring, pens 1 to N from the centre. It centres on the focal point, or move the centre with the position sliders. Edge blend scatters strokes across each boundary. This replaces the style's own pen layers."
+  };
+  document.querySelectorAll('input[name="colourMode"]').forEach((r) => r.addEventListener("change", () => {
+    if (!r.checked) return;
+    S.showColours = r.value === "layers";
+    S.bands = r.value === "linear" || r.value === "radial" ? r.value : "off";
+    thumbStamp++; changed(false);
+  }));
   $("techBold").checked = !!S.techBold; $("techFrame").checked = !!S.techFrame;
   $("techBold").addEventListener("change", () => { S.techBold = $("techBold").checked; changed(false); });
   $("techFrame").addEventListener("change", () => { S.techFrame = $("techFrame").checked; changed(false); });
@@ -973,7 +983,7 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
     r.checked = r.value === S.mode;
     r.addEventListener("change", () => { if (r.checked) { S.mode = r.value; changed(false); } });
   });
-  document.querySelectorAll('input[name="cull"], input[name="bands"]').forEach((r) => {
+  document.querySelectorAll('input[name="cull"]').forEach((r) => {
     r.checked = S[r.name] === r.value;
     r.addEventListener("change", () => {
       if (!r.checked) return;
@@ -1013,8 +1023,10 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
     syncPenNames();
     const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
     $("cullSum").textContent = S.cull === "off" ? "Off" : cap(S.cull);
-    $("bandSum").textContent = S.bands === "off" ? "Off" : cap(S.bands) + " · " + S.bandN;
-    $("penSum").textContent = S.showColours ? "Shown" : "Hidden";
+    const cm = colourMode();
+    document.querySelectorAll('input[name="colourMode"]').forEach((r) => { r.checked = r.value === cm; });
+    $("colourSum").textContent = cm === "none" ? "None" : cm === "layers" ? "Layers" : cap(cm) + " bands · " + S.bandN;
+    $("colourTip").textContent = COLOUR_TIPS[cm];
     $("focusSum").textContent = S.focus ? (S.repel ? "Repel" : "Attract") : "None";
     $("paperSum").textContent = S.size.toUpperCase() + " " + SHAPES[S.shape] + (S.paperCol.toLowerCase() === "#ffffff" ? "" : " · coloured");
     const nm = document.querySelector(`label[for="m-${S.mode}"]`); if (nm) { $("styleName").textContent = nm.textContent; $("mainSum").textContent = nm.textContent; }
@@ -1042,10 +1054,10 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
   $("btnResetColours").addEventListener("click", () => {
     S.pens = DEFAULTS.pens.slice();
     for (let i = 0; i < 4; i++) $("pen" + i).value = S.pens[i];
-    S.showColours = false; $("showColours").checked = false;
+    S.showColours = false; S.bands = "off"; // back to None
     S.paperSvg = false; $("paperSvg").checked = false;
     document.querySelector("#paperSwatches button").click(); // back to white paper
-    dirtyDraw = true; thumbStamp++; store(); syncLabels(); toast("Colours reset");
+    thumbStamp++; changed(false); toast("Colours reset");
   });
   // Opening one section folds the others, so the long list never piles up.
   const grps = [...document.querySelectorAll(".more > details.grp")];

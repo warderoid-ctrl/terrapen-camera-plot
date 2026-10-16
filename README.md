@@ -56,12 +56,19 @@ On a phone, the first tap takes the app full screen (turn off **Go full screen o
 
 Swipe up on the bottom bar, tap its handle, or tap the style that's already picked in the carousel for every setting. When the controls are hidden, the handle stays above the carousel; tap it to bring them back. While you drag a slider, the panel turns see-through and the slider drops below the paper, so you can watch the full-size plot change.
 
-## Pen colours
+## Colours
 
-Four colour swatches set the colour of pens 1–4. Each pen is its own layer in the SVG, with a matching stroke colour,
-so plotter software can pause for a pen change between layers. Duotone always uses pens 1 and 2; the other styles
-show the colours when **Show pen colours** is on (Hatch layers, Blobs outline/fill and Technical lineweights are on
-separate pens).
+The **Colours** section chooses how the four pens are used:
+
+| Choice  | Does                                                                                          |
+| ------- | --------------------------------------------------------------------------------------------- |
+| None    | Everything is drawn and saved in black (the style's layers stay separate in the SVG)          |
+| Layers  | Each of the style's own layers in its pen's ink (Hatch directions, Blobs outline/fill, Technical lineweights) |
+| Linear  | Bands of a straight gradient across the sheet, one pen per band                               |
+| Radial  | Rings around the centre or focal point, one pen per ring                                      |
+
+The four swatches below set the inks for pens 1–4. Each pen is its own layer in the SVG, with a matching stroke colour,
+so plotter software can pause for a pen change between layers. Duotone always uses pens 1 and 2.
 
 ## Focal point
 
@@ -135,13 +142,13 @@ Blobs puts the outlines on pen 1 and the fill on pen 2, so they can be plotted i
 ## Controls
 
 - **Reset sliders** (top of the settings) puts every slider back to its default. Double-tap a slider's name to reset just that one
-- The settings are grouped into folding sections (Background, Colour bands, Layer colours, Focal point, Paper, Export). With the menu open the style carousel steps aside and a Style bar shows the current style. Tap the picture to hide the menu and keep just the carousel, so you can swipe through styles while pointing at a subject
+- The settings are grouped into folding sections (Background, Colours, Focal point, Paper, Export). With the menu open the style carousel steps aside and a Style bar shows the current style. Tap the picture to hide the menu and keep just the carousel, so you can swipe through styles while pointing at a subject
 - **Paper colour** (in Paper): white, cream, kraft, grey, shell green, black or any colour, as a preview of the sheet you plot on. Strokes that would vanish on dark paper are drawn light. Optionally adds a hidden-able Paper layer to the SVG
 - **Cell fill** also offers **Zigzag**, one continuous back-and-forth line; Blobs has a Zigzag fill too
 - **Line wobble** and **Hatch wobble**: hand-drawn wobble, set separately for the main lines and for hatching or fills (Hatch wobble shows for Hatch, Blobs, Technical and filled Voronoi or Subdiv cells). Each stroke wobbles differently and the wobble is saved in the SVG
-- The menu is an accordion: Settings, Background, Colour bands, Layer colours, Focal point, Paper and Export. Opening one folds the others
+- The menu is an accordion: Settings, Background, Colours, Focal point, Paper and Export. Opening one folds the others
 - **Thin zone** and **Lines reaching point** (Focal point): stops lines piling up and saturating the paper where they converge. Each stroke stops at its own random distance from the point, so only the chosen share (10% by default) run right in and the line density stays level. Set Thin zone to 0 to turn it off
-- **Layer colours**: pick an ink for each pen layer; choosing one turns the colour preview on. Reset colours returns the pens, preview and paper to the defaults
+- **Colours**: None, Layers, Linear or Radial (see [Colours](#colours)), and an ink for each pen. Picking an ink while on None switches to Layers. Reset colours returns the pens and paper to the defaults and colours to None
 
 - **Spacing**: distance between lines, rings, dots or grid cells (mm); the label changes with the style
 - **Second slider** (wave height, dot size, line length, blob amount…): how strongly darkness drives the style
@@ -152,7 +159,7 @@ Blobs puts the outlines on pen 1 and the fill on pen 2, so they can be plotted i
 - **Cell fill** (Voronoi, Subdiv): fill each cell with hatch, cross-hatch, an orthogonal grid, an isometric grid or stipple. Fills go on their own pen, get tighter in darker cells, and Cross, Grid and Iso add directions as the tone deepens. **Fill density** scales it
 - **Curve smoothing** (Voronoi): rounds the cell corners from sharp polygons to soft pebbles
 - **Background**: culls the source image before any style sees it. Light or Dark removes tones past a cutoff, Flat removes areas of even tone (plain walls and skies), Radial keeps a disc around the focal point or the centre. Falloff sets how soft the edge is. Radial has Centre across and down sliders to move the disc
-- **Colour bands**: Linear or Radial gradient of pens across the sheet, one pen per band (2 to 4). Edge blend scatters strokes across each boundary so some marks take the neighbouring pen. Position sliders move the radial centre, or the line for Linear. Replaces the style's own pen layers
+- **Colours → Linear / Radial**: a gradient of pens across the sheet, one pen per band (2 to 4). Edge blend scatters strokes across each boundary so some marks take the neighbouring pen. Position sliders move the radial centre, or the line for Linear. Replaces the style's own pen layers
 - **Contrast, Brightness, Auto levels, Invert**: tone adjustments before plotting
 - **Pen width**: stroke width for the preview and the SVG
 - **Paper**: A6 up to A0, each as portrait, landscape or square (square uses the short side, e.g. A4 square is 210 × 210 mm). Changing size scales the line spacing and margin with it, so the drawing keeps its look and the live preview stays fast

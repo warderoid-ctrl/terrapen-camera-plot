@@ -192,15 +192,15 @@
     cap("Move the centre anywhere", "Background"); await slide("cullX", 25, 1300, 500); await slide("cullY", 70, 1300, 900);
     await radio("cu-dark", 1500); await radio("cu-off", 800);
 
-    cap("Colour bands: a gradient of pens across the sheet", "Colour bands");
-    await group("bandSec"); await radio("bd-linear", 1500);
+    cap("Colour bands: a gradient of pens across the sheet", "Colours");
+    await group("colourSec"); await radio("cm-linear", 1500);
     await slide("bandAngle", 60, 1500, 900);
-    cap("Edge blend scatters strokes so the bands melt together", "Colour bands");
+    cap("Edge blend scatters strokes so the bands melt together", "Colours");
     await slide("bandBlend", 90, 1500, 1200);
-    cap("Or radial bands, moved wherever you like", "Colour bands");
-    await radio("bd-radial", 1400); await slide("bandX", 70, 1300, 400); await slide("bandY", 30, 1300, 1000);
+    cap("Or radial bands, moved wherever you like", "Colours");
+    await radio("cm-radial", 1400); await slide("bandX", 70, 1300, 400); await slide("bandY", 30, 1300, 1000);
     await slide("bandN", 4, 900, 900);
-    await radio("bd-off", 600);
+    await radio("cm-none", 600);
 
     cap("Place a focal point: long-press the picture", "Focal point");
     await closeMenu(); await mode("hatch", 800);
@@ -212,8 +212,8 @@
     await radio("fp-repel", 1500); await radio("fp-attract", 900);
     await tap("btnFocusOff", 1200);
 
-    cap("Choose a colour for each pen layer", "Layer colours");
-    await mode("duotone", 800); await group("penSec");
+    cap("Choose a colour for each pen layer", "Colours");
+    await mode("duotone", 800); await group("colourSec");
     await setColour("pen0", "#0b3d91"); await setColour("pen1", "#ff7a1a");
     await setColour("pen0", "#17321b"); await setColour("pen1", "#e83b68");
 
