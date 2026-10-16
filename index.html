@@ -653,7 +653,7 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
   // Default pen inks come from the terraPen palette: shell green, coral, teal and black.
   const BRAND_PENS = ["#17321b", "#e83b68", "#66cccc", "#000000"];
   const OLD_PENS = ["#1f2a5c", "#e4572e", "#2364aa", "#4f8a3b"];
-  const DEFAULTS = { mixSize: 25, mixSeed: 1, autoFull: true, camUnder: false, camAlpha: 20, snowLook: "profile", snowMany: false, snowN: 18, etchVig: true, etchCurls: true, etchOutline: true, engHatch: "flow", engLines: "outline", engDots: true, clipZone: 35, clipKeep: 10, jitLine: 0, jitHatch: 0, paperCol: "#ffffff", paperSvg: false, cullX: 50, cullY: 50, bandX: 50, bandY: 50, cellFill: "none", fillDens: 100, vorSmooth: 0, cull: "off", cullAt: 70, cullSoft: 30, bands: "off", bandN: 3, bandAngle: 0, bandBlend: 40, bandRev: false, showTarget: false, splitPens: false, pens: BRAND_PENS, showColours: false, techBold: true, techFrame: true, focus: null, repel: false, pull: 100, levels: 8, blobFill: "hatch", mode: "wave", size: "a4", shape: "p", margin: 10, spacing: 3.5, amp: 100, layers: 3, contrast: 1.3, bright: 0, pen: 0.3, invert: false, auto: true, pip: true };
+  const DEFAULTS = { mixDetail: 5, mixSeed: 1, autoFull: true, camUnder: false, camAlpha: 20, snowLook: "profile", snowMany: false, snowN: 18, etchVig: true, etchCurls: true, etchOutline: true, engHatch: "flow", engLines: "outline", engDots: true, clipZone: 35, clipKeep: 10, jitLine: 0, jitHatch: 0, paperCol: "#ffffff", paperSvg: false, cullX: 50, cullY: 50, bandX: 50, bandY: 50, cellFill: "none", fillDens: 100, vorSmooth: 0, cull: "off", cullAt: 70, cullSoft: 30, bands: "off", bandN: 3, bandAngle: 0, bandBlend: 40, bandRev: false, showTarget: false, splitPens: false, pens: BRAND_PENS, showColours: false, techBold: true, techFrame: true, focus: null, repel: false, pull: 100, levels: 8, blobFill: "hatch", mode: "wave", size: "a4", shape: "p", margin: 10, spacing: 3.5, amp: 100, layers: 3, contrast: 1.3, bright: 0, pen: 0.3, invert: false, auto: true, pip: true };
   const S = Object.assign({}, DEFAULTS);
   const KEY = "terrapen-camera-plot";
   try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
@@ -710,7 +710,7 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
     { id: "bandX", parent: "bandSliders", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => S.bands === "linear" ? "Line position across" : "Centre across", when: () => S.bands === "linear" || S.bands === "radial" },
     { id: "bandY", parent: "bandSliders", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => S.bands === "linear" ? "Line position down" : "Centre down", when: () => S.bands === "linear" || S.bands === "radial" },
     { id: "bandN", parent: "bandSliders", min: 2, max: 4, step: 1, dp: 0, unit: "", name: () => (S.bands === "mix" ? "Pens" : "Bands"), when: () => S.bands !== "off" },
-    { id: "mixSize", parent: "bandSliders", min: 5, max: 80, step: 1, dp: 0, unit: " mm", name: () => "Patch size", when: () => S.bands === "mix" },
+    { id: "mixDetail", parent: "bandSliders", min: 1, max: 10, step: 1, dp: 0, unit: "", name: () => "Detail", when: () => S.bands === "mix" },
     { id: "bandAngle", parent: "bandSliders", min: 0, max: 355, step: 5, dp: 0, unit: "°", name: () => "Angle", when: () => S.bands === "linear" },
     { id: "bandBlend", parent: "bandSliders", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => "Edge blend", when: () => S.bands === "linear" || S.bands === "radial" }
   ];
@@ -840,7 +840,7 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
   const COLOUR_TIPS = {
     none: "Every line is drawn and saved in black. The style's layers still stay separate in the SVG. Duotone always keeps its two inks (pens 1 and 2).",
     layers: "Each of the style's layers is drawn in its pen's ink, for example Hatch directions, Blobs outline and fill, Duotone's two screens or Technical lineweights. Styles with a single layer use pen 1; try Multi for those.",
-    mix: "The sheet is split into random patches and each patch gets a pen. Small shapes keep one colour each, so blobs, cells and dots change colour in clusters, and long lines change pen as they cross a patch. Shuffle for a new pattern.",
+    mix: "The picture is split into areas of similar tone (the subject, its shadow, the background …) and each area gets a pen, with touching areas always different. Shapes inside one area keep one colour; lines that cross areas change pen at the edge. Detail sets how many areas; Shuffle swaps which pen goes where.",
     linear: "One pen per band, pens 1 to N from the start of the gradient. Edge blend scatters strokes across each boundary so some marks take the neighbouring pen. Move the line with the position sliders. This replaces the style's own pen layers.",
     radial: "One pen per ring, pens 1 to N from the centre. It centres on the focal point, or move the centre with the position sliders. Edge blend scatters strokes across each boundary. This replaces the style's own pen layers."
   };
@@ -2972,36 +2972,116 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
     });
     return out;
   }
-  // Multicolour: the sheet is split into random patches (a Voronoi of jittered grid points, cell size
-  // from Patch size), each with a pen picked by a seeded hash so the pattern holds still between
-  // frames; Shuffle changes the seed. A stroke smaller than a patch keeps one pen (by its middle),
-  // so shapes change colour in clusters; longer strokes are cut where they cross into another patch.
-  function applyMix(list, d) {
-    const N = clamp(S.bandN, 2, 4), cs = Math.max(3, S.mixSize), sd = S.mixSeed | 0;
-    const sx = (i, j) => (i + 0.15 + 0.7 * hash(i * 31 + sd, j * 17 + 3)) * cs, sy = (i, j) => (j + 0.15 + 0.7 * hash(i * 13 + 7, j * 29 + sd)) * cs;
-    const penAt = (x, y) => {
-      const i0 = Math.floor(x / cs), j0 = Math.floor(y / cs);
-      let bi = i0, bj = j0, bd = Infinity;
-      for (let j = j0 - 1; j <= j0 + 1; j++) for (let i = i0 - 1; i <= i0 + 1; i++) {
-        const dd = (sx(i, j) - x) ** 2 + (sy(i, j) - y) ** 2;
-        if (dd < bd) { bd = dd; bi = i; bj = j; }
+  // Multicolour: patches come from the picture. The tone the lines follow is smoothed and cut into a
+  // few tone steps; each connected area of one step is a patch, and patches smaller than the Detail
+  // allows fold into the neighbour they share most edge with. Patches are then coloured largest first
+  // so touching ones get different pens. Each tone step has a preferred pen (seeded, so Shuffle
+  // changes it), which keeps colours steady from frame to frame on the live camera.
+  function mixRegions(N) {
+    const w = gw, h = gh, n = w * h, det = clamp(S.mixDetail, 1, 10);
+    const L = 2 + Math.floor(det * 0.6), minA = Math.max(4, n * 0.02 * Math.pow(0.6, det - 1)), sd = S.mixSeed | 0;
+    const a = Float32Array.from(dark), t = new Float32Array(n);
+    for (let pass = 0; pass < 2; pass++) { // two passes of a 5 x 5 box blur, so speckle doesn't make patches
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+        let sum = 0, c = 0;
+        for (let k = -2; k <= 2; k++) { const xx = x + k; if (xx >= 0 && xx < w) { sum += a[y * w + xx]; c++; } }
+        t[y * w + x] = sum / c;
       }
-      return Math.floor(hash(bi * 53 + sd * 7 + 11, bj * 71 + sd + 5) * N) % N;
-    };
-    const step = cs / 8, out = [];
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+        let sum = 0, c = 0;
+        for (let k = -2; k <= 2; k++) { const yy = y + k; if (yy >= 0 && yy < h) { sum += t[yy * w + x]; c++; } }
+        a[y * w + x] = sum / c;
+      }
+    }
+    const q = new Uint8Array(n);
+    for (let i = 0; i < n; i++) q[i] = Math.min(L - 1, Math.max(0, Math.floor(a[i] * L)));
+    // connected areas of one tone step
+    const lab = new Int32Array(n).fill(-1), size = [], tone = [], stack = [];
+    for (let i = 0; i < n; i++) {
+      if (lab[i] >= 0) continue;
+      const id = size.length, v = q[i];
+      let cnt = 0; lab[i] = id; stack.push(i);
+      while (stack.length) {
+        const j = stack.pop(), x = j % w; cnt++;
+        if (x > 0 && lab[j - 1] < 0 && q[j - 1] === v) { lab[j - 1] = id; stack.push(j - 1); }
+        if (x < w - 1 && lab[j + 1] < 0 && q[j + 1] === v) { lab[j + 1] = id; stack.push(j + 1); }
+        if (j >= w && lab[j - w] < 0 && q[j - w] === v) { lab[j - w] = id; stack.push(j - w); }
+        if (j + w < n && lab[j + w] < 0 && q[j + w] === v) { lab[j + w] = id; stack.push(j + w); }
+      }
+      size.push(cnt); tone.push(v);
+    }
+    const R = size.length, par = new Int32Array(R), sz = size.slice();
+    for (let k = 0; k < R; k++) par[k] = k;
+    const find = (k) => { while (par[k] !== k) { par[k] = par[par[k]]; k = par[k]; } return k; };
+    const border = new Map(); // shared edge length between two areas
+    const edge = (u, v) => { if (u === v) return; const key = u < v ? u * R + v : v * R + u; border.set(key, (border.get(key) || 0) + 1); };
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const i = y * w + x;
+      if (x < w - 1) edge(lab[i], lab[i + 1]);
+      if (y < h - 1) edge(lab[i], lab[i + w]);
+    }
+    const adj = Array.from({ length: R }, () => []);
+    for (const [key, c] of border) { const u = Math.floor(key / R), v = key % R; adj[u].push(v, c); adj[v].push(u, c); }
+    // fold small areas into a neighbour, smallest first
+    const order = Array.from({ length: R }, (_, k) => k).sort((u, v) => size[u] - size[v]);
+    for (const k of order) {
+      const r = find(k);
+      if (sz[r] >= minA) continue;
+      const tally = new Map(), A = adj[k];
+      let best = -1, bc = 0;
+      for (let m = 0; m < A.length; m += 2) {
+        const rb = find(A[m]); if (rb === r) continue;
+        const v = (tally.get(rb) || 0) + A[m + 1]; tally.set(rb, v);
+        if (v > bc) { bc = v; best = rb; }
+      }
+      if (best >= 0) { par[r] = best; sz[best] += sz[r]; }
+    }
+    // colour the patches: largest first, never the same pen as a touching patch if it can be helped
+    const near = new Map();
+    for (const key of border.keys()) {
+      const u = find(Math.floor(key / R)), v = find(key % R); if (u === v) continue;
+      (near.get(u) || near.set(u, new Set()).get(u)).add(v);
+      (near.get(v) || near.set(v, new Set()).get(v)).add(u);
+    }
+    const roots = []; for (let k = 0; k < R; k++) if (find(k) === k) roots.push(k);
+    roots.sort((u, v) => sz[v] - sz[u]);
+    const pen = new Int8Array(R).fill(-1);
+    for (const r of roots) {
+      const taken = new Set(); for (const o of near.get(r) || []) if (pen[o] >= 0) taken.add(pen[o]);
+      const pref = Math.floor(hash(tone[r] * 97 + sd * 13 + 5, sd + 29) * N) % N;
+      let pick = pref;
+      for (let k = 0; k < N; k++) { const c = (pref + k) % N; if (!taken.has(c)) { pick = c; break; } }
+      pen[r] = pick;
+    }
+    const cellPen = new Int8Array(n);
+    for (let i = 0; i < n; i++) cellPen[i] = pen[find(lab[i])];
+    return cellPen;
+  }
+  // A stroke that stays (mostly) in one patch keeps one pen, so shapes change colour as whole objects;
+  // a stroke that crosses patches is cut where it crosses.
+  function applyMix(list, d) {
+    if (!dark || !gw || dark.length !== gw * gh) return list;
+    const N = clamp(S.bandN, 2, 4), cp = mixRegions(N), w = gw, h = gh;
+    const penAt = (x, y) => cp[clamp(Math.floor((y - d.my) / d.dh * h), 0, h - 1) * w + clamp(Math.floor((x - d.mx) / d.dw * w), 0, w - 1)];
+    const step = Math.max(0.25, d.dw / w * 0.7), out = [];
     for (const p of list) {
       const q = p.pts, len = q.length;
       if (len < 2) continue;
-      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-      for (let i = 0; i < len; i += 2) { if (q[i] < x0) x0 = q[i]; if (q[i] > x1) x1 = q[i]; if (q[i + 1] < y0) y0 = q[i + 1]; if (q[i + 1] > y1) y1 = q[i + 1]; }
-      if (Math.max(x1 - x0, y1 - y0) < cs * 0.75 || len < 4) { out.push({ layer: penAt((x0 + x1) / 2, (y0 + y1) / 2), pts: q }); continue; }
+      const cnt = [0, 0, 0, 0];
+      let tot = 1; cnt[penAt(q[0], q[1])]++;
+      for (let i = 2; i < len; i += 2) {
+        const ax = q[i - 2], ay = q[i - 1], m = Math.max(1, Math.ceil(Math.hypot(q[i] - ax, q[i + 1] - ay) / step));
+        for (let k = 1; k <= m; k++) { cnt[penAt(ax + (q[i] - ax) * k / m, ay + (q[i + 1] - ay) * k / m)]++; tot++; }
+      }
+      let top = 0; for (let k = 1; k < 4; k++) if (cnt[k] > cnt[top]) top = k;
+      if (len < 4 || cnt[top] >= tot * 0.8) { out.push({ layer: top, pts: q }); continue; }
       let cur = [q[0], q[1]], curP = penAt(q[0], q[1]);
       for (let i = 2; i < len; i += 2) {
-        const ax = q[i - 2], ay = q[i - 1], bx = q[i], by = q[i + 1], n = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / step));
-        for (let k = 1; k <= n; k++) { // walk the segment in short steps so long straight lines still split at patch edges
-          const t = k / n, x = ax + (bx - ax) * t, y = ay + (by - ay) * t, pn = penAt(x, y);
+        const ax = q[i - 2], ay = q[i - 1], bx = q[i], by = q[i + 1], m = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / step));
+        for (let k = 1; k <= m; k++) { // walk the segment in short steps so long straight lines still split at patch edges
+          const x = ax + (bx - ax) * k / m, y = ay + (by - ay) * k / m, pn = penAt(x, y);
           if (pn !== curP) {
-            const px = ax + (bx - ax) * (k - 1) / n, py = ay + (by - ay) * (k - 1) / n;
+            const px = ax + (bx - ax) * (k - 1) / m, py = ay + (by - ay) * (k - 1) / m;
             if (k > 1) cur.push(px, py);
             if (cur.length >= 4) out.push({ layer: curP, pts: cur });
             cur = [px, py]; curP = pn;

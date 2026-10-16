@@ -66,7 +66,7 @@ The **Colours** section chooses how the four pens are used:
 | Layers  | Each of the style's own layers in its pen's ink (Hatch directions, Blobs outline/fill, Technical lineweights) |
 | Linear  | Bands of a straight gradient across the sheet, one pen per band                               |
 | Radial  | Rings around the centre or focal point, one pen per ring                                      |
-| Multi   | Random patches across the sheet, each with a pen. Small shapes (blobs, cells, dots) keep one colour, so they change colour in clusters; long lines change pen as they cross a patch. Set Pens and Patch size, and Shuffle for a new pattern |
+| Multi   | The picture is split into areas of similar tone (subject, shadow, background …) and each area gets a pen, with touching areas always different. Shapes inside one area keep one colour; lines that cross areas change pen at the edge. Detail sets how many areas; Shuffle swaps which pen goes where |
 
 The four swatches below set the inks for pens 1–4. Each pen is its own layer in the SVG, with a matching stroke colour,
 so plotter software can pause for a pen change between layers. Styles with a single layer (Waves, Spiral, Contour …) use pen 1 under Layers; Multi colours them too.
