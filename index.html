@@ -654,7 +654,7 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
   // Default pen inks come from the terraPen palette: shell green, coral, teal and black.
   const BRAND_PENS = ["#17321b", "#e83b68", "#66cccc", "#000000"];
   const OLD_PENS = ["#1f2a5c", "#e4572e", "#2364aa", "#4f8a3b"];
-  const DEFAULTS = { mixDetail: 5, mixSeed: 1, truDetail: 60, autoFull: true, camUnder: false, camAlpha: 20, snowLook: "profile", snowMany: false, snowN: 18, etchVig: true, etchCurls: true, etchOutline: true, engHatch: "flow", engLines: "outline", engDots: true, clipZone: 35, clipKeep: 10, jitLine: 0, jitHatch: 0, paperCol: "#ffffff", paperSvg: false, cullX: 50, cullY: 50, bandX: 50, bandY: 50, cellFill: "none", fillDens: 100, vorSmooth: 0, cull: "off", cullAt: 70, cullSoft: 30, bands: "off", bandN: 3, bandAngle: 0, bandBlend: 40, bandRev: false, showTarget: false, splitPens: false, pens: BRAND_PENS, showColours: false, techBold: true, techFrame: true, focus: null, repel: false, pull: 100, levels: 8, blobFill: "hatch", mode: "wave", size: "a4", shape: "p", margin: 10, spacing: 3.5, amp: 100, layers: 3, contrast: 1.3, bright: 0, pen: 0.3, invert: false, auto: true, pip: true };
+  const DEFAULTS = { mixDetail: 5, mixSeed: 1, truDetail: 60, truLines: 3, autoFull: true, camUnder: false, camAlpha: 20, snowLook: "profile", snowMany: false, snowN: 18, etchVig: true, etchCurls: true, etchOutline: true, engHatch: "flow", engLines: "outline", engDots: true, clipZone: 35, clipKeep: 10, jitLine: 0, jitHatch: 0, paperCol: "#ffffff", paperSvg: false, cullX: 50, cullY: 50, bandX: 50, bandY: 50, cellFill: "none", fillDens: 100, vorSmooth: 0, cull: "off", cullAt: 70, cullSoft: 30, bands: "off", bandN: 3, bandAngle: 0, bandBlend: 40, bandRev: false, showTarget: false, splitPens: false, pens: BRAND_PENS, showColours: false, techBold: true, techFrame: true, focus: null, repel: false, pull: 100, levels: 8, blobFill: "hatch", mode: "wave", size: "a4", shape: "p", margin: 10, spacing: 3.5, amp: 100, layers: 3, contrast: 1.3, bright: 0, pen: 0.3, invert: false, auto: true, pip: true };
   const S = Object.assign({}, DEFAULTS);
   const KEY = "terrapen-camera-plot";
   try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
@@ -691,6 +691,7 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
   const SLIDERS = [
     { id: "spacing", min: 0.5, max: 10, step: 0.1, dp: 1, unit: " mm", name: () => SPACE_NAMES[S.mode], modes: Object.keys(SPACE_NAMES) },
     { id: "amp", min: 0, max: 200, step: 5, dp: 0, unit: "%", name: () => AMP_NAMES[S.mode], modes: Object.keys(AMP_NAMES) },
+    { id: "truLines", min: 1, max: 6, step: 1, dp: 0, unit: "", name: () => "Parallel lines", modes: ["truchet"] },
     { id: "truDetail", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => "Shape detail", modes: ["truchet"] },
     { id: "vorSmooth", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => "Curve smoothing", modes: ["voronoi"] },
     { id: "fillDens", min: 20, max: 250, step: 5, dp: 0, unit: "%", name: () => "Fill density", modes: ["voronoi", "subdiv"], when: () => S.cellFill !== "none" },
@@ -2240,11 +2241,13 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
   // ---------------- truchet: quarter-circle tiles that follow the picture ----------------
   // Smith tiles on a quadtree. Tiles split smaller wherever the picture changes (its edges and
   // silhouette) and stay big where it is flat, so the tile sizes trace the subject's shape. Each tile
-  // is turned so its arcs run along the local edge, and darker tiles get extra nested arcs. The arcs
-  // sit symmetric about each edge's midpoint, a line spacing apart, so they join up with neighbours.
+  // is turned so its arcs run along the local edge. Every arc is a ribbon of parallel lines sitting
+  // symmetric about each edge's midpoint, so tiles of the same size join up with their neighbours.
   function genTruchet(d) {
-    const s = S.spacing, amp = S.amp / 100, out = [], f = focus(d), LV = 3, N = 4;
-    const top = 2.5 * s * (1 << LV);
+    const s = S.spacing, amp = S.amp / 100, out = [], f = focus(d), N = 4, L = S.truLines;
+    // the smallest tile grows with the line count so its ribbon stays roughly a line spacing apart
+    const wMin = 2.5 * s * (0.4 + 0.6 * L), LV = clamp(Math.floor(Math.log2(Math.min(d.dw, d.dh) / 1.5 / wMin)), 0, 3);
+    const top = wMin * (1 << LV);
     const cols = Math.max(1, Math.round(d.dw / top)), rows = Math.max(1, Math.round(d.dh / top));
     const TW = d.dw / cols, TH = d.dh / rows, thr0 = 0.015 + (1 - S.truDetail / 100) * 0.22;
     // darkness statistics over an N×N sample of the tile: mean, spread and a tile-scale gradient
@@ -2273,17 +2276,14 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
         tile(x + w2, y + h2, w2, h2, lv + 1, id * 4 + 2); tile(x, y + h2, w2, h2, lv + 1, id * 4 + 3);
         return;
       }
-      const wm = Math.min(w, h), pMax = Math.floor(0.2 * wm / s);
-      const want = st.m * amp * (1 + 2 * pMax); // lines across each edge for this tone
-      if (want < 0.5 || st.m * amp < 0.15) return;
-      const P = clamp(Math.round((want - 1) / 2), 0, pMax);
+      if (st.m * amp < 0.15) return;
       // arcs about the top-left and bottom-right corners run along a "/" edge (gradient along "\")
       const g = st.gx * st.gy, gm = st.gx * st.gx + st.gy * st.gy;
       const diag = gm > 1e-6 && Math.abs(g) > 0.08 * gm ? g > 0 : hash(id, lv + 7) < 0.5;
       const corners = diag ? [[x, y, 0], [x + w, y + h, Math.PI]] : [[x + w, y, Math.PI / 2], [x, y + h, Math.PI * 1.5]];
       let flip = false;
-      for (const [cx, cy, a0] of corners) for (let j = -P; j <= P; j++) {
-        const o = 0.5 + j * s / wm;
+      for (const [cx, cy, a0] of corners) for (let j = 0; j < L; j++) {
+        const o = 0.5 + (j - (L - 1) / 2) * 0.4 / L; // radii stay within 0.3–0.7 of the tile so opposite corners never cross
         out.push({ layer: 0, pts: arc(cx, cy, w * o, h * o, a0, flip) });
         flip = !flip;
       }

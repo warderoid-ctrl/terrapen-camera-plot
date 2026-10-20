@@ -131,7 +131,7 @@ Long-press the picture to drop a point that the current style reacts to. A targe
 | Growth  | Reaction-diffusion pattern grown inside the dark areas                        |
 | Voronoi | Cells packed small in the dark areas and large in the light; Cell gap shrinks each cell into its own outline, with extra rings in the darkest |
 | Subdiv  | A quad mesh pulled towards the dark areas and smoothed with Catmull-Clark subdivision (rows on pen 1, columns on pen 2) |
-| Truchet | Quarter-circle Truchet tiles on a quadtree: tiles shrink along the subject's edges so their sizes trace its shape, each tile turns its arcs to run along the local edge, and darker tiles get extra nested arcs. Shape detail sets how readily tiles split |
+| Truchet | Quarter-circle Truchet tiles on a quadtree: tiles shrink along the subject's edges so their sizes trace its shape, each tile turns its arcs to run along the local edge, and darker areas get smaller tiles. Parallel lines sets how many lines (1–6) each arc carries; Shape detail sets how readily tiles split |
 | Ridges  | Rows lifted by the image as a height field, with hidden lines removed, like a joy-division plot |
 
 Contour, Flow, Hairs, Arrows, Suns, Swirls, ASCII and Growth are ported from
