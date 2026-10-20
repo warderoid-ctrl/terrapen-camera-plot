@@ -430,6 +430,7 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
       <input class="sr" type="radio" name="mode" id="m-blobs" value="blobs"><label for="m-blobs"><canvas class="th" width="272" height="272" data-mode="blobs" aria-hidden="true"></canvas>Blobs</label>
       <input class="sr" type="radio" name="mode" id="m-voronoi" value="voronoi"><label for="m-voronoi"><canvas class="th" width="272" height="272" data-mode="voronoi" aria-hidden="true"></canvas>Voronoi</label>
       <input class="sr" type="radio" name="mode" id="m-subdiv" value="subdiv"><label for="m-subdiv"><canvas class="th" width="272" height="272" data-mode="subdiv" aria-hidden="true"></canvas>Subdiv</label>
+      <input class="sr" type="radio" name="mode" id="m-truchet" value="truchet"><label for="m-truchet"><canvas class="th" width="272" height="272" data-mode="truchet" aria-hidden="true"></canvas>Truchet</label>
       <input class="sr" type="radio" name="mode" id="m-hatch" value="hatch"><label for="m-hatch"><canvas class="th" width="272" height="272" data-mode="hatch" aria-hidden="true"></canvas>Hatch</label>
       <input class="sr" type="radio" name="mode" id="m-technical" value="technical"><label for="m-technical"><canvas class="th" width="272" height="272" data-mode="technical" aria-hidden="true"></canvas>Technical</label>
       <input class="sr" type="radio" name="mode" id="m-duotone" value="duotone"><label for="m-duotone"><canvas class="th" width="272" height="272" data-mode="duotone" aria-hidden="true"></canvas>Duotone</label>
@@ -653,7 +654,7 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
   // Default pen inks come from the terraPen palette: shell green, coral, teal and black.
   const BRAND_PENS = ["#17321b", "#e83b68", "#66cccc", "#000000"];
   const OLD_PENS = ["#1f2a5c", "#e4572e", "#2364aa", "#4f8a3b"];
-  const DEFAULTS = { mixDetail: 5, mixSeed: 1, autoFull: true, camUnder: false, camAlpha: 20, snowLook: "profile", snowMany: false, snowN: 18, etchVig: true, etchCurls: true, etchOutline: true, engHatch: "flow", engLines: "outline", engDots: true, clipZone: 35, clipKeep: 10, jitLine: 0, jitHatch: 0, paperCol: "#ffffff", paperSvg: false, cullX: 50, cullY: 50, bandX: 50, bandY: 50, cellFill: "none", fillDens: 100, vorSmooth: 0, cull: "off", cullAt: 70, cullSoft: 30, bands: "off", bandN: 3, bandAngle: 0, bandBlend: 40, bandRev: false, showTarget: false, splitPens: false, pens: BRAND_PENS, showColours: false, techBold: true, techFrame: true, focus: null, repel: false, pull: 100, levels: 8, blobFill: "hatch", mode: "wave", size: "a4", shape: "p", margin: 10, spacing: 3.5, amp: 100, layers: 3, contrast: 1.3, bright: 0, pen: 0.3, invert: false, auto: true, pip: true };
+  const DEFAULTS = { mixDetail: 5, mixSeed: 1, truDetail: 60, autoFull: true, camUnder: false, camAlpha: 20, snowLook: "profile", snowMany: false, snowN: 18, etchVig: true, etchCurls: true, etchOutline: true, engHatch: "flow", engLines: "outline", engDots: true, clipZone: 35, clipKeep: 10, jitLine: 0, jitHatch: 0, paperCol: "#ffffff", paperSvg: false, cullX: 50, cullY: 50, bandX: 50, bandY: 50, cellFill: "none", fillDens: 100, vorSmooth: 0, cull: "off", cullAt: 70, cullSoft: 30, bands: "off", bandN: 3, bandAngle: 0, bandBlend: 40, bandRev: false, showTarget: false, splitPens: false, pens: BRAND_PENS, showColours: false, techBold: true, techFrame: true, focus: null, repel: false, pull: 100, levels: 8, blobFill: "hatch", mode: "wave", size: "a4", shape: "p", margin: 10, spacing: 3.5, amp: 100, layers: 3, contrast: 1.3, bright: 0, pen: 0.3, invert: false, auto: true, pip: true };
   const S = Object.assign({}, DEFAULTS);
   const KEY = "terrapen-camera-plot";
   try { Object.assign(S, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) {}
@@ -674,7 +675,7 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
   if (!["flow", "rigid", "facets"].includes(S.engHatch)) S.engHatch = "flow";
   if (!["profile", "lines"].includes(S.snowLook)) S.snowLook = "profile";
   if (!["none", "outline", "contours"].includes(S.engLines)) S.engLines = "outline";
-  if (!["wave","spiral","contour","flow","blobs","hatch","technical","duotone","engrave","etch","loop","snow","dots","hairs","arrows","suns","swirls","ascii","growth","voronoi","subdiv","ridges"].includes(S.mode)) S.mode = "wave";
+  if (!["wave","spiral","contour","flow","blobs","hatch","technical","duotone","engrave","etch","loop","snow","dots","hairs","arrows","suns","swirls","ascii","growth","voronoi","subdiv","ridges","truchet"].includes(S.mode)) S.mode = "wave";
   if (!SHAPES[S.shape]) S.shape = DEFAULTS.shape;
   if (!["none", "hatch", "cross", "grid", "iso", "zig", "stipple"].includes(S.cellFill)) S.cellFill = "none";
   if (!["off", "light", "dark", "flat", "radial"].includes(S.cull)) S.cull = "off";
@@ -685,11 +686,12 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
   const scaleOf = (size) => { const [a, b] = SIZES[size]; return Math.sqrt(a * b / (210 * 297)); };
   const store = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
 
-  const SPACE_NAMES = { wave: "Line spacing", spiral: "Ring spacing", flow: "Line spacing", blobs: "Fill spacing", hatch: "Hatch spacing", technical: "Hatch spacing", duotone: "Screen spacing", engrave: "Line spacing", etch: "Stroke spacing", loop: "Line spacing", snow: "Ice line spacing", dots: "Dot spacing", hairs: "Grid spacing", arrows: "Grid spacing", suns: "Grid spacing", swirls: "Grid spacing", ascii: "Character size", growth: "Cell size", voronoi: "Cell size", subdiv: "Mesh spacing", ridges: "Row spacing" };
-  const AMP_NAMES = { wave: "Wave height", spiral: "Wave height", flow: "Line length", blobs: "Blob amount", technical: "Shading", duotone: "Wave height", engrave: "Shading", etch: "Shading", loop: "Tone range", snow: "Branching", dots: "Dot size", hairs: "Hair length", arrows: "Arrow length", suns: "Sun size", swirls: "Swirl size", ascii: "Glyph size", growth: "Growth", voronoi: "Cell gap", subdiv: "Warp", ridges: "Relief height" };
+  const SPACE_NAMES = { wave: "Line spacing", spiral: "Ring spacing", flow: "Line spacing", blobs: "Fill spacing", hatch: "Hatch spacing", technical: "Hatch spacing", duotone: "Screen spacing", engrave: "Line spacing", etch: "Stroke spacing", loop: "Line spacing", snow: "Ice line spacing", dots: "Dot spacing", hairs: "Grid spacing", arrows: "Grid spacing", suns: "Grid spacing", swirls: "Grid spacing", ascii: "Character size", growth: "Cell size", voronoi: "Cell size", subdiv: "Mesh spacing", ridges: "Row spacing", truchet: "Line spacing" };
+  const AMP_NAMES = { wave: "Wave height", spiral: "Wave height", flow: "Line length", blobs: "Blob amount", technical: "Shading", duotone: "Wave height", engrave: "Shading", etch: "Shading", loop: "Tone range", snow: "Branching", dots: "Dot size", hairs: "Hair length", arrows: "Arrow length", suns: "Sun size", swirls: "Swirl size", ascii: "Glyph size", growth: "Growth", voronoi: "Cell gap", subdiv: "Warp", ridges: "Relief height", truchet: "Line density" };
   const SLIDERS = [
     { id: "spacing", min: 0.5, max: 10, step: 0.1, dp: 1, unit: " mm", name: () => SPACE_NAMES[S.mode], modes: Object.keys(SPACE_NAMES) },
     { id: "amp", min: 0, max: 200, step: 5, dp: 0, unit: "%", name: () => AMP_NAMES[S.mode], modes: Object.keys(AMP_NAMES) },
+    { id: "truDetail", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => "Shape detail", modes: ["truchet"] },
     { id: "vorSmooth", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => "Curve smoothing", modes: ["voronoi"] },
     { id: "fillDens", min: 20, max: 250, step: 5, dp: 0, unit: "%", name: () => "Fill density", modes: ["voronoi", "subdiv"], when: () => S.cellFill !== "none" },
     { id: "clipZone", parent: "focusSliders", min: 0, max: 100, step: 1, dp: 0, unit: "%", name: () => "Thin zone", when: () => !!S.focus },
@@ -862,7 +864,7 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
     hatch: ["Vanishing point", "Vanishing point"], technical: ["Vanishing point", "Vanishing point"], duotone: ["Pinch", "Bulge"], engrave: ["Converge", "Radiate"], etch: ["Converge", "Radiate"], loop: ["Tighter here", "Looser here"], snow: ["Flake centre", "Flake centre"], dots: ["Ring grid", "Ring grid"],
     hairs: ["Magnet", "Circle comb"], arrows: ["Aim here", "Aim away"], suns: ["Rays reach", "Rays recoil"],
     swirls: ["Orbit", "Counter-orbit"], ascii: ["Ring grid", "Ring grid"], growth: ["Growth seed", "Growth seed"],
-    voronoi: ["Cells shrink", "Cells grow"], subdiv: ["Pinch", "Bulge"], ridges: ["Hill", "Pit"]
+    voronoi: ["Cells shrink", "Cells grow"], subdiv: ["Pinch", "Bulge"], ridges: ["Hill", "Pit"], truchet: ["Finer here", "Coarser here"]
   };
   const FOCUS_DESC = {
     wave: ["Lines pinch in towards the point", "Lines bulge away from the point"], spiral: ["The spiral starts at the point"],
@@ -873,7 +875,8 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
     hairs: ["Hairs comb towards the point", "Hairs circle the point"], arrows: ["Arrows aim at the point", "Arrows aim away from the point"],
     suns: ["Rays stretch towards the point", "Rays stretch away from the point"], swirls: ["Swirls orbit the point", "Swirls orbit the other way"],
     ascii: ["Characters sit on rings around the point"], growth: ["The pattern grows out from the point; Pull sets how far"],
-    voronoi: ["Cells get smaller towards the point", "Cells get bigger towards the point"], subdiv: ["The mesh pinches in towards the point", "The mesh bulges away from the point"], ridges: ["A hill rises at the point", "A pit sinks at the point"]
+    voronoi: ["Cells get smaller towards the point", "Cells get bigger towards the point"], subdiv: ["The mesh pinches in towards the point", "The mesh bulges away from the point"], ridges: ["A hill rises at the point", "A pit sinks at the point"],
+    truchet: ["Tiles get smaller around the point", "Tiles get bigger around the point"]
   };
   const focusDesc = () => { const d = FOCUS_DESC[S.mode] || ["The style reacts to the point"]; return d[S.repel && d[1] ? 1 : 0]; };
   const focusName = () => (FOCUS_NAMES[S.mode] || ["Focal point"])[S.repel ? 1 : 0] || "Focal point";
@@ -2234,6 +2237,64 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
     return out;
   }
 
+  // ---------------- truchet: quarter-circle tiles that follow the picture ----------------
+  // Smith tiles on a quadtree. Tiles split smaller wherever the picture changes (its edges and
+  // silhouette) and stay big where it is flat, so the tile sizes trace the subject's shape. Each tile
+  // is turned so its arcs run along the local edge, and darker tiles get extra nested arcs. The arcs
+  // sit symmetric about each edge's midpoint, a line spacing apart, so they join up with neighbours.
+  function genTruchet(d) {
+    const s = S.spacing, amp = S.amp / 100, out = [], f = focus(d), LV = 3, N = 4;
+    const top = 2.5 * s * (1 << LV);
+    const cols = Math.max(1, Math.round(d.dw / top)), rows = Math.max(1, Math.round(d.dh / top));
+    const TW = d.dw / cols, TH = d.dh / rows, thr0 = 0.015 + (1 - S.truDetail / 100) * 0.22;
+    // darkness statistics over an N×N sample of the tile: mean, spread and a tile-scale gradient
+    const stats = (x, y, w, h) => {
+      let m = 0, m2 = 0, gx = 0, gy = 0;
+      for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
+        const u = (i + 0.5) / N, v = (j + 0.5) / N, k = D(x + u * w, y + v * h);
+        m += k; m2 += k * k; gx += k * (u - 0.5); gy += k * (v - 0.5);
+      }
+      m /= N * N;
+      return { m, sd: Math.sqrt(Math.max(0, m2 / (N * N) - m * m)), gx, gy };
+    };
+    const arc = (cx, cy, rx, ry, a0, flip) => {
+      const n = Math.max(4, Math.round(Math.max(rx, ry) * 1.6)), pts = [];
+      for (let q = 0; q <= n; q++) { const a = a0 + (flip ? n - q : q) / n * Math.PI / 2; pts.push(cx + Math.cos(a) * rx, cy + Math.sin(a) * ry); }
+      return pts;
+    };
+    const tile = (x, y, w, h, lv, id) => {
+      const st = stats(x, y, w, h);
+      let thr = thr0 * (1 + lv * 0.25); // smaller tiles need a little more reason to split again
+      if (f) { const g = f.k * fall(f, x + w / 2, y + h / 2); thr *= f.s > 0 ? 1 - 0.85 * g : 1 + 3 * g; }
+      // split on detail (edges), and on tone too: big tiles leave their corners bare, so dark areas go finer
+      if (lv < LV && (st.sd > thr || st.m * amp > 0.4 + 0.2 * lv)) {
+        const w2 = w / 2, h2 = h / 2;
+        tile(x, y, w2, h2, lv + 1, id * 4); tile(x + w2, y, w2, h2, lv + 1, id * 4 + 1);
+        tile(x + w2, y + h2, w2, h2, lv + 1, id * 4 + 2); tile(x, y + h2, w2, h2, lv + 1, id * 4 + 3);
+        return;
+      }
+      const wm = Math.min(w, h), pMax = Math.floor(0.2 * wm / s);
+      const want = st.m * amp * (1 + 2 * pMax); // lines across each edge for this tone
+      if (want < 0.5 || st.m * amp < 0.15) return;
+      const P = clamp(Math.round((want - 1) / 2), 0, pMax);
+      // arcs about the top-left and bottom-right corners run along a "/" edge (gradient along "\")
+      const g = st.gx * st.gy, gm = st.gx * st.gx + st.gy * st.gy;
+      const diag = gm > 1e-6 && Math.abs(g) > 0.08 * gm ? g > 0 : hash(id, lv + 7) < 0.5;
+      const corners = diag ? [[x, y, 0], [x + w, y + h, Math.PI]] : [[x + w, y, Math.PI / 2], [x, y + h, Math.PI * 1.5]];
+      let flip = false;
+      for (const [cx, cy, a0] of corners) for (let j = -P; j <= P; j++) {
+        const o = 0.5 + j * s / wm;
+        out.push({ layer: 0, pts: arc(cx, cy, w * o, h * o, a0, flip) });
+        flip = !flip;
+      }
+    };
+    for (let j = 0; j < rows; j++) for (let k = 0; k < cols; k++) {
+      const i = j % 2 ? cols - 1 - k : k; // snake row by row to keep pen travel short
+      tile(d.mx + i * TW, d.my + j * TH, TW, TH, 0, j * cols + i + 1);
+    }
+    return out;
+  }
+
   // ---------------- growth: reaction-diffusion seeded and steered by the image ----------------
   function genGrowth(d) {
     const cell = Math.max(0.6, S.spacing * 0.5);
@@ -2854,7 +2915,7 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
     return out;
   }
 
-  const GEN = { voronoi: genVoronoi, subdiv: genSubdiv, ridges: genRidges, technical: genTechnical, duotone: genDuotone, wave: genWave, hatch: genHatch, spiral: genSpiral, dots: genDots, contour: genContour, flow: genFlow, engrave: genEngrave, etch: genEtch, loop: genLoop, snow: genSnow, blobs: genBlobs, hairs: genHairs, arrows: genArrows, suns: genSuns, swirls: genSwirls, ascii: genAscii, growth: genGrowth };
+  const GEN = { voronoi: genVoronoi, subdiv: genSubdiv, ridges: genRidges, technical: genTechnical, duotone: genDuotone, wave: genWave, hatch: genHatch, spiral: genSpiral, dots: genDots, contour: genContour, flow: genFlow, engrave: genEngrave, etch: genEtch, loop: genLoop, snow: genSnow, blobs: genBlobs, hairs: genHairs, arrows: genArrows, suns: genSuns, swirls: genSwirls, ascii: genAscii, growth: genGrowth, truchet: genTruchet };
 
   // ---------------- viewport: fit, zoom, pan ----------------
   const stage = $("stage"), paperEl = $("paper"), view = $("view"), vctx = view.getContext("2d");

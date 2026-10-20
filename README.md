@@ -95,6 +95,7 @@ Long-press the picture to drop a point that the current style reacts to. A targe
 | Growth  | Grows only around the point; Pull sets how far | same                   |
 | Voronoi | Cells shrink towards the point (attract) or grow (repel) | same |
 | Subdiv  | Mesh is pulled towards the point | same |
+| Truchet | Tiles get smaller around the point | Tiles get bigger around the point |
 | Ridges  | Raises (attract) or sinks (repel) a bump at the point | same |
 
 ## Top bar
@@ -130,6 +131,7 @@ Long-press the picture to drop a point that the current style reacts to. A targe
 | Growth  | Reaction-diffusion pattern grown inside the dark areas                        |
 | Voronoi | Cells packed small in the dark areas and large in the light; Cell gap shrinks each cell into its own outline, with extra rings in the darkest |
 | Subdiv  | A quad mesh pulled towards the dark areas and smoothed with Catmull-Clark subdivision (rows on pen 1, columns on pen 2) |
+| Truchet | Quarter-circle Truchet tiles on a quadtree: tiles shrink along the subject's edges so their sizes trace its shape, each tile turns its arcs to run along the local edge, and darker tiles get extra nested arcs. Shape detail sets how readily tiles split |
 | Ridges  | Rows lifted by the image as a height field, with hidden lines removed, like a joy-division plot |
 
 Contour, Flow, Hairs, Arrows, Suns, Swirls, ASCII and Growth are ported from
