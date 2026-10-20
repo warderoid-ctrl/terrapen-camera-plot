@@ -1,8 +1,7 @@
 <p align="center"><img src="icons/logo.svg" width="160" alt="terraLens logo: a lens filled with wave lines"></p>
 
-# terraLens
+# plotterLens
 
-*Formerly terraPen Camera Plot.*
 
 
 Point your phone camera at something and turn it into pen-plotter line art in real time, then save an SVG ready for the [terraPen](https://terrapen.xyz) (or any plotter).
