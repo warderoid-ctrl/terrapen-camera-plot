@@ -1128,6 +1128,9 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
     let cw = sw, ch = sw / ar;
     if (ch > sh) { ch = sh; cw = sh * ar; }
     const mirror = live && facing === "user" && src === video;
+    // The working canvases are reused, so wipe them first: anything transparent in the source would
+    // otherwise let the previous picture show through and be traced as a ghost.
+    exCtx.fillStyle = "#fff"; exCtx.fillRect(0, 0, w, h);
     exCtx.save();
     if (mirror) { exCtx.translate(w, 0); exCtx.scale(-1, 1); }
     exCtx.drawImage(src, (sw - cw) / 2, (sh - ch) / 2, cw, ch, 0, 0, w, h);
@@ -1135,6 +1138,7 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
     if (S.camUnder) { // a sharper copy of the same crop, drawn faintly under the lines in the preview
       const us = Math.min(1, 1000 / Math.max(cw, ch)), uw = Math.max(8, Math.round(cw * us)), uh = Math.max(8, Math.round(ch * us));
       if (under.width !== uw || under.height !== uh) { under.width = uw; under.height = uh; }
+      underCtx.fillStyle = "#fff"; underCtx.fillRect(0, 0, uw, uh);
       underCtx.save();
       if (mirror) { underCtx.translate(uw, 0); underCtx.scale(-1, 1); }
       underCtx.drawImage(src, (sw - cw) / 2, (sh - ch) / 2, cw, ch, 0, 0, uw, uh);
@@ -3364,6 +3368,7 @@ body.galopen .toast { z-index: 40; left: 50%; bottom: calc(env(safe-area-inset-b
   function setStill(src, w, h) {
     const c = document.createElement("canvas"); c.width = w; c.height = h;
     const cx = c.getContext("2d");
+    cx.fillStyle = "#fff"; cx.fillRect(0, 0, w, h); // transparent parts of a PNG read as blank paper
     if (src === video && facing === "user") { cx.translate(w, 0); cx.scale(-1, 1); }
     cx.drawImage(src, 0, 0, w, h);
     still = c; needExtract = true;
